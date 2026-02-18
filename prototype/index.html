@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aesthetic Lounge Official — Where Science Meets Beauty</title>
+  <meta name="description" content="Premium medical aesthetics clinic in DHA Lahore. Expert doctors, 80+ treatments, personalized care.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --white: #FFFFFF;
+      --cream: #FAF9F6;
+      --warm-white: #F5F3EF;
+      --gold: #B8924A;
+      --gold-light: #D4B876;
+      --gold-dark: #96742F;
+      --gold-pale: #F0E6D0;
+      --gold-shimmer: linear-gradient(135deg, #D4B876 0%, #B8924A 40%, #96742F 70%, #D4B876 100%);
+      --text: #1A1A1A;
+      --text-light: #6B6B6B;
+      --text-lighter: #999999;
+      --border: #EAEAEA;
+      --border-light: #F0F0F0;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 8px 30px rgba(0,0,0,0.06);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.08);
+      --shadow-gold: 0 8px 30px rgba(184,146,74,0.15);
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-elegant: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-out: cubic-bezier(0, 0, 0.2, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--white);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    button { cursor: pointer; border: none; font-family: inherit; background: none; }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* =============================================
+       REVEAL ANIMATIONS
+       ============================================= */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.12s; }
+    .reveal-delay-2 { transition-delay: 0.24s; }
+    .reveal-delay-3 { transition-delay: 0.36s; }
+    .reveal-delay-4 { transition-delay: 0.48s; }
+
+    .reveal-slide-left {
+      opacity: 0;
+      transform: translateX(-60px);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+    .reveal-slide-right {
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+    .reveal-slide-left.visible,
+    .reveal-slide-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+    .reveal-scale.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* =============================================
+       HEADER
+       ============================================= */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 24px 0;
+      transition: all 0.5s var(--ease);
+    }
+    .header.scrolled {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 16px 0;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gold-shimmer);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      background-size: 200% 200%;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .logo-text span {
+      color: var(--gold);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .nav a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-light);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.3s var(--ease);
+      position: relative;
+    }
+    .nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: var(--gold);
+      transition: width 0.3s var(--ease);
+    }
+    .nav a:hover { color: var(--gold); }
+    .nav a:hover::after { width: 100%; }
+
+    .btn-book {
+      padding: 12px 28px;
+      background: var(--gold-shimmer);
+      background-size: 200% 200%;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      transition: all 0.4s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-book::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .btn-book:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-gold);
+    }
+    .btn-book:hover::before { opacity: 1; }
+
+    .mobile-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px;
+    }
+    .mobile-toggle span {
+      width: 24px;
+      height: 1.5px;
+      background: var(--text);
+      transition: all 0.3s var(--ease);
+    }
+    .mobile-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .mobile-toggle.open span:nth-child(2) { opacity: 0; }
+    .mobile-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* =============================================
+       HERO
+       ============================================= */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--cream);
+    }
+    /* Soft gold radial glow */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 70%;
+      height: 130%;
+      background: radial-gradient(ellipse, rgba(212,184,118,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    /* Subtle pattern overlay */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(184,146,74,0.04) 1px, transparent 0);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .hero .container {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      padding-top: 120px;
+      padding-bottom: 80px;
+    }
+
+    .hero-content { max-width: 580px; }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 32px;
+      height: 1.5px;
+      background: var(--gold);
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 5.5vw, 68px);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-text {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--text-light);
+      margin-bottom: 44px;
+      max-width: 460px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 56px;
+    }
+    .btn-primary {
+      padding: 16px 40px;
+      background: var(--text);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      border-radius: 6px;
+      transition: all 0.4s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary:hover {
+      background: var(--gold-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-light);
+      transition: color 0.3s var(--ease);
+    }
+    .btn-secondary:hover { color: var(--gold); }
+    .btn-secondary .play-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s var(--ease);
+    }
+    .btn-secondary:hover .play-icon {
+      border-color: var(--gold);
+      background: rgba(184,146,74,0.06);
+    }
+
+    .hero-proof {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .hero-proof-avatars {
+      display: flex;
+    }
+    .hero-proof-avatars span {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2.5px solid var(--cream);
+      margin-left: -10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .hero-proof-avatars span:first-child { margin-left: 0; }
+    .hero-proof-avatars span:nth-child(1) { background: linear-gradient(135deg, #F0E6D0, #D4B876); color: var(--gold-dark); }
+    .hero-proof-avatars span:nth-child(2) { background: linear-gradient(135deg, #E8DDD0, #C9B090); color: #8B7355; }
+    .hero-proof-avatars span:nth-child(3) { background: linear-gradient(135deg, #D4B876, #B8924A); color: white; }
+    .hero-proof-avatars span:nth-child(4) { background: linear-gradient(135deg, #F5E6D0, #E0C89C); color: var(--gold-dark); }
+    .hero-proof-text {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+    .hero-proof-text strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .hero-proof-stars {
+      color: #E5A100;
+      letter-spacing: 2px;
+    }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+    }
+    .hero-image-main {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: 200px 200px 24px 24px;
+      background: linear-gradient(160deg, var(--warm-white) 0%, var(--gold-pale) 100%);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .hero-image-main .placeholder-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--gold);
+      font-size: 80px;
+    }
+    .hero-image-main .placeholder-content span {
+      font-size: 14px;
+      color: var(--text-lighter);
+      font-weight: 500;
+    }
+
+    /* Floating badges on hero image */
+    .hero-float-badge {
+      position: absolute;
+      background: white;
+      border-radius: 14px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: gentle-float 4s ease-in-out infinite;
+      z-index: 3;
+    }
+    @keyframes gentle-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .hero-float-badge.badge-top {
+      top: 8%;
+      right: -32px;
+      animation-delay: 0s;
+    }
+    .hero-float-badge.badge-bottom {
+      bottom: 12%;
+      left: -32px;
+      animation-delay: 2s;
+    }
+    .hero-float-badge .badge-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(184,146,74,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .hero-float-badge .badge-text {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    .hero-float-badge .badge-text strong {
+      display: block;
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* Gold decorative ring */
+    .hero-ring {
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold-light);
+      opacity: 0.3;
+      animation: spin-slow 20s linear infinite;
+    }
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+    /* =============================================
+       MARQUEE
+       ============================================= */
+    .marquee {
+      padding: 28px 0;
+      border-top: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      overflow: hidden;
+      background: var(--white);
+    }
+    .marquee-track {
+      display: flex;
+      gap: 56px;
+      animation: marquee-scroll 30s linear infinite;
+      width: max-content;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-item {
+      font-family: var(--font-elegant);
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-lighter);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 56px;
+      letter-spacing: 0.02em;
+    }
+    .marquee-item::after {
+      content: '✦';
+      font-size: 10px;
+      color: var(--gold-light);
+    }
+    @keyframes marquee-scroll {
+      to { transform: translateX(-50%); }
+    }
+
+    /* =============================================
+       ABOUT INTRO
+       ============================================= */
+    .about-intro {
+      padding: 140px 0;
+      background: var(--white);
+    }
+    .about-intro .container {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 100px;
+      align-items: center;
+    }
+    .about-images {
+      position: relative;
+    }
+    .about-img-primary {
+      width: 85%;
+      aspect-ratio: 3/4;
+      border-radius: 16px;
+      background: linear-gradient(160deg, var(--warm-white), var(--gold-pale));
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: var(--gold-light);
+    }
+    .about-img-secondary {
+      position: absolute;
+      bottom: -30px;
+      right: 0;
+      width: 55%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--gold-pale), var(--warm-white));
+      box-shadow: var(--shadow-lg);
+      border: 5px solid var(--white);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: var(--gold-light);
+    }
+    .about-exp-badge {
+      position: absolute;
+      top: -16px;
+      right: 20%;
+      background: var(--text);
+      color: white;
+      border-radius: 14px;
+      padding: 20px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+    .about-exp-badge .number {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--gold-light);
+    }
+    .about-exp-badge .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .about-text .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .about-text .section-eyebrow::before {
+      content: '';
+      width: 32px;
+      height: 1.5px;
+      background: var(--gold);
+    }
+    .about-text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+    .about-text h2 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .about-text .desc {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--text-light);
+      margin-bottom: 36px;
+    }
+    .about-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .about-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      transition: background 0.3s var(--ease);
+    }
+    .about-feature:hover { background: var(--cream); }
+    .about-feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(184,146,74,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .about-feature h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .about-feature p {
+      font-size: 13px;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    /* =============================================
+       SERVICES
+       ============================================= */
+    .services {
+      padding: 140px 0;
+      background: var(--cream);
+      position: relative;
+    }
+
+    .section-header {
+      margin-bottom: 64px;
+    }
+    .section-header.center { text-align: center; }
+    .section-header .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .section-header.center .section-eyebrow { justify-content: center; }
+    .section-header .section-eyebrow::before {
+      content: '';
+      width: 32px;
+      height: 1.5px;
+      background: var(--gold);
+    }
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-header h2 em { font-style: italic; color: var(--gold); }
+    .section-header p {
+      color: var(--text-light);
+      font-size: 16px;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+    .section-header.center p { margin: 0 auto; }
+
+    .services-bento {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 200px;
+      gap: 16px;
+    }
+    .service-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      transition: all 0.5s var(--ease);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 30%, rgba(26,26,26,0.03) 100%);
+      transition: opacity 0.4s;
+      opacity: 0;
+    }
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--gold-light);
+    }
+    .service-card:hover::before { opacity: 1; }
+
+    .service-card.span-2 { grid-column: span 2; }
+    .service-card.tall { grid-row: span 2; }
+
+    .service-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      transition: transform 0.4s var(--ease-spring);
+    }
+    .service-card:hover .service-icon { transform: scale(1.15); }
+    .service-card h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      transition: color 0.3s;
+    }
+    .service-card:hover h3 { color: var(--gold-dark); }
+    .service-card .count {
+      font-size: 13px;
+      color: var(--text-lighter);
+      font-weight: 500;
+    }
+    .service-card .service-arrow {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translate(-8px, 8px);
+      transition: all 0.4s var(--ease);
+      color: var(--gold);
+      font-size: 14px;
+    }
+    .service-card:hover .service-arrow {
+      opacity: 1;
+      transform: translate(0, 0);
+      border-color: var(--gold-light);
+      background: rgba(184,146,74,0.06);
+    }
+
+    /* Featured service card (tall) has bg image area */
+    .service-card.featured {
+      background: linear-gradient(160deg, var(--gold-pale) 0%, var(--warm-white) 60%, var(--white) 100%);
+      border: none;
+    }
+    .service-card.featured h3 { font-size: 24px; }
+
+    /* =============================================
+       STATS
+       ============================================= */
+    .stats {
+      padding: 80px 0;
+      background: var(--text);
+      position: relative;
+      overflow: hidden;
+    }
+    .stats::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(184,146,74,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 50%, rgba(184,146,74,0.05) 0%, transparent 50%);
+    }
+    .stats .container { position: relative; z-index: 1; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 48px;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 5vw, 60px);
+      font-weight: 700;
+      background: var(--gold-shimmer);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    .stat-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* =============================================
+       DOCTORS
+       ============================================= */
+    .doctors {
+      padding: 140px 0;
+      background: var(--white);
+    }
+    .doctors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    .doctor-card {
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--cream);
+      transition: all 0.5s var(--ease);
+      border: 1px solid transparent;
+    }
+    .doctor-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--gold-light);
+    }
+    .doctor-photo {
+      aspect-ratio: 3/4;
+      background: linear-gradient(160deg, var(--warm-white) 0%, var(--gold-pale) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .doctor-photo .placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      color: var(--gold-light);
+      opacity: 0.5;
+    }
+    .doctor-photo::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(transparent, rgba(250,249,246,0.5));
+    }
+    .doctor-info { padding: 28px 28px 32px; }
+    .doctor-info h3 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .doctor-info .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+    .doctor-info .bio {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.7;
+    }
+    .doctor-socials {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .doctor-socials a {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .doctor-socials a:hover {
+      border-color: var(--gold);
+      background: rgba(184,146,74,0.06);
+    }
+
+    /* =============================================
+       BEFORE & AFTER
+       ============================================= */
+    .gallery {
+      padding: 140px 0 100px;
+      background: var(--cream);
+    }
+    .gallery-scroll-wrapper {
+      position: relative;
+    }
+    .gallery-scroll {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      padding: 0 32px 32px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .gallery-scroll::-webkit-scrollbar { display: none; }
+
+    .gallery-item {
+      flex: 0 0 380px;
+      scroll-snap-align: start;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      transition: all 0.4s var(--ease);
+    }
+    .gallery-item:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+    .gallery-comparison {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      cursor: ew-resize;
+      background: var(--warm-white);
+    }
+    .gallery-comparison .side {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-lighter);
+    }
+    .gallery-comparison .side-before {
+      background: linear-gradient(135deg, #F0ECE6, #E8E2DA);
+      clip-path: inset(0 50% 0 0);
+    }
+    .gallery-comparison .side-after {
+      background: linear-gradient(135deg, #F8F0E8, #F2E8D8);
+    }
+    .gallery-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: var(--gold);
+      z-index: 5;
+      transform: translateX(-50%);
+    }
+    .gallery-divider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      box-shadow: 0 2px 12px rgba(184,146,74,0.3);
+      z-index: 6;
+    }
+    .gallery-labels {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 7;
+    }
+    .gallery-label {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .gallery-label.lb { background: rgba(26,26,26,0.7); color: white; }
+    .gallery-label.la { background: var(--gold); color: white; }
+    .gallery-item-info {
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gallery-item-info strong {
+      font-size: 15px;
+    }
+    .gallery-item-info span {
+      font-size: 13px;
+      color: var(--text-lighter);
+    }
+
+    /* =============================================
+       TESTIMONIALS
+       ============================================= */
+    .testimonials {
+      padding: 140px 0;
+      background: var(--white);
+    }
+    .testimonials-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .testimonials-left {
+      position: sticky;
+      top: 120px;
+    }
+    .testimonials-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .testimonial-card {
+      padding: 36px;
+      border-radius: 20px;
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+      transition: all 0.4s var(--ease);
+    }
+    .testimonial-card:hover {
+      border-color: var(--gold-light);
+      box-shadow: var(--shadow-md);
+    }
+    .testimonial-stars {
+      color: #E5A100;
+      font-size: 15px;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+    }
+    .testimonial-quote {
+      font-family: var(--font-elegant);
+      font-size: 19px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 400;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--gold-shimmer);
+      background-size: 200% 200%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: white;
+    }
+    .testimonial-name {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .testimonial-treatment {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* =============================================
+       CTA
+       ============================================= */
+    .cta {
+      padding: 120px 0;
+      background: var(--text);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 40%, rgba(184,146,74,0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, rgba(184,146,74,0.06) 0%, transparent 50%);
+    }
+    .cta .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    .cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      color: white;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    .cta h2 em {
+      font-style: italic;
+      background: var(--gold-shimmer);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    .cta .sub {
+      font-size: 17px;
+      color: rgba(255,255,255,0.6);
+      max-width: 480px;
+      margin: 0 auto 44px;
+      line-height: 1.7;
+    }
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-gold {
+      padding: 18px 44px;
+      background: var(--gold-shimmer);
+      background-size: 200% 200%;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      transition: all 0.4s var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    .btn-gold:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(184,146,74,0.3);
+    }
+    .btn-white-outline {
+      padding: 18px 44px;
+      background: transparent;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      transition: all 0.4s var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-white-outline:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-3px);
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .footer {
+      background: #0D0D0D;
+      padding: 80px 0 0;
+      color: rgba(255,255,255,0.6);
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1.3fr;
+      gap: 48px;
+      padding-bottom: 64px;
+    }
+    .footer-brand-text {
+      font-size: 14px;
+      line-height: 1.8;
+      margin: 20px 0 28px;
+      max-width: 280px;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: white;
+    }
+    .footer-logo span { color: var(--gold-light); }
+    .footer-social {
+      display: flex;
+      gap: 10px;
+    }
+    .footer-social a {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+    .footer-social a:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: white;
+      transform: translateY(-2px);
+    }
+    .footer h4 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 24px;
+    }
+    .footer ul { list-style: none; }
+    .footer li { margin-bottom: 12px; }
+    .footer li a {
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    .footer li a:hover { color: var(--gold-light); }
+    .footer-contact-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .footer-contact-row .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(184,146,74,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .footer-contact-row .text {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .footer-contact-row .text strong {
+      color: white;
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+    .footer-bar {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    /* =============================================
+       WHATSAPP FLOAT
+       ============================================= */
+    .whatsapp-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 900;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #25D366;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+      transition: all 0.3s var(--ease);
+    }
+    .whatsapp-btn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid rgba(37,211,102,0.3);
+      animation: wa-pulse 2s ease-in-out infinite;
+    }
+    @keyframes wa-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0; }
+    }
+    .whatsapp-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 30px rgba(37,211,102,0.45);
+    }
+    .whatsapp-btn svg { width: 30px; height: 30px; fill: white; }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 1024px) {
+      .hero .container { grid-template-columns: 1fr; gap: 48px; }
+      .hero-visual { max-width: 420px; margin: 0 auto; }
+      .about-intro .container { grid-template-columns: 1fr; gap: 60px; }
+      .services-bento { grid-template-columns: repeat(2, 1fr); }
+      .service-card.span-2 { grid-column: span 1; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .doctors-grid { grid-template-columns: repeat(2, 1fr); }
+      .testimonials-layout { grid-template-columns: 1fr; gap: 48px; }
+      .testimonials-left { position: static; }
+      .footer-top { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 0 20px; }
+      .nav { display: none; }
+      .nav.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.98);
+        backdrop-filter: blur(20px);
+        padding: 24px 32px;
+        gap: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .mobile-toggle { display: flex; }
+
+      .hero { min-height: auto; padding: 120px 0 80px; }
+      .hero-float-badge { display: none; }
+      .hero-proof { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+      .about-intro, .services, .doctors, .gallery, .testimonials { padding: 80px 0; }
+      .about-features { grid-template-columns: 1fr; }
+
+      .services-bento {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+      }
+      .service-card { aspect-ratio: auto; min-height: 160px; }
+      .service-card.tall { grid-row: span 1; }
+
+      .stats { padding: 60px 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+
+      .doctors-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+
+      .gallery-item { flex: 0 0 300px; }
+
+      .footer-top { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bar { flex-direction: column; gap: 8px; text-align: center; }
+
+      .cta-buttons { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================= HEADER ============================================= -->
+  <header class="header" id="header">
+    <div class="container">
+      <a href="#" class="logo">
+        <div class="logo-mark">A</div>
+        <div class="logo-text">Aesthetic <span>Lounge</span></div>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="#services">Services</a>
+        <a href="#doctors">Doctors</a>
+        <a href="#results">Results</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a href="#book" class="btn-book">Book a Visit</a>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================= HERO ============================================= -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-eyebrow reveal">DHA Lahore's Premier Clinic</div>
+        <h1 class="reveal reveal-delay-1">Where Science Meets <em>Beauty</em></h1>
+        <p class="hero-text reveal reveal-delay-2">
+          Experience world-class aesthetic treatments from Lahore's most trusted dermatologists.
+          We combine artistry and science to bring out your natural beauty — safely and beautifully.
+        </p>
+        <div class="hero-actions reveal reveal-delay-3">
+          <a href="#book" class="btn-primary">Book Free Consultation</a>
+          <a href="#results" class="btn-secondary">
+            <span class="play-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+            See Results
+          </a>
+        </div>
+        <div class="hero-proof reveal reveal-delay-4">
+          <div class="hero-proof-avatars">
+            <span>A</span><span>S</span><span>F</span><span>K</span>
+          </div>
+          <div class="hero-proof-text">
+            <div class="hero-proof-stars">★★★★★</div>
+            <strong>4.8</strong> from <strong>1,000+</strong> happy clients
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual reveal-slide-right">
+        <div class="hero-ring"></div>
+        <div class="hero-image-main">
+          <div class="placeholder-content">
+            ✦
+            <span>Clinic photo</span>
+          </div>
+        </div>
+        <div class="hero-float-badge badge-top">
+          <div class="badge-icon">⚡</div>
+          <div class="badge-text"><strong>80+</strong>Treatments</div>
+        </div>
+        <div class="hero-float-badge badge-bottom">
+          <div class="badge-icon">🏆</div>
+          <div class="badge-text"><strong>8+ Years</strong>of Excellence</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= MARQUEE ============================================= -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <span class="marquee-item">Dermal Fillers</span>
+      <span class="marquee-item">Botox</span>
+      <span class="marquee-item">Laser Treatment</span>
+      <span class="marquee-item">Skin Rejuvenation</span>
+      <span class="marquee-item">HydraFacial</span>
+      <span class="marquee-item">Chemical Peels</span>
+      <span class="marquee-item">Thread Lifts</span>
+      <span class="marquee-item">Hair Restoration</span>
+      <span class="marquee-item">Body Contouring</span>
+      <span class="marquee-item">PRP Therapy</span>
+      <span class="marquee-item">Dental Aesthetics</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item">Dermal Fillers</span>
+      <span class="marquee-item">Botox</span>
+      <span class="marquee-item">Laser Treatment</span>
+      <span class="marquee-item">Skin Rejuvenation</span>
+      <span class="marquee-item">HydraFacial</span>
+      <span class="marquee-item">Chemical Peels</span>
+      <span class="marquee-item">Thread Lifts</span>
+      <span class="marquee-item">Hair Restoration</span>
+      <span class="marquee-item">Body Contouring</span>
+      <span class="marquee-item">PRP Therapy</span>
+      <span class="marquee-item">Dental Aesthetics</span>
+    </div>
+  </div>
+
+  <!-- ============================================= ABOUT INTRO ============================================= -->
+  <section class="about-intro" id="about">
+    <div class="container">
+      <div class="about-images reveal-slide-left">
+        <div class="about-img-primary">✦</div>
+        <div class="about-img-secondary">✦</div>
+        <div class="about-exp-badge">
+          <div class="number">8+</div>
+          <div class="label">Years</div>
+        </div>
+      </div>
+      <div class="about-text">
+        <div class="section-eyebrow reveal">About The Clinic</div>
+        <h2 class="reveal reveal-delay-1">A Sanctuary for <em>Transformation</em></h2>
+        <p class="desc reveal reveal-delay-2">
+          Aesthetic Lounge Official is DHA Lahore's leading medical aesthetics clinic.
+          Founded on the belief that everyone deserves to feel confident, we bring together
+          board-certified dermatologists, the latest technology, and a warm, welcoming environment.
+        </p>
+        <div class="about-features">
+          <div class="about-feature reveal reveal-delay-1">
+            <div class="about-feature-icon">👨‍⚕️</div>
+            <div>
+              <h4>Board-Certified Doctors</h4>
+              <p>FCPS-qualified with international training</p>
+            </div>
+          </div>
+          <div class="about-feature reveal reveal-delay-2">
+            <div class="about-feature-icon">🔬</div>
+            <div>
+              <h4>FDA-Approved Products</h4>
+              <p>Only the safest, proven treatments</p>
+            </div>
+          </div>
+          <div class="about-feature reveal reveal-delay-3">
+            <div class="about-feature-icon">🎯</div>
+            <div>
+              <h4>Personalized Plans</h4>
+              <p>Tailored to your skin and goals</p>
+            </div>
+          </div>
+          <div class="about-feature reveal reveal-delay-4">
+            <div class="about-feature-icon">💎</div>
+            <div>
+              <h4>Premium Experience</h4>
+              <p>Luxury clinic, world-class results</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= SERVICES ============================================= -->
+  <section class="services" id="services">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-eyebrow">What We Offer</div>
+        <h2>Our <em>Services</em></h2>
+        <p>Comprehensive aesthetic solutions — from subtle enhancements to full transformations.</p>
+      </div>
+
+      <div class="services-bento">
+
+        <div class="service-card featured tall reveal">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">💉</div>
+          <h3>Dermal Fillers</h3>
+          <span class="count">8 treatments</span>
+        </div>
+
+        <div class="service-card span-2 reveal reveal-delay-1">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">✨</div>
+          <h3>Botox & Anti-Wrinkle</h3>
+          <span class="count">6 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-2">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🔬</div>
+          <h3>Laser Treatments</h3>
+          <span class="count">12 treatments</span>
+        </div>
+
+        <div class="service-card reveal">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">💎</div>
+          <h3>Skin Rejuvenation</h3>
+          <span class="count">10 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-1">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🧴</div>
+          <h3>Chemical Peels</h3>
+          <span class="count">5 treatments</span>
+        </div>
+
+        <div class="service-card span-2 featured reveal reveal-delay-2">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">💆</div>
+          <h3>HydraFacial</h3>
+          <span class="count">3 treatments</span>
+        </div>
+
+        <div class="service-card reveal">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🪡</div>
+          <h3>Thread Lifts</h3>
+          <span class="count">4 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-1">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🦷</div>
+          <h3>Dental Aesthetics</h3>
+          <span class="count">6 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-2">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">💇</div>
+          <h3>Hair Restoration</h3>
+          <span class="count">5 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-3">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🏋️</div>
+          <h3>Body Contouring</h3>
+          <span class="count">7 treatments</span>
+        </div>
+
+        <div class="service-card reveal reveal-delay-4">
+          <div class="service-arrow">→</div>
+          <div class="service-icon">🌟</div>
+          <h3>PRP Therapy</h3>
+          <span class="count">4 treatments</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= STATS ============================================= -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <div class="stat-number" data-target="1000" data-suffix="+">0</div>
+          <div class="stat-label">Happy Clients</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-1">
+          <div class="stat-number" data-target="80" data-suffix="+">0</div>
+          <div class="stat-label">Treatments</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-2">
+          <div class="stat-number" data-target="3" data-suffix="">0</div>
+          <div class="stat-label">Expert Doctors</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-3">
+          <div class="stat-number" data-target="8" data-suffix="+">0</div>
+          <div class="stat-label">Years Experience</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= DOCTORS ============================================= -->
+  <section class="doctors" id="doctors">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-eyebrow">Expert Team</div>
+        <h2>Meet Our <em>Doctors</em></h2>
+        <p>Your beauty is in the hands of the best. Internationally trained, locally loved.</p>
+      </div>
+      <div class="doctors-grid">
+
+        <div class="doctor-card reveal">
+          <div class="doctor-photo"><div class="placeholder">👩‍⚕️</div></div>
+          <div class="doctor-info">
+            <h3>Dr. Sarah Ahmed</h3>
+            <div class="title">Lead Dermatologist</div>
+            <p class="bio">MBBS, FCPS Dermatology. Specializing in laser treatments, anti-aging, and skin rejuvenation with 10+ years of experience.</p>
+            <div class="doctor-socials">
+              <a href="#">in</a>
+              <a href="#">ig</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="doctor-card reveal reveal-delay-1">
+          <div class="doctor-photo"><div class="placeholder">👨‍⚕️</div></div>
+          <div class="doctor-info">
+            <h3>Dr. Ali Khan</h3>
+            <div class="title">Aesthetic Surgeon</div>
+            <p class="bio">MBBS, MRCS. Expert in facial contouring, dermal fillers, and non-surgical nose reshaping procedures.</p>
+            <div class="doctor-socials">
+              <a href="#">in</a>
+              <a href="#">ig</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="doctor-card reveal reveal-delay-2">
+          <div class="doctor-photo"><div class="placeholder">👩‍⚕️</div></div>
+          <div class="doctor-info">
+            <h3>Dr. Fatima Rizvi</h3>
+            <div class="title">Cosmetic Dentist</div>
+            <p class="bio">BDS, MDS Prosthodontics. Specializing in smile makeovers, porcelain veneers, and dental aesthetics.</p>
+            <div class="doctor-socials">
+              <a href="#">in</a>
+              <a href="#">ig</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= BEFORE & AFTER ============================================= -->
+  <section class="gallery" id="results">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-eyebrow">Real Results</div>
+        <h2>Before &amp; <em>After</em></h2>
+        <p>Swipe through real transformations from real clients. No filters, no editing.</p>
+      </div>
+    </div>
+    <div class="gallery-scroll">
+
+      <div class="gallery-item reveal">
+        <div class="gallery-comparison">
+          <div class="side side-after">After</div>
+          <div class="side side-before">Before</div>
+          <div class="gallery-divider"><div class="gallery-divider-handle">⟷</div></div>
+          <div class="gallery-labels">
+            <span class="gallery-label lb">Before</span>
+            <span class="gallery-label la">After</span>
+          </div>
+        </div>
+        <div class="gallery-item-info">
+          <strong>Lip Enhancement</strong>
+          <span>Dermal Fillers</span>
+        </div>
+      </div>
+
+      <div class="gallery-item reveal reveal-delay-1">
+        <div class="gallery-comparison">
+          <div class="side side-after">After</div>
+          <div class="side side-before">Before</div>
+          <div class="gallery-divider"><div class="gallery-divider-handle">⟷</div></div>
+          <div class="gallery-labels">
+            <span class="gallery-label lb">Before</span>
+            <span class="gallery-label la">After</span>
+          </div>
+        </div>
+        <div class="gallery-item-info">
+          <strong>Acne Scarring</strong>
+          <span>Chemical Peel + PRP</span>
+        </div>
+      </div>
+
+      <div class="gallery-item reveal reveal-delay-2">
+        <div class="gallery-comparison">
+          <div class="side side-after">After</div>
+          <div class="side side-before">Before</div>
+          <div class="gallery-divider"><div class="gallery-divider-handle">⟷</div></div>
+          <div class="gallery-labels">
+            <span class="gallery-label lb">Before</span>
+            <span class="gallery-label la">After</span>
+          </div>
+        </div>
+        <div class="gallery-item-info">
+          <strong>Pigmentation</strong>
+          <span>Laser Treatment</span>
+        </div>
+      </div>
+
+      <div class="gallery-item reveal reveal-delay-3">
+        <div class="gallery-comparison">
+          <div class="side side-after">After</div>
+          <div class="side side-before">Before</div>
+          <div class="gallery-divider"><div class="gallery-divider-handle">⟷</div></div>
+          <div class="gallery-labels">
+            <span class="gallery-label lb">Before</span>
+            <span class="gallery-label la">After</span>
+          </div>
+        </div>
+        <div class="gallery-item-info">
+          <strong>Skin Glow</strong>
+          <span>HydraFacial</span>
+        </div>
+      </div>
+
+      <div class="gallery-item reveal reveal-delay-4">
+        <div class="gallery-comparison">
+          <div class="side side-after">After</div>
+          <div class="side side-before">Before</div>
+          <div class="gallery-divider"><div class="gallery-divider-handle">⟷</div></div>
+          <div class="gallery-labels">
+            <span class="gallery-label lb">Before</span>
+            <span class="gallery-label la">After</span>
+          </div>
+        </div>
+        <div class="gallery-item-info">
+          <strong>Forehead Lines</strong>
+          <span>Botox</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================= TESTIMONIALS ============================================= -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="testimonials-layout">
+        <div class="testimonials-left">
+          <div class="section-header reveal">
+            <div class="section-eyebrow">Testimonials</div>
+            <h2>Words from Our <em>Clients</em></h2>
+            <p>Over 1,000 clients trust us with their beauty. Here's what they have to say.</p>
+          </div>
+        </div>
+        <div class="testimonials-cards">
+
+          <div class="testimonial-card reveal">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-quote">
+              The team at Aesthetic Lounge completely transformed my skin. After years of dealing with acne scars,
+              I finally feel confident going out without makeup. The results exceeded every expectation I had.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">AK</div>
+              <div>
+                <div class="testimonial-name">Ayesha K.</div>
+                <div class="testimonial-treatment">Chemical Peel + PRP</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card reveal reveal-delay-1">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-quote">
+              Dr. Ali is an absolute artist with fillers. The results look incredibly natural — nobody can tell I
+              had anything done, but everyone says I look refreshed and younger. That's exactly what I wanted.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">SM</div>
+              <div>
+                <div class="testimonial-name">Sana M.</div>
+                <div class="testimonial-treatment">Dermal Fillers</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card reveal reveal-delay-2">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-quote">
+              Best HydraFacial experience in Lahore. The clinic is immaculate, staff is warm and professional,
+              and my skin has never glowed like this. I come back every month — it's become my self-care ritual.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">FR</div>
+              <div>
+                <div class="testimonial-name">Farah R.</div>
+                <div class="testimonial-treatment">HydraFacial</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card reveal reveal-delay-3">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-quote">
+              I was nervous about Botox but Dr. Sarah made me feel completely at ease. She explained everything,
+              the procedure was painless, and the results are so subtle and beautiful. Highly recommend.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">NZ</div>
+              <div>
+                <div class="testimonial-name">Nadia Z.</div>
+                <div class="testimonial-treatment">Botox</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= CTA ============================================= -->
+  <section class="cta" id="book">
+    <div class="container">
+      <h2 class="reveal">Ready to Begin Your <em>Transformation?</em></h2>
+      <p class="sub reveal reveal-delay-1">Book a free consultation with our experts. No pressure, just honest advice tailored to you.</p>
+      <div class="cta-buttons reveal reveal-delay-2">
+        <a href="tel:+924235761234" class="btn-gold">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          Call Us Now
+        </a>
+        <a href="https://wa.me/923001234567?text=Hi%2C%20I'd%20like%20to%20book%20a%20consultation" class="btn-white-outline" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp Us
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= FOOTER ============================================= -->
+  <footer class="footer" id="contact">
+    <div class="container">
+      <div class="footer-top">
+
+        <div>
+          <div class="footer-logo">Aesthetic <span>Lounge</span></div>
+          <p class="footer-brand-text">Lahore's premier destination for advanced aesthetic treatments. Where science meets beauty, and every visit is an experience.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Instagram">ig</a>
+            <a href="#" aria-label="Facebook">fb</a>
+            <a href="#" aria-label="TikTok">tk</a>
+            <a href="#" aria-label="YouTube">yt</a>
+          </div>
+        </div>
+
+        <div>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#doctors">Our Doctors</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#book">Book Appointment</a></li>
+            <li><a href="#">Price Guide</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Top Services</h4>
+          <ul>
+            <li><a href="#">Dermal Fillers</a></li>
+            <li><a href="#">Botox & Anti-Wrinkle</a></li>
+            <li><a href="#">Laser Treatments</a></li>
+            <li><a href="#">HydraFacial</a></li>
+            <li><a href="#">Chemical Peels</a></li>
+            <li><a href="#">Hair Restoration</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Get in Touch</h4>
+          <div class="footer-contact-row">
+            <div class="icon">📍</div>
+            <div class="text"><strong>Address</strong>DHA Phase 5, Lahore, Pakistan</div>
+          </div>
+          <div class="footer-contact-row">
+            <div class="icon">📞</div>
+            <div class="text"><strong>Phone</strong>+92 423 576 1234</div>
+          </div>
+          <div class="footer-contact-row">
+            <div class="icon">✉️</div>
+            <div class="text"><strong>Email</strong>info@aestheticloungeofficial.com</div>
+          </div>
+          <div class="footer-contact-row">
+            <div class="icon">🕐</div>
+            <div class="text"><strong>Hours</strong>Mon – Sat: 11 AM – 9 PM</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="footer-bar">
+        <p>&copy; 2026 Aesthetic Lounge Official. All rights reserved.</p>
+        <p>Crafted with care in Lahore</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================= WHATSAPP ============================================= -->
+  <a href="https://wa.me/923001234567?text=Hi%2C%20I'd%20like%20to%20book%20a%20consultation" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <!-- ============================================= JS ============================================= -->
+  <script>
+    // Header scroll
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('scrolled', window.scrollY > 50);
+    }, { passive: true });
+
+    // Mobile nav
+    const toggle = document.getElementById('mobileToggle');
+    const nav = document.getElementById('nav');
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      nav.classList.toggle('open');
+    });
+    nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      toggle.classList.remove('open');
+      nav.classList.remove('open');
+    }));
+
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+
+    document.querySelectorAll('.reveal, .reveal-slide-left, .reveal-slide-right, .reveal-scale').forEach(el => {
+      revealObserver.observe(el);
+    });
+
+    // Counter animation
+    function animateCounter(el) {
+      const target = +el.dataset.target;
+      const suffix = el.dataset.suffix || '';
+      const duration = 2200;
+      const start = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * target).toLocaleString() + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      })(start);
+    }
+    const statsObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.stat-number').forEach(animateCounter);
+          statsObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    const statsEl = document.querySelector('.stats');
+    if (statsEl) statsObs.observe(statsEl);
+
+    // Before/After slider
+    document.querySelectorAll('.gallery-comparison').forEach(comp => {
+      let dragging = false;
+      function update(x) {
+        const r = comp.getBoundingClientRect();
+        let pct = Math.max(5, Math.min(95, ((x - r.left) / r.width) * 100));
+        comp.querySelector('.side-before').style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        comp.querySelector('.gallery-divider').style.left = pct + '%';
+      }
+      comp.addEventListener('mousedown', e => { dragging = true; update(e.clientX); });
+      comp.addEventListener('mousemove', e => { if (dragging) update(e.clientX); });
+      document.addEventListener('mouseup', () => { dragging = false; });
+      comp.addEventListener('touchstart', e => { dragging = true; update(e.touches[0].clientX); }, { passive: true });
+      comp.addEventListener('touchmove', e => { if (dragging) update(e.touches[0].clientX); }, { passive: true });
+      document.addEventListener('touchend', () => { dragging = false; });
+    });
+
+    // Parallax effect on hero visual (subtle)
+    const heroVisual = document.querySelector('.hero-visual');
+    if (heroVisual && window.innerWidth > 768) {
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y < window.innerHeight) {
+          heroVisual.style.transform = `translateY(${y * 0.08}px)`;
+        }
+      }, { passive: true });
+    }
+  </script>
+
+</body>
+</html>

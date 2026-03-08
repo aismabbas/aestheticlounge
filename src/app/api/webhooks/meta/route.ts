@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
+import { getNextAssignee, assignLead } from '@/lib/lead-assignment';
 
 /* ------------------------------------------------------------------ */
 /*  GET — Meta Webhook Verification Handshake                          */
@@ -191,6 +192,17 @@ async function processOneLead(event: MetaLeadValue, accessToken: string): Promis
   );
 
   console.log(`[meta-webhook] Inserted lead ${leadId} (${name})`);
+
+  // 3b. Auto-assign to call center staff (round-robin)
+  try {
+    const staffId = await getNextAssignee();
+    if (staffId) {
+      await assignLead(leadId, staffId);
+      console.log(`[meta-webhook] Assigned lead ${leadId} to staff ${staffId}`);
+    }
+  } catch (err) {
+    console.error('[meta-webhook] auto-assign error:', err);
+  }
 
   // 4. Fire Meta CAPI Lead event to close the loop
   sendCAPIEvent({

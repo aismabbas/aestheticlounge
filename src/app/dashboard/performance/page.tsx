@@ -12,6 +12,12 @@ interface StaffRanking {
   response_rate: number;
 }
 
+interface AgentQualityScore {
+  staff_id: string;
+  overall_score: number;
+  avg_client_sentiment: number;
+}
+
 interface WaitingLead {
   lead_id: string;
   lead_name: string;
@@ -64,10 +70,25 @@ function responseBg(seconds: number): string {
   return 'bg-red-50 border-red-200';
 }
 
+function qualityScoreColor(score: number): string {
+  if (score >= 80) return 'text-green-600';
+  if (score >= 50) return 'text-amber-600';
+  if (score > 0) return 'text-red-600';
+  return 'text-text-muted';
+}
+
+function sentimentScoreColor(score: number): string {
+  if (score >= 0.2) return 'text-green-600';
+  if (score >= -0.1) return 'text-amber-600';
+  if (score !== 0) return 'text-red-600';
+  return 'text-text-muted';
+}
+
 type SortKey = 'name' | 'leads_handled' | 'avg_response_seconds' | 'fastest' | 'slowest' | 'response_rate';
 
 export default function PerformancePage() {
   const [data, setData] = useState<PerformanceData | null>(null);
+  const [qualityScores, setQualityScores] = useState<Record<string, AgentQualityScore>>({});
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('today');
   const [channelFilter, setChannelFilter] = useState('');
@@ -81,17 +102,35 @@ export default function PerformancePage() {
     const params = new URLSearchParams({ period });
     if (channelFilter) params.set('channel', channelFilter);
     if (staffFilter) params.set('staff_id', staffFilter);
-    const res = await fetch(`/api/dashboard/performance?${params}`);
+
+    const [res, qualityRes] = await Promise.all([
+      fetch(`/api/dashboard/performance?${params}`),
+      fetch(`/api/dashboard/analytics/agent-quality?${new URLSearchParams({ period })}`).catch(() => null),
+    ]);
+
     if (res.ok) {
       const d: PerformanceData = await res.json();
       setData(d);
-      // Initialize waiting timers
       const timers: Record<string, number> = {};
       d.waiting_leads.forEach((wl) => {
         timers[wl.lead_id] = wl.seconds_waiting;
       });
       setWaitingTimers(timers);
     }
+
+    if (qualityRes?.ok) {
+      const qd = await qualityRes.json();
+      const scores: Record<string, AgentQualityScore> = {};
+      for (const agent of qd.agent_rankings || []) {
+        scores[agent.staff_id] = {
+          staff_id: agent.staff_id,
+          overall_score: agent.overall_score,
+          avg_client_sentiment: agent.avg_client_sentiment,
+        };
+      }
+      setQualityScores(scores);
+    }
+
     setLoading(false);
   }, [period, channelFilter, staffFilter]);
 
@@ -285,14 +324,16 @@ export default function PerformancePage() {
                     { key: 'fastest' as SortKey, label: 'Fastest' },
                     { key: 'slowest' as SortKey, label: 'Slowest' },
                     { key: 'response_rate' as SortKey, label: 'Rate %' },
-                  ].map((col) => (
+                    { key: 'name' as SortKey, label: 'Comm. Score' },
+                    { key: 'name' as SortKey, label: 'Satisfaction' },
+                  ].map((col, colIdx) => (
                     <th
-                      key={col.key}
-                      className="pb-3 text-text-muted font-medium cursor-pointer hover:text-text-dark select-none"
-                      onClick={() => handleSort(col.key)}
+                      key={`${col.label}-${colIdx}`}
+                      className={`pb-3 text-text-muted font-medium select-none ${colIdx < 6 ? 'cursor-pointer hover:text-text-dark' : ''}`}
+                      onClick={() => colIdx < 6 && handleSort(col.key)}
                     >
                       {col.label}
-                      {sortKey === col.key && (
+                      {colIdx < 6 && sortKey === col.key && (
                         <span className="ml-1 text-gold">{sortAsc ? '▲' : '▼'}</span>
                       )}
                     </th>
@@ -316,6 +357,14 @@ export default function PerformancePage() {
                     <td className="py-3 text-green-600">{formatTime(staff.fastest)}</td>
                     <td className="py-3 text-red-600">{formatTime(staff.slowest)}</td>
                     <td className="py-3 text-text-dark">{staff.response_rate}%</td>
+                    <td className={`py-3 font-semibold ${qualityScoreColor(qualityScores[staff.staff_id]?.overall_score || 0)}`}>
+                      {qualityScores[staff.staff_id]?.overall_score || '--'}
+                    </td>
+                    <td className={`py-3 font-semibold ${sentimentScoreColor(qualityScores[staff.staff_id]?.avg_client_sentiment || 0)}`}>
+                      {qualityScores[staff.staff_id]
+                        ? `${qualityScores[staff.staff_id].avg_client_sentiment >= 0 ? '+' : ''}${qualityScores[staff.staff_id].avg_client_sentiment.toFixed(2)}`
+                        : '--'}
+                    </td>
                   </tr>
                 ))}
               </tbody>

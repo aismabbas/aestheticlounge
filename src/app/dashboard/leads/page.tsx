@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
 interface Lead {
   id: string;
   name: string;
@@ -26,6 +30,16 @@ interface Lead {
   last_activity_at: string;
   conversion_value: number;
   converted_at: string;
+  assigned_to: string;
+  assigned_to_name: string;
+  is_uncontacted: boolean;
+  treatment: string;
+}
+
+interface StaffOption {
+  id: string;
+  name: string;
+  role: string;
 }
 
 interface LeadStats {
@@ -36,6 +50,10 @@ interface LeadStats {
   conversion_rate: number;
   avg_score: number;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
 const STAGES = ['new', 'contacted', 'qualified', 'booked', 'visited', 'lost'] as const;
 
@@ -57,6 +75,10 @@ const stageLabelColors: Record<string, string> = {
   lost: 'text-red-700',
 };
 
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
 function timeAgo(dateStr: string): string {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -68,6 +90,55 @@ function timeAgo(dateStr: string): string {
   if (days < 30) return `${days}d ago`;
   return `${Math.floor(days / 30)}mo ago`;
 }
+
+function fmtWait(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m === 0) return `${sec}s`;
+  return `${m}m ${sec}s`;
+}
+
+/** Returns urgency tier based on seconds waiting */
+function urgencyTier(seconds: number): 'fresh' | 'stale' | 'urgent' | 'critical' {
+  if (seconds < 300) return 'fresh';      // < 5 min
+  if (seconds < 900) return 'stale';      // 5-15 min
+  if (seconds < 1800) return 'urgent';    // 15-30 min
+  return 'critical';                       // > 30 min
+}
+
+function urgencyColor(tier: string): string {
+  switch (tier) {
+    case 'fresh': return 'border-green-400 bg-green-50';
+    case 'stale': return 'border-amber-400 bg-amber-50';
+    case 'urgent': return 'border-orange-400 bg-orange-50';
+    case 'critical': return 'border-red-500 bg-red-50 animate-pulse';
+    default: return '';
+  }
+}
+
+function urgencyTextColor(tier: string): string {
+  switch (tier) {
+    case 'fresh': return 'text-green-600';
+    case 'stale': return 'text-amber-600';
+    case 'urgent': return 'text-orange-600';
+    case 'critical': return 'text-red-600 font-bold';
+    default: return 'text-text-muted';
+  }
+}
+
+function urgencyDot(tier: string): string {
+  switch (tier) {
+    case 'fresh': return 'bg-green-500';
+    case 'stale': return 'bg-amber-500';
+    case 'urgent': return 'bg-orange-500';
+    case 'critical': return 'bg-red-500 animate-ping';
+    default: return 'bg-gray-400';
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                     */
+/* ------------------------------------------------------------------ */
 
 function ScoreBadge({ score, label }: { score: number; label: string }) {
   const colorMap = {
@@ -139,11 +210,218 @@ function FunnelBar({ stats }: { stats: LeadStats }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Uncontacted Alert Banner                                           */
+/* ------------------------------------------------------------------ */
+
+interface UncontactedLead {
+  id: string;
+  name: string;
+  phone: string;
+  seconds_waiting: number;
+}
+
+function UncontactedBanner({
+  leads,
+  tick,
+  onMarkContacted,
+}: {
+  leads: UncontactedLead[];
+  tick: number;
+  onMarkContacted: (leadId: string) => void;
+}) {
+  if (leads.length === 0) return null;
+
+  // Sort by oldest first
+  const sorted = [...leads].sort((a, b) => b.seconds_waiting - a.seconds_waiting);
+  const oldest = sorted[0];
+  const oldestWait = oldest.seconds_waiting + tick;
+
+  return (
+    <div className="mb-6 rounded-xl border-2 border-red-400 bg-red-50 overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-3 bg-red-100 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+          </span>
+          <span className="text-sm font-semibold text-red-800">
+            You have {leads.length} uncontacted lead{leads.length !== 1 ? 's' : ''}!
+          </span>
+          <span className="text-sm font-bold text-red-700 tabular-nums">
+            Oldest waiting: {fmtWait(oldestWait)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href={`tel:${oldest.phone}`}
+            className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors"
+          >
+            Call {oldest.name}
+          </a>
+          <a
+            href={`https://wa.me/${oldest.phone?.replace(/[^0-9]/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
+          >
+            WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {/* Lead list */}
+      <div className="divide-y divide-red-200">
+        {sorted.map((lead) => {
+          const wait = lead.seconds_waiting + tick;
+          const tier = urgencyTier(wait);
+          return (
+            <div key={lead.id} className="px-5 py-2.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${urgencyDot(tier)}`} />
+                <span className="text-sm font-medium text-text-dark truncate">{lead.name}</span>
+                <span className="text-xs text-text-muted">{lead.phone}</span>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <span className={`text-xs font-semibold tabular-nums ${urgencyTextColor(tier)}`}>
+                  {fmtWait(wait)}
+                </span>
+                <button
+                  onClick={() => onMarkContacted(lead.id)}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-white text-green-700 border border-green-300 hover:bg-green-50 transition-colors"
+                >
+                  Mark Contacted
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Contact Log Modal                                                  */
+/* ------------------------------------------------------------------ */
+
+function ContactLogModal({
+  lead,
+  onClose,
+  onSaved,
+}: {
+  lead: Lead;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [channel, setChannel] = useState<'phone' | 'whatsapp' | 'email'>('phone');
+  const [outcome, setOutcome] = useState<string>('connected');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await fetch('/api/dashboard/leads/contact-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: lead.id, channel, outcome, notes: notes || undefined }),
+      });
+      onSaved();
+      onClose();
+    } catch {
+      // silent
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-2xl w-[380px] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-text-dark">Log Contact &mdash; {lead.name}</h3>
+          <button onClick={onClose} className="text-text-muted hover:text-text-dark text-lg">&times;</button>
+        </div>
+
+        {/* Channel */}
+        <div className="mb-3">
+          <label className="block text-xs font-semibold uppercase text-text-muted tracking-wider mb-1.5">Channel</label>
+          <div className="flex gap-2">
+            {(['phone', 'whatsapp', 'email'] as const).map((ch) => (
+              <button
+                key={ch}
+                onClick={() => setChannel(ch)}
+                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                  channel === ch
+                    ? 'bg-gold-pale text-gold-dark border-gold'
+                    : 'bg-white text-text-muted border-border hover:border-gold-light'
+                }`}
+              >
+                {ch === 'phone' ? 'Phone' : ch === 'whatsapp' ? 'WhatsApp' : 'Email'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Outcome */}
+        <div className="mb-3">
+          <label className="block text-xs font-semibold uppercase text-text-muted tracking-wider mb-1.5">Outcome</label>
+          <select
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value)}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-gold"
+          >
+            <option value="connected">Connected</option>
+            <option value="no_answer">No Answer</option>
+            <option value="busy">Busy</option>
+            <option value="voicemail">Voicemail</option>
+            <option value="callback_requested">Callback Requested</option>
+          </select>
+        </div>
+
+        {/* Notes */}
+        <div className="mb-4">
+          <label className="block text-xs font-semibold uppercase text-text-muted tracking-wider mb-1.5">Notes (optional)</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-gold resize-none"
+            placeholder="Any details..."
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 px-3 py-2 text-sm text-text-muted hover:text-text-dark transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex-1 px-3 py-2 bg-gold text-white text-sm font-medium rounded-lg hover:bg-gold-dark transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main page                                                          */
+/* ------------------------------------------------------------------ */
+
 type Temperature = 'all' | 'hot' | 'warm' | 'cold';
 type SortOption = 'created_at' | 'score' | 'last_activity';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [staffList, setStaffList] = useState<StaffOption[]>([]);
   const [stats, setStats] = useState<LeadStats>({ total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -151,14 +429,23 @@ export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [temperature, setTemperature] = useState<Temperature>('all');
   const [sortBy, setSortBy] = useState<SortOption>('created_at');
+  const [myLeadsOnly, setMyLeadsOnly] = useState(false);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [toast, setToast] = useState<{ leadId: string; seconds: number } | null>(null);
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
+  const [contactLogLead, setContactLogLead] = useState<Lead | null>(null);
+  const [reassigningLead, setReassigningLead] = useState<string | null>(null);
+
+  // Real-time tick for timers
   const [tick, setTick] = useState(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const baseTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    tickRef.current = setInterval(() => setTick((t) => t + 1), 1000);
+    baseTimeRef.current = Date.now();
+    tickRef.current = setInterval(() => {
+      setTick(Math.floor((Date.now() - baseTimeRef.current) / 1000));
+    }, 1000);
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
 
@@ -168,6 +455,14 @@ export default function LeadsPage() {
       return () => clearTimeout(t);
     }
   }, [toast]);
+
+  // Check URL params for filter presets
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('filter') === 'my-uncontacted') {
+      setMyLeadsOnly(true);
+    }
+  }, []);
 
   const handleRespond = async (leadId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -189,20 +484,61 @@ export default function LeadsPage() {
     setRespondingTo(null);
   };
 
+  const handleReassign = async (leadId: string, staffId: string) => {
+    setReassigningLead(leadId);
+    try {
+      await fetch('/api/dashboard/leads/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          staffId === 'auto'
+            ? { lead_id: leadId, action: 'auto' }
+            : { lead_id: leadId, staff_id: staffId },
+        ),
+      });
+      fetchLeads();
+    } catch {
+      // silent
+    }
+    setReassigningLead(null);
+  };
+
+  const handleMarkContacted = async (leadId: string) => {
+    try {
+      await fetch('/api/dashboard/leads/contact-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: leadId, channel: 'phone', outcome: 'connected' }),
+      });
+      setRespondedIds((prev) => new Set(prev).add(leadId));
+      fetchLeads();
+    } catch {
+      // silent
+    }
+  };
+
   const fetchLeads = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (temperature !== 'all') params.set('temperature', temperature);
     if (sortBy !== 'created_at') params.set('sort', sortBy);
+    if (myLeadsOnly) params.set('my_leads', 'true');
     const res = await fetch(`/api/dashboard/leads?${params}`);
     const data = await res.json();
     setLeads(data.leads || []);
     setStats(data.stats || { total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0 });
+    setStaffList(data.staff || []);
+    // Reset tick base on each data refresh
+    baseTimeRef.current = Date.now();
+    setTick(0);
     setLoading(false);
-  }, [search, temperature, sortBy]);
+  }, [search, temperature, sortBy, myLeadsOnly]);
 
   useEffect(() => {
     fetchLeads();
+    // Auto-refresh every 30s
+    const interval = setInterval(fetchLeads, 30000);
+    return () => clearInterval(interval);
   }, [fetchLeads]);
 
   const updateStage = async (leadId: string, newStage: string) => {
@@ -242,6 +578,16 @@ export default function LeadsPage() {
     {} as Record<string, Lead[]>,
   );
 
+  // Uncontacted leads for the banner (leads assigned to me, stage=new, not responded)
+  const myUncontactedLeads: UncontactedLead[] = leads
+    .filter((l) => l.is_uncontacted && !respondedIds.has(l.id))
+    .map((l) => ({
+      id: l.id,
+      name: l.name,
+      phone: l.phone,
+      seconds_waiting: Math.floor((Date.now() - new Date(l.created_at).getTime()) / 1000),
+    }));
+
   if (loading) {
     return (
       <div className="p-8">
@@ -260,9 +606,27 @@ export default function LeadsPage() {
 
   return (
     <div className="p-8">
+      {/* Uncontacted Alert Banner */}
+      <UncontactedBanner
+        leads={myUncontactedLeads}
+        tick={tick}
+        onMarkContacted={handleMarkContacted}
+      />
+
       <div className="flex items-center justify-between mb-4">
         <h1 className="font-serif text-2xl font-semibold text-text-dark">Lead Pipeline</h1>
         <div className="flex items-center gap-3">
+          {/* My Leads toggle */}
+          <button
+            onClick={() => setMyLeadsOnly(!myLeadsOnly)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              myLeadsOnly
+                ? 'bg-gold-pale text-gold-dark border-gold'
+                : 'bg-white text-text-muted border-border hover:border-gold-light'
+            }`}
+          >
+            My Leads
+          </button>
           <input
             type="text"
             placeholder="Search leads..."
@@ -322,9 +686,10 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* Kanban */}
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => (
-          <div key={stage} className="flex-1 min-w-[220px]">
+          <div key={stage} className="flex-1 min-w-[240px]">
             <div className={`rounded-lg border ${stageColors[stage]} p-3 mb-3`}>
               <div className="flex items-center justify-between">
                 <h2 className={`text-sm font-semibold uppercase tracking-wider ${stageLabelColors[stage]}`}>
@@ -338,25 +703,19 @@ export default function LeadsPage() {
 
             <div className="space-y-2">
               {groupedLeads[stage]?.map((lead) => {
-                const isNew = lead.stage === 'new' && !respondedIds.has(lead.id);
-                const actualWait = isNew
-                  ? Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 1000) + (tick * 0)
+                const isNew = lead.stage === 'new' && lead.is_uncontacted && !respondedIds.has(lead.id);
+                const waitSeconds = isNew
+                  ? Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 1000) + tick
                   : 0;
-
-                const fmtWait = (s: number) => {
-                  const m = Math.floor(s / 60);
-                  const sec = s % 60;
-                  if (m === 0) return `${sec}s`;
-                  return `${m}m ${sec}s`;
-                };
+                const tier = isNew ? urgencyTier(waitSeconds) : 'fresh';
 
                 return (
                   <div key={lead.id} className="relative">
                     <button
                       onClick={() => setSelectedLead(lead)}
-                      className={`w-full text-left bg-white rounded-lg border border-border p-3 hover:shadow-md transition-shadow cursor-pointer ${
+                      className={`w-full text-left bg-white rounded-lg border-2 p-3 hover:shadow-md transition-all cursor-pointer ${
                         selectedLead?.id === lead.id ? 'ring-2 ring-gold' : ''
-                      }`}
+                      } ${isNew ? urgencyColor(tier) : 'border-border'}`}
                     >
                       {/* Name + Score */}
                       <div className="flex items-center justify-between gap-2">
@@ -369,6 +728,22 @@ export default function LeadsPage() {
                         <p className="text-xs text-gold-dark mt-1 truncate">{lead.interest}</p>
                       )}
 
+                      {/* Assigned staff */}
+                      <div className="flex items-center gap-1.5 mt-2">
+                        {lead.assigned_to_name ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                            <span className="w-3.5 h-3.5 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center text-[8px] font-bold shrink-0">
+                              {lead.assigned_to_name[0]?.toUpperCase()}
+                            </span>
+                            {lead.assigned_to_name}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
+                            Unassigned
+                          </span>
+                        )}
+                      </div>
+
                       <div className="flex items-center justify-between mt-2 gap-1 flex-wrap">
                         <div className="flex items-center gap-1">
                           <UtmTag source={lead.utm_source || lead.source} />
@@ -378,26 +753,63 @@ export default function LeadsPage() {
                         </span>
                       </div>
 
+                      {/* Urgency timer for new uncontacted leads */}
                       {isNew && (
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-border-light">
-                          <span className={`text-[11px] font-medium tabular-nums ${
-                            actualWait < 300 ? 'text-green-600' : actualWait < 900 ? 'text-amber-600' : 'text-red-600'
-                          }`}>
-                            &#x23F1; {fmtWait(actualWait)} waiting
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`relative flex h-2 w-2 ${tier === 'critical' ? '' : ''}`}>
+                              {tier === 'critical' && (
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                              )}
+                              <span className={`relative inline-flex rounded-full h-2 w-2 ${urgencyDot(tier).replace(' animate-ping', '')}`} />
+                            </span>
+                            <span className={`text-[11px] font-semibold tabular-nums ${urgencyTextColor(tier)}`}>
+                              {fmtWait(waitSeconds)} waiting
+                            </span>
+                          </div>
                         </div>
                       )}
                     </button>
 
-                    {isNew && (
-                      <button
-                        onClick={(e) => handleRespond(lead.id, e)}
-                        disabled={respondingTo === lead.id}
-                        className="mt-1 w-full text-center px-3 py-1.5 text-xs font-medium bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 border border-green-200"
+                    {/* Quick actions row */}
+                    <div className="flex gap-1 mt-1">
+                      {isNew && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setContactLogLead(lead); }}
+                          className="flex-1 text-center px-2 py-1.5 text-[11px] font-medium bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors border border-green-200"
+                        >
+                          Log Call
+                        </button>
+                      )}
+                      {isNew && (
+                        <button
+                          onClick={(e) => handleRespond(lead.id, e)}
+                          disabled={respondingTo === lead.id}
+                          className="flex-1 text-center px-2 py-1.5 text-[11px] font-medium bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200 disabled:opacity-50"
+                        >
+                          {respondingTo === lead.id ? '...' : 'Mark Responded'}
+                        </button>
+                      )}
+                      {/* Reassign dropdown */}
+                      <select
+                        value={lead.assigned_to || ''}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleReassign(lead.id, e.target.value);
+                        }}
+                        disabled={reassigningLead === lead.id}
+                        className="text-[10px] px-1.5 py-1 border border-border rounded-lg bg-white text-text-muted focus:outline-none focus:border-gold min-w-[80px] disabled:opacity-50"
                       >
-                        {respondingTo === lead.id ? 'Recording...' : 'Mark Responded'}
-                      </button>
-                    )}
+                        <option value="">Reassign...</option>
+                        <option value="auto">Auto-assign</option>
+                        {staffList.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} ({s.role})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                     {toast?.leadId === lead.id && (
                       <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-bounce">
@@ -411,6 +823,18 @@ export default function LeadsPage() {
           </div>
         ))}
       </div>
+
+      {/* Contact Log Modal */}
+      {contactLogLead && (
+        <ContactLogModal
+          lead={contactLogLead}
+          onClose={() => setContactLogLead(null)}
+          onSaved={() => {
+            setRespondedIds((prev) => new Set(prev).add(contactLogLead.id));
+            fetchLeads();
+          }}
+        />
+      )}
 
       {/* Detail Panel */}
       {selectedLead && (
@@ -445,6 +869,27 @@ export default function LeadsPage() {
               </div>
             </div>
 
+            {/* Assigned To */}
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold uppercase text-text-muted tracking-wider mb-2">Assigned To</h3>
+              <select
+                value={selectedLead.assigned_to || ''}
+                onChange={(e) => {
+                  handleReassign(selectedLead.id, e.target.value);
+                  setSelectedLead({ ...selectedLead, assigned_to: e.target.value });
+                }}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-gold"
+              >
+                <option value="">Unassigned</option>
+                <option value="auto">Auto-assign</option>
+                {staffList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-4">
               {/* Contact */}
               <div>
@@ -454,7 +899,7 @@ export default function LeadsPage() {
               </div>
 
               {/* Quick Actions */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <a
                   href={`tel:${selectedLead.phone}`}
                   className="flex-1 text-center px-3 py-2 text-xs font-medium bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
@@ -469,6 +914,12 @@ export default function LeadsPage() {
                 >
                   WhatsApp
                 </a>
+                <button
+                  onClick={() => setContactLogLead(selectedLead)}
+                  className="flex-1 text-center px-3 py-2 text-xs font-medium bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors"
+                >
+                  Log Contact
+                </button>
                 <Link
                   href={`/dashboard/leads/${selectedLead.id}`}
                   className="flex-1 text-center px-3 py-2 text-xs font-medium bg-gold-pale text-gold-dark rounded-lg hover:bg-gold-light/30 transition-colors"

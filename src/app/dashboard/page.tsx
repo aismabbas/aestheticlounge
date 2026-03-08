@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { PerformanceBanner } from './performance-banner';
+import { UncontactedAlertCard } from './uncontacted-alert';
 
 interface StatCard {
   label: string;
@@ -44,6 +45,7 @@ async function getOverviewData() {
     pendingAppointments,
     recentConversations,
     leadScoreStats,
+    inboxSummary,
   ] = await Promise.all([
     query(
       `SELECT COUNT(*)::int AS count FROM al_appointments WHERE scheduled_at >= $1 AND scheduled_at < $2`,
@@ -108,6 +110,18 @@ async function getOverviewData() {
       FROM al_leads`,
       [monthStart],
     ).then((r) => r.rows[0]).catch(() => ({ hot_count: 0, warm_count: 0, converted_this_month: 0, leads_this_month: 0, avg_score: 0 })),
+
+    query(`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'open' AND unread_count > 0)::int AS total_unread,
+        COUNT(*) FILTER (WHERE channel = 'whatsapp' AND unread_count > 0 AND status = 'open')::int AS wa_unread,
+        COUNT(*) FILTER (WHERE channel = 'instagram_dm' AND unread_count > 0 AND status = 'open')::int AS ig_unread,
+        COUNT(*) FILTER (WHERE channel = 'messenger' AND unread_count > 0 AND status = 'open')::int AS msg_unread,
+        COUNT(*) FILTER (WHERE status = 'open')::int AS needs_response
+      FROM al_unified_inbox
+    `).then((r) => r.rows[0]).catch(() => ({
+      total_unread: 0, wa_unread: 0, ig_unread: 0, msg_unread: 0, needs_response: 0,
+    })),
   ]);
 
   return {
@@ -120,6 +134,7 @@ async function getOverviewData() {
     pendingAppointments,
     recentConversations,
     leadScoreStats,
+    inboxSummary,
   };
 }
 
@@ -178,6 +193,9 @@ export default async function DashboardOverview() {
           </div>
         ))}
       </div>
+
+      {/* Uncontacted Leads Alert */}
+      <UncontactedAlertCard />
 
       {/* Lead Pipeline Card */}
       <div className="bg-white rounded-xl shadow-sm border border-border-light p-6 mb-8">
@@ -274,56 +292,97 @@ export default async function DashboardOverview() {
         )}
       </div>
 
-      {/* Recent WhatsApp Conversations */}
+      {/* Unified Inbox Summary */}
       <div className="bg-white rounded-xl shadow-sm border border-border-light p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-lg text-text-dark">WhatsApp Conversations</h2>
-          <a href="/dashboard/conversations" className="text-xs text-gold font-medium hover:underline">View All</a>
+          <h2 className="font-serif text-lg text-text-dark">Inbox</h2>
+          <a href="/dashboard/conversations" className="text-xs text-gold font-medium hover:underline">Open Inbox</a>
         </div>
-        {data.recentConversations.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-3xl mb-3">💬</div>
-            <p className="text-text-muted text-sm">No conversations yet.</p>
-            <p className="text-text-muted text-xs mt-1">WhatsApp messages will appear here once the n8n pipeline is connected.</p>
+
+        {/* Channel breakdown */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#25D366]/5">
+            <div className="w-8 h-8 rounded-full bg-[#25D366]/15 flex items-center justify-center text-sm">
+              &#x1F4AC;
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-text-dark">{data.inboxSummary.wa_unread}</p>
+              <p className="text-[10px] text-text-muted">WhatsApp</p>
+            </div>
           </div>
+          <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#E1306C]/5">
+            <div className="w-8 h-8 rounded-full bg-[#E1306C]/15 flex items-center justify-center text-sm">
+              &#x1F4F7;
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-text-dark">{data.inboxSummary.ig_unread}</p>
+              <p className="text-[10px] text-text-muted">Instagram</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0084FF]/5">
+            <div className="w-8 h-8 rounded-full bg-[#0084FF]/15 flex items-center justify-center text-sm">
+              &#x1F4E8;
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-text-dark">{data.inboxSummary.msg_unread}</p>
+              <p className="text-[10px] text-text-muted">Messenger</p>
+            </div>
+          </div>
+        </div>
+
+        {data.inboxSummary.needs_response > 0 ? (
+          <a
+            href="/dashboard/conversations"
+            className="block w-full text-center py-3 rounded-lg bg-gold/10 text-gold text-sm font-medium hover:bg-gold/20 transition-colors"
+          >
+            {data.inboxSummary.needs_response} conversation{data.inboxSummary.needs_response !== 1 ? 's' : ''} need{data.inboxSummary.needs_response === 1 ? 's' : ''} response
+          </a>
         ) : (
-          <div className="space-y-1">
-            {data.recentConversations.map((conv) => {
-              const initial = (conv.name || conv.phone)?.[0]?.toUpperCase() || '?';
-              const timeAgo = (() => {
-                const diff = Date.now() - new Date(conv.last_at).getTime();
-                const mins = Math.floor(diff / 60000);
-                if (mins < 60) return `${mins}m`;
-                const hrs = Math.floor(mins / 60);
-                if (hrs < 24) return `${hrs}h`;
-                return `${Math.floor(hrs / 24)}d`;
-              })();
-              return (
-                <a
-                  key={conv.phone}
-                  href={`/dashboard/conversations?phone=${encodeURIComponent(conv.phone)}`}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-warm-white transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-full bg-gold-pale flex items-center justify-center text-gold-dark text-sm font-semibold shrink-0">
-                    {initial}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-text-dark truncate">{conv.name || conv.phone}</p>
-                      <span className="text-[10px] text-text-muted shrink-0 ml-2">{timeAgo}</span>
+          <p className="text-center text-sm text-text-muted py-3">All caught up!</p>
+        )}
+
+        {/* Recent legacy conversations (WhatsApp via n8n) */}
+        {data.recentConversations.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border-light">
+            <p className="text-[10px] uppercase tracking-wider text-text-muted mb-2">Recent WhatsApp</p>
+            <div className="space-y-1">
+              {data.recentConversations.slice(0, 3).map((conv) => {
+                const initial = (conv.name || conv.phone)?.[0]?.toUpperCase() || '?';
+                const timeAgo = (() => {
+                  const diff = Date.now() - new Date(conv.last_at).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  if (mins < 60) return `${mins}m`;
+                  const hrs = Math.floor(mins / 60);
+                  if (hrs < 24) return `${hrs}h`;
+                  return `${Math.floor(hrs / 24)}d`;
+                })();
+                return (
+                  <a
+                    key={conv.phone}
+                    href="/dashboard/conversations"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warm-white transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gold-pale flex items-center justify-center text-gold-dark text-xs font-semibold shrink-0">
+                      {initial}
                     </div>
-                    <p className="text-xs text-text-muted truncate mt-0.5">
-                      {conv.direction === 'outbound' ? '↗ ' : ''}{conv.last_message}
-                    </p>
-                  </div>
-                  {conv.unread > 0 && (
-                    <span className="bg-gold text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">
-                      {conv.unread}
-                    </span>
-                  )}
-                </a>
-              );
-            })}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-text-dark truncate">{conv.name || conv.phone}</p>
+                        <span className="text-[10px] text-text-muted shrink-0 ml-2">{timeAgo}</span>
+                      </div>
+                      <p className="text-[11px] text-text-muted truncate mt-0.5">
+                        {conv.direction === 'outbound' ? '\u2197 ' : ''}{conv.last_message}
+                      </p>
+                    </div>
+                    {conv.unread > 0 && (
+                      <span className="bg-[#25D366] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
+                        {conv.unread}
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

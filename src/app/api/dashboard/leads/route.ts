@@ -30,37 +30,51 @@ export async function GET(req: NextRequest) {
     const sort = req.nextUrl.searchParams.get('sort') || 'created_at';
     const limit = parseInt(req.nextUrl.searchParams.get('limit') || '50', 10);
 
-    let sql = `SELECT id, name, phone, email, stage, quality, interest, source, campaign_id,
-               created_at, notes, booked_treatment, actual_revenue,
-               score, score_factors, utm_source, utm_medium, utm_campaign, utm_content,
-               landing_page, pages_viewed, time_on_site, treatments_viewed,
-               form_submissions, whatsapp_messages, last_activity_at,
-               conversion_value, converted_at
-               FROM al_leads`;
+    const assignedTo = req.nextUrl.searchParams.get('assigned_to');
+    const myLeads = req.nextUrl.searchParams.get('my_leads') === 'true';
+
+    let sql = `SELECT l.id, l.name, l.phone, l.email, l.stage, l.quality, l.interest, l.source, l.campaign_id,
+               l.created_at, l.notes, l.booked_treatment, l.actual_revenue,
+               l.score, l.score_factors, l.utm_source, l.utm_medium, l.utm_campaign, l.utm_content,
+               l.landing_page, l.pages_viewed, l.time_on_site, l.treatments_viewed,
+               l.form_submissions, l.whatsapp_messages, l.last_activity_at,
+               l.conversion_value, l.converted_at, l.assigned_to,
+               s.name AS assigned_to_name,
+               CASE WHEN rt.id IS NULL AND l.stage = 'new' THEN true ELSE false END AS is_uncontacted
+               FROM al_leads l
+               LEFT JOIN al_staff s ON s.id = l.assigned_to
+               LEFT JOIN al_lead_response_times rt ON rt.lead_id = l.id`;
     const params: unknown[] = [];
     const conditions: string[] = [];
 
     if (stage) {
       params.push(stage);
-      conditions.push(`stage = $${params.length}`);
+      conditions.push(`l.stage = $${params.length}`);
     }
     if (source) {
       params.push(source);
-      conditions.push(`utm_source = $${params.length}`);
+      conditions.push(`l.utm_source = $${params.length}`);
     }
     if (search) {
       params.push(`%${search}%`);
-      conditions.push(`(name ILIKE $${params.length} OR phone ILIKE $${params.length})`);
+      conditions.push(`(l.name ILIKE $${params.length} OR l.phone ILIKE $${params.length})`);
     }
     if (temperature) {
-      // Filter by score ranges
       if (temperature === 'hot') {
-        conditions.push('score >= 70');
+        conditions.push('l.score >= 70');
       } else if (temperature === 'warm') {
-        conditions.push('score >= 40 AND score < 70');
+        conditions.push('l.score >= 40 AND l.score < 70');
       } else if (temperature === 'cold') {
-        conditions.push('score < 40');
+        conditions.push('l.score < 40');
       }
+    }
+    if (assignedTo) {
+      params.push(assignedTo);
+      conditions.push(`l.assigned_to = $${params.length}`);
+    }
+    if (myLeads) {
+      params.push(user.staffId);
+      conditions.push(`l.assigned_to = $${params.length}`);
     }
 
     if (conditions.length > 0) {
@@ -69,23 +83,26 @@ export async function GET(req: NextRequest) {
 
     // Sort options
     if (sort === 'score') {
-      sql += ' ORDER BY score DESC NULLS LAST, created_at DESC';
+      sql += ' ORDER BY l.score DESC NULLS LAST, l.created_at DESC';
     } else if (sort === 'last_activity') {
-      sql += ' ORDER BY last_activity_at DESC NULLS LAST, created_at DESC';
+      sql += ' ORDER BY l.last_activity_at DESC NULLS LAST, l.created_at DESC';
     } else {
-      sql += ' ORDER BY created_at DESC';
+      sql += ' ORDER BY l.created_at DESC';
     }
 
     params.push(limit);
     sql += ` LIMIT $${params.length}`;
 
     // Count queries for stats (without limit)
+    const baseFrom = ` FROM al_leads l
+      LEFT JOIN al_staff s ON s.id = l.assigned_to
+      LEFT JOIN al_lead_response_times rt ON rt.lead_id = l.id`;
     const baseWhere = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
     const countParams = params.slice(0, -1); // exclude limit
 
-    const [result, countResult, statsResult] = await Promise.all([
+    const [result, countResult, statsResult, staffResult] = await Promise.all([
       query(sql, params),
-      query(`SELECT COUNT(*) FROM al_leads${baseWhere}`, countParams),
+      query(`SELECT COUNT(*) ${baseFrom}${baseWhere}`, countParams),
       query(`SELECT
         COUNT(*)::int AS total_leads,
         COUNT(CASE WHEN score >= 70 THEN 1 END)::int AS hot_count,
@@ -94,6 +111,7 @@ export async function GET(req: NextRequest) {
         ROUND(AVG(COALESCE(score, 0)))::int AS avg_score,
         COUNT(CASE WHEN converted_at IS NOT NULL THEN 1 END)::int AS converted_count
       FROM al_leads`),
+      query(`SELECT id, name, role FROM al_staff WHERE active = true AND role IN ('receptionist', 'manager', 'admin') ORDER BY name`),
     ]);
 
     const stats = statsResult.rows[0];
@@ -118,6 +136,7 @@ export async function GET(req: NextRequest) {
         conversion_rate: conversionRate,
         avg_score: stats.avg_score || 0,
       },
+      staff: staffResult.rows,
     });
   } catch (err) {
     console.error('[dashboard/leads] error:', err);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
+import { getNextAssignee, assignLead } from '@/lib/lead-assignment';
 
 interface LeadPayload {
   name: string;
@@ -55,6 +56,13 @@ export async function POST(req: NextRequest) {
         body.ad_id || null,
       ],
     );
+
+    // Auto-assign lead to call center staff (round-robin)
+    getNextAssignee()
+      .then((staffId) => {
+        if (staffId) return assignLead(leadId, staffId);
+      })
+      .catch((err) => console.error('[lead] auto-assign error:', err));
 
     // Fire Meta CAPI Lead event
     const eventSourceUrl = req.headers.get('referer') || 'https://aestheticloungeofficial.com';

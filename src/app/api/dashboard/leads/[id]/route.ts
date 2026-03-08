@@ -83,7 +83,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    const allowedFields = ['stage', 'quality', 'notes', 'interest', 'score', 'score_factors', 'conversion_value', 'converted_at'];
+    const allowedFields = ['stage', 'quality', 'notes', 'interest', 'score', 'score_factors', 'conversion_value', 'converted_at', 'assigned_to'];
     const updates: string[] = [];
     const values: unknown[] = [];
 

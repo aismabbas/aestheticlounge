@@ -16,6 +16,11 @@ const MARKETING_SUB_ITEMS = [
   { label: 'Landing Pages', href: '/dashboard/marketing/landing-pages' },
 ];
 
+const AI_INSIGHTS_SUB_ITEMS = [
+  { label: 'Sentiment Analysis', href: '/dashboard/analytics/sentiment' },
+  { label: 'Agent Quality',      href: '/dashboard/analytics/agent-quality' },
+];
+
 const NAV_ITEMS = [
   { label: 'Overview',       href: '/dashboard',               icon: '▦' },
   { label: 'Leads',          href: '/dashboard/leads',         icon: '◎' },
@@ -25,11 +30,12 @@ const NAV_ITEMS = [
   { label: 'Ads',            href: '/dashboard/ads',           icon: '◈' },
   { label: 'Content',        href: '/dashboard/content',       icon: '▤' },
   { label: 'Marketing',      href: '/dashboard/marketing',     icon: '◆' },
-  { label: 'Conversations',  href: '/dashboard/conversations', icon: '◫' },
+  { label: 'Inbox',           href: '/dashboard/conversations', icon: '◫' },
   { label: 'Services',       href: '/dashboard/services',      icon: '✦' },
   { label: 'Google Business', href: '/dashboard/google',       icon: 'G' },
   { label: 'SEO',            href: '/dashboard/seo',           icon: '◉' },
   { label: 'Analytics',      href: '/dashboard/analytics',     icon: '▥' },
+  { label: 'AI Insights',   href: '/dashboard/analytics/sentiment', icon: '✦' },
   { label: 'Performance',   href: '/dashboard/performance',   icon: '⏱' },
   { label: 'Feedback',       href: '/dashboard/feedback',      icon: '☆' },
   { label: 'Settings',       href: '/dashboard/settings',      icon: '⚙' },
@@ -37,6 +43,10 @@ const NAV_ITEMS = [
 
 function isActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === '/dashboard';
+  // AI Insights sub-pages should not activate the Analytics parent
+  if (href === '/dashboard/analytics' && (pathname.startsWith('/dashboard/analytics/sentiment') || pathname.startsWith('/dashboard/analytics/agent-quality'))) {
+    return false;
+  }
   return pathname.startsWith(href);
 }
 
@@ -53,6 +63,9 @@ export function DashboardShell({
   const [marketingOpen, setMarketingOpen] = useState(
     pathname.startsWith('/dashboard/marketing')
   );
+  const [aiInsightsOpen, setAiInsightsOpen] = useState(
+    pathname.startsWith('/dashboard/analytics/sentiment') || pathname.startsWith('/dashboard/analytics/agent-quality')
+  );
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -60,6 +73,7 @@ export function DashboardShell({
   }
 
   const isMarketingActive = pathname.startsWith('/dashboard/marketing');
+  const isAiInsightsActive = pathname.startsWith('/dashboard/analytics/sentiment') || pathname.startsWith('/dashboard/analytics/agent-quality');
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -96,6 +110,59 @@ export function DashboardShell({
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = isActive(pathname, item.href);
+
+            // AI Insights item with collapsible sub-menu
+            if (item.label === 'AI Insights') {
+              return (
+                <div key={`${item.href}-ai`}>
+                  <button
+                    onClick={() => setAiInsightsOpen(!aiInsightsOpen)}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+                      ${isAiInsightsActive
+                        ? 'bg-gold/15 text-gold font-medium'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <span className="w-5 text-center text-base">{item.icon}</span>
+                    <span>{item.label}</span>
+                    <span
+                      className={`ml-auto text-[10px] transition-transform duration-200 ${
+                        aiInsightsOpen ? 'rotate-90' : ''
+                      }`}
+                    >
+                      ▶
+                    </span>
+                  </button>
+
+                  {/* Sub-menu */}
+                  {aiInsightsOpen && (
+                    <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-3">
+                      {AI_INSIGHTS_SUB_ITEMS.map((sub) => {
+                        const subActive = pathname.startsWith(sub.href);
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`
+                              block px-3 py-2 rounded-md text-xs transition-colors
+                              ${subActive
+                                ? 'text-gold font-medium'
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                              }
+                            `}
+                          >
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
             // Marketing item with collapsible sub-menu
             if (item.label === 'Marketing') {

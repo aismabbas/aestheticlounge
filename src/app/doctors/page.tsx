@@ -35,7 +35,7 @@ export default function DoctorsPage() {
               <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-warm-white border border-gold-pale flex items-center justify-center">
                 <div className="text-center text-text-muted">
                   <div className="text-6xl mb-3">
-                    {doc.slug === "dr-ahmed-raza" ? "🦷" : "👩‍⚕️"}
+                    {doc.slug === "dr-zulfiqar" ? "👨‍⚕️" : "👩‍⚕️"}
                   </div>
                   <p className="text-sm font-medium">{doc.name}</p>
                   <p className="text-xs mt-1">Photo coming soon</p>

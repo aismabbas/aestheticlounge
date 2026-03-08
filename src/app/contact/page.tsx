@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact Us | Aesthetic Lounge — DHA Phase 7, Lahore",
+  title: "Contact Us | Aesthetic Lounge — DHA Phase 8, Lahore",
   description:
-    "Get in touch with Aesthetic Lounge. Visit us in DHA Phase 7, Lahore, call us, WhatsApp, or fill out our contact form. We are here to help.",
+    "Get in touch with Aesthetic Lounge. Visit us at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Call +92 327 6620000 or WhatsApp us. By appointment only.",
 };
 
 export default function ContactPage() {
@@ -114,9 +114,9 @@ export default function ContactPage() {
               <p className="mt-2 text-text-dark leading-relaxed">
                 Aesthetic Lounge
                 <br />
-                DHA Phase 7, Main Boulevard
+                Plaza-126, BWB Phase 8
                 <br />
-                Lahore, Punjab, Pakistan
+                DHA Lahore Cantt, Pakistan
               </p>
             </div>
 
@@ -126,10 +126,16 @@ export default function ContactPage() {
                 Call Us
               </h3>
               <a
-                href="tel:+923001234567"
+                href="tel:+923276620000"
                 className="mt-2 block text-text-dark hover:text-gold transition-colors"
               >
-                +92 300 123 4567
+                +92 327 6620000
+              </a>
+              <a
+                href="tel:+924235740271"
+                className="mt-1 block text-text-dark hover:text-gold transition-colors"
+              >
+                +92 42 35740271
               </a>
             </div>
 
@@ -139,7 +145,7 @@ export default function ContactPage() {
                 WhatsApp
               </h3>
               <a
-                href="https://wa.me/923001234567?text=Hi%2C%20I%20would%20like%20to%20get%20in%20touch%20with%20Aesthetic%20Lounge."
+                href="https://wa.me/923276620000?text=Hi%2C%20I%20would%20like%20to%20get%20in%20touch%20with%20Aesthetic%20Lounge."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-block rounded-full border border-gold px-6 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-white"
@@ -167,8 +173,8 @@ export default function ContactPage() {
                 Working Hours
               </h3>
               <div className="mt-2 space-y-1 text-sm text-text-light">
-                <p>Monday &ndash; Saturday: 10:00 AM &ndash; 8:00 PM</p>
-                <p>Sunday: By appointment only</p>
+                <p>Monday &ndash; Saturday: 10:00 AM &ndash; 9:00 PM</p>
+                <p>By Appointment Only</p>
               </div>
             </div>
 
@@ -177,7 +183,7 @@ export default function ContactPage() {
               <div className="text-center text-text-muted">
                 <p className="text-2xl mb-2">📍</p>
                 <p className="text-sm font-medium">
-                  DHA Phase 7, Lahore
+                  Plaza-126, BWB Phase 8, DHA Lahore Cantt
                 </p>
                 <p className="text-xs mt-1">
                   Interactive map coming soon

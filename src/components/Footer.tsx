@@ -17,17 +17,16 @@ const topServices = [
 ];
 
 const contactInfo = [
-  { icon: "\uD83D\uDCCD", label: "Address", value: "DHA Phase 5, Lahore, Pakistan" },
-  { icon: "\uD83D\uDCDE", label: "Phone", value: "+92 423 576 1234" },
+  { icon: "\uD83D\uDCCD", label: "Address", value: "Plaza-126, BWB Phase 8, DHA Lahore Cantt" },
+  { icon: "\uD83D\uDCDE", label: "Phone", value: "+92 327 6620000 | +92 42 35740271" },
   { icon: "\u2709\uFE0F", label: "Email", value: "info@aestheticloungeofficial.com" },
-  { icon: "\uD83D\uDD50", label: "Hours", value: "Mon \u2013 Sat: 11 AM \u2013 9 PM" },
+  { icon: "\uD83D\uDD50", label: "Hours", value: "Mon \u2013 Sat: 10 AM \u2013 9 PM (By Appointment)" },
 ];
 
 const socials = [
-  { label: "Instagram", text: "ig" },
-  { label: "Facebook", text: "fb" },
-  { label: "TikTok", text: "tk" },
-  { label: "YouTube", text: "yt" },
+  { label: "Instagram", text: "ig", href: "https://instagram.com/aestheticloungeofficial/" },
+  { label: "Facebook", text: "fb", href: "https://facebook.com/people/Aestheticloungeofficial/61567387603705/" },
+  { label: "YouTube", text: "yt", href: "https://youtube.com/@aestheticloungeofficial" },
 ];
 
 export default function Footer() {
@@ -48,7 +47,9 @@ export default function Footer() {
               {socials.map((s) => (
                 <a
                   key={s.label}
-                  href="#"
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={s.label}
                   className="flex h-[38px] w-[38px] items-center justify-center rounded-lg border border-white/10 text-[15px] transition-all hover:-translate-y-0.5 hover:border-gold hover:bg-gold hover:text-white"
                 >

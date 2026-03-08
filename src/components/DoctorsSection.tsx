@@ -1,22 +1,22 @@
 const doctors = [
   {
-    name: "Dr. Sarah Ahmed",
-    title: "Lead Dermatologist",
-    bio: "MBBS, FCPS Dermatology. Specializing in laser treatments, anti-aging, and skin rejuvenation with 10+ years of experience.",
+    name: "Dr. Huma",
+    title: "Aesthetic Physician",
+    bio: "Expert aesthetic physician specializing in advanced non-surgical treatments, facial rejuvenation, and personalized skincare solutions.",
     placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
     socials: ["in", "ig"],
   },
   {
-    name: "Dr. Ali Khan",
-    title: "Aesthetic Surgeon",
-    bio: "MBBS, MRCS. Expert in facial contouring, dermal fillers, and non-surgical nose reshaping procedures.",
+    name: "Dr. Zulfiqar",
+    title: "Plastic Surgeon",
+    bio: "Skilled plastic surgeon with expertise in facial contouring, body sculpting, and reconstructive aesthetic procedures.",
     placeholder: "\uD83D\uDC68\u200D\u2695\uFE0F",
     socials: ["in", "ig"],
   },
   {
-    name: "Dr. Fatima Rizvi",
-    title: "Cosmetic Dentist",
-    bio: "BDS, MDS Prosthodontics. Specializing in smile makeovers, porcelain veneers, and dental aesthetics.",
+    name: "Dr. Zonera",
+    title: "Dermatologist",
+    bio: "Experienced dermatologist specializing in advanced skin treatments, laser therapies, and clinical skincare for all skin types.",
     placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
     socials: ["in", "ig"],
   },
@@ -35,7 +35,7 @@ export default function DoctorsSection() {
             Meet Our <em className="italic text-gold">Doctors</em>
           </h2>
           <p className="mx-auto max-w-[520px] text-base leading-[1.7] text-text-light">
-            Your beauty is in the hands of the best. Internationally trained, locally loved.
+            Expert doctors delivering personalized care with advanced solutions.
           </p>
         </div>
 

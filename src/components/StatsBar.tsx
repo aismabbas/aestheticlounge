@@ -6,7 +6,7 @@ const stats = [
   { target: 1000, suffix: "+", label: "Happy Clients" },
   { target: 80, suffix: "+", label: "Treatments" },
   { target: 3, suffix: "", label: "Expert Doctors" },
-  { target: 8, suffix: "+", label: "Years Experience" },
+  { target: 25, suffix: "+", label: "Google Reviews" },
 ];
 
 function useCountUp(target: number, trigger: boolean, duration = 2200) {

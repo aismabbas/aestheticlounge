@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Aesthetic Lounge",
   },
   description:
-    "Lahore's premier medical aesthetics clinic in DHA Phase 7. 80+ treatments including HydraFacial, Botox, fillers, laser hair removal & body contouring. Led by Dr. Huma Abbas.",
+    "Lahore's premier medical aesthetics clinic at Plaza-126, BWB Phase 8, DHA Lahore Cantt. 80+ treatments including HydraFacial, Botox, fillers, laser hair removal & body contouring. Expert doctors delivering personalized care.",
   keywords: [
     "medical aesthetics Lahore",
     "aesthetic clinic DHA",
@@ -37,8 +37,10 @@ export const metadata: Metadata = {
     "Botox Lahore",
     "dermal fillers Lahore",
     "laser hair removal Lahore",
-    "skin clinic DHA Phase 7",
-    "Dr Huma Abbas",
+    "skin clinic DHA Phase 8",
+    "Dr Huma",
+    "Dr Zulfiqar",
+    "Dr Zonera",
     "Aesthetic Lounge",
     "body contouring Lahore",
     "PRP treatment Lahore",
@@ -52,7 +54,7 @@ export const metadata: Metadata = {
     siteName: "Aesthetic Lounge",
     title: "Aesthetic Lounge — Premium Medical Aesthetics in Lahore",
     description:
-      "80+ treatments. Expert care. DHA Phase 7, Lahore. Book your consultation today.",
+      "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
     images: [
       {
         url: "/og-image.jpg",
@@ -66,7 +68,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Aesthetic Lounge — Premium Medical Aesthetics in Lahore",
     description:
-      "80+ treatments. Expert care. DHA Phase 7, Lahore. Book your consultation today.",
+      "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -94,12 +96,13 @@ const jsonLd = {
   logo: "https://aestheticloungeofficial.com/logo.png",
   image: "https://aestheticloungeofficial.com/og-image.jpg",
   description:
-    "Premium medical aesthetics clinic offering 80+ treatments in DHA Phase 7, Lahore. Led by Dr. Huma Abbas.",
-  telephone: "+92-XXX-XXXXXXX",
+    "Premium medical aesthetics clinic offering 80+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.",
+  telephone: "+92-327-6620000",
+  email: "info@aestheticloungeofficial.com",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "DHA Phase 7",
-    addressLocality: "Lahore",
+    streetAddress: "Plaza-126, BWB Phase 8",
+    addressLocality: "DHA Lahore Cantt",
     addressRegion: "Punjab",
     addressCountry: "PK",
   },
@@ -112,20 +115,27 @@ const jsonLd = {
     {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      opens: "11:00",
-      closes: "20:00",
+      opens: "10:00",
+      closes: "21:00",
     },
   ],
   medicalSpecialty: "Dermatology",
   priceRange: "$$",
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    reviewCount: "1000",
+    bestRating: "5",
+  },
   sameAs: [
-    "https://www.instagram.com/aestheticloungeofficial",
-    "https://www.facebook.com/aestheticloungeofficial",
+    "https://instagram.com/aestheticloungeofficial/",
+    "https://facebook.com/people/Aestheticloungeofficial/61567387603705/",
+    "https://youtube.com/@aestheticloungeofficial",
   ],
   founder: {
     "@type": "Person",
-    name: "Dr. Huma Abbas",
-    jobTitle: "Medical Director",
+    name: "Dr. Huma",
+    jobTitle: "Aesthetic Physician",
   },
 };
 

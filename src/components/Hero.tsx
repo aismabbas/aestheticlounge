@@ -18,9 +18,9 @@ export default function Hero() {
           </h1>
 
           <p className="mb-11 max-w-[460px] text-[17px] leading-[1.8] text-text-light">
-            Experience world-class aesthetic treatments from Lahore&apos;s most trusted
-            dermatologists. We combine artistry and science to bring out your natural
-            beauty — safely and beautifully.
+            Expert doctors delivering personalized care with advanced solutions.
+            Experience safe, tailored treatments from Lahore&apos;s most trusted
+            aesthetic professionals.
           </p>
 
           <div className="mb-14 flex flex-wrap items-center gap-6">
@@ -67,8 +67,8 @@ export default function Hero() {
             </div>
             <div className="text-sm text-text-light leading-snug">
               <div className="tracking-[2px] text-star">★★★★★</div>
-              <span className="font-bold text-text-dark">4.8</span> from{" "}
-              <span className="font-bold text-text-dark">1,000+</span> happy clients
+              <span className="font-bold text-text-dark">4.8 Rating</span> from{" "}
+              <span className="font-bold text-text-dark">1,000+</span> reviews &middot; 25+ on Google
             </div>
           </div>
         </div>

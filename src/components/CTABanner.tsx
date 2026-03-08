@@ -16,7 +16,7 @@ export default function CTABanner() {
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
-            href="tel:+924235761234"
+            href="tel:+923276620000"
             className="gold-shimmer-bg inline-flex items-center gap-2.5 rounded-md px-11 py-4.5 text-sm font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(184,146,74,0.3)]"
           >
             <svg
@@ -32,7 +32,7 @@ export default function CTABanner() {
             Call Us Now
           </a>
           <a
-            href="https://wa.me/923001234567?text=Hi%2C%20I'd%20like%20to%20book%20a%20consultation"
+            href="https://wa.me/923276620000?text=Hi%2C%20I'd%20like%20to%20book%20a%20consultation"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 rounded-md border-[1.5px] border-white/25 bg-transparent px-11 py-4.5 text-sm font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/8"

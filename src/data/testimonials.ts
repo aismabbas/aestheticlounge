@@ -10,56 +10,47 @@ export interface Testimonial {
 export const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: "Ayesha Malik",
-    location: "DHA Phase 6, Lahore",
-    treatment: "HydraFacial",
+    name: "Maham Hassan",
+    location: "DHA, Lahore",
+    treatment: "Eyelid Surgery (Blepharoplasty)",
     rating: 5,
     quote:
-      "I have tried facials at several clinics in Lahore, but the HydraFacial at Aesthetic Lounge was on another level. My skin was glowing for days. The clinic itself feels so luxurious and clean — exactly the standard you expect in DHA.",
+      "I was always conscious of my tired-looking eyes — no matter how much sleep I got, people would ask if I was exhausted. The dark, heavy lids made me look years older than I actually am. After consulting with the team at Aesthetic Lounge, I decided to go ahead with the blepharoplasty and I could not be happier with my decision. The entire process from consultation to recovery was handled with such care and professionalism. My eyes look naturally refreshed and open now, and the compliments have not stopped. Absolutely thrilled with the results!",
   },
   {
     id: 2,
-    name: "Fatima Tariq",
-    location: "DHA Phase 5, Lahore",
-    treatment: "Lip Fillers",
+    name: "Ayesha Khan",
+    location: "DHA, Lahore",
+    treatment: "Medicated Facials",
     rating: 5,
     quote:
-      "Dr. Huma did my lip fillers and the results are so natural — nobody can tell they are done, they just say I look fresher. She took time to understand exactly what I wanted and the whole process was comfortable. Highly recommend.",
+      "I had stubborn acne for years and honestly felt like I had tried everything — expensive skincare routines, home remedies, you name it. Nothing seemed to make a lasting difference. When I finally came to Aesthetic Lounge, their dermatologist took the time to really understand my skin and recommended a course of their medicated facials tailored to my specific concerns. Within a few sessions, I started seeing real improvement — my breakouts calmed down, the redness faded, and my skin texture improved dramatically. Their medicated facials genuinely worked wonders where nothing else had.",
   },
   {
     id: 3,
-    name: "Sana Javed",
-    location: "DHA Phase 7, Lahore",
-    treatment: "Full Body Laser",
+    name: "Zara Ahmed",
+    location: "DHA, Lahore",
+    treatment: "Laser Hair Removal",
     rating: 5,
     quote:
-      "After six sessions of full body laser, I am virtually hair-free. The staff is professional and the laser technology they use is painless compared to my previous clinic. Worth every rupee — I wish I had started sooner.",
+      "I was tired of temporary hair removal methods — the constant waxing, the ingrown hairs, the irritation. It felt like a never-ending cycle that was both painful and time-consuming. I decided to invest in laser hair removal at Aesthetic Lounge, and it has been one of the best decisions I have made. The staff was incredibly professional, explained the entire process clearly, and made sure I was comfortable throughout every session. The results are amazing — smooth, hair-free skin that I do not have to worry about anymore. I only wish I had done this sooner.",
   },
   {
     id: 4,
-    name: "Mehreen Ahmed",
-    location: "DHA Phase 8, Lahore",
-    treatment: "Teeth Whitening",
-    rating: 4,
+    name: "Fatima Sheikh",
+    location: "DHA, Lahore",
+    treatment: "Nose Reshaping (Rhinoplasty)",
+    rating: 5,
     quote:
-      "Got my teeth whitened before my wedding and the results were amazing — five shades whiter in one sitting. Dr. Ahmed was thorough with the consultation and the whole team made me feel at ease. My photos turned out beautiful.",
+      "I was nervous about getting rhinoplasty — it is a big decision and I spent months researching before choosing Aesthetic Lounge. From the very first consultation, the surgeon put me at ease. He listened to exactly what I wanted, showed me realistic expectations, and never once pressured me into anything. The surgery itself went smoothly, and while the recovery took patience, every week I could see the swelling go down and my new nose taking shape. The results are natural and exactly what I wanted — my nose looks like it has always belonged on my face, just refined. I could not be more grateful.",
   },
   {
     id: 5,
-    name: "Zara Hussain",
-    location: "DHA Phase 7, Lahore",
-    treatment: "PRP Hair Treatment",
+    name: "Ali Raza",
+    location: "DHA, Lahore",
+    treatment: "Body Contouring",
     rating: 5,
     quote:
-      "I was losing so much hair due to stress and nothing was working. Dr. Huma recommended PRP and after four sessions my hair fall has reduced dramatically. I can see new baby hairs growing in. The clinic follows up after every session which shows they genuinely care.",
-  },
-  {
-    id: 6,
-    name: "Nadia Sheikh",
-    location: "DHA Phase 6, Lahore",
-    treatment: "Carbon Laser Facial",
-    rating: 4,
-    quote:
-      "The Carbon Laser Facial gave me an instant glow — my pores looked smaller and my skin felt so smooth. I now come monthly for maintenance. The ambiance at Aesthetic Lounge is calming and the hygiene standards are impeccable. It feels like a proper medical clinic, not just a beauty salon.",
+      "After struggling with stubborn belly fat that would not budge no matter how disciplined I was with my diet and gym routine, I decided to explore body contouring options at Aesthetic Lounge. The team was straightforward and honest about what the treatment could and could not achieve, which I really appreciated. They recommended a combination approach tailored to my specific problem areas, and I committed to the full course. The results exceeded my expectations — my midsection looks noticeably slimmer and more defined, and I finally feel confident taking my shirt off. The professionalism and results here are genuinely world-class.",
   },
 ];

@@ -21,248 +21,296 @@ export interface Category {
 }
 
 export const categories: Category[] = [
-  // ─── 1. Dermal Fillers ───────────────────────────────────────────────
+  // ─── 1. Medicated Facials ────────────────────────────────────────────
   {
-    slug: "dermal-fillers",
-    name: "Dermal Fillers",
+    slug: "medicated-facials",
+    name: "Medicated Facials",
     description:
-      "Restore volume, sculpt contours, and enhance your natural features with premium hyaluronic acid fillers administered by experienced physicians.",
-    icon: "💉",
+      "Advanced facial treatments combining clinical-grade ingredients with expert technique to address specific skin concerns — from acne and pigmentation to deep hydration and radiance.",
+    icon: "✨",
     treatments: [
       {
-        slug: "lip-fillers",
-        name: "Lip Fillers",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "classical-facial",
+        name: "Classical Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Enhance lip volume and shape with natural-looking hyaluronic acid fillers.",
+          "A timeless deep-cleansing facial that purifies, exfoliates, and revitalizes the skin.",
         description:
-          "Our lip filler treatment uses premium hyaluronic acid to add volume, define the cupid's bow, and correct asymmetry for a naturally fuller pout. Results are immediate with minimal downtime, lasting 6–12 months depending on your metabolism and the product used.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 25,000",
-        bestFor:
-          "Thin or asymmetric lips, lost volume due to aging, desire for a defined lip border.",
-        tags: ["lips", "volume", "HA filler"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "cheek-fillers",
-        name: "Cheek Fillers",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
-        shortDesc:
-          "Lift and define cheekbones for a youthful, sculpted facial profile.",
-        description:
-          "Cheek fillers restore midface volume that naturally depletes with age, creating lifted contours and a more youthful appearance. Using cannula techniques for safety, this treatment provides an instant non-surgical facelift effect that lasts 12–18 months.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 30,000",
-        bestFor:
-          "Flat or sunken cheeks, midface volume loss, desire for a contoured facial structure.",
-        tags: ["cheeks", "contour", "volume"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "jawline-contouring",
-        name: "Jawline Contouring",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
-        shortDesc:
-          "Define and sharpen the jawline with strategically placed dermal fillers.",
-        description:
-          "Jawline contouring with fillers creates a sharper, more defined jaw angle without surgery. Ideal for both men and women seeking a sculpted lower face, this treatment uses firm-consistency HA fillers placed along the mandible for structural support. Results last up to 18 months.",
+          "The Classical Facial is our foundational skin treatment, combining thorough cleansing, gentle exfoliation, steam extraction, and a nourishing mask tailored to your skin type. This treatment restores your skin's natural balance and radiance, making it an excellent choice for regular maintenance or as an introduction to professional skincare. Suitable for all skin types with zero downtime.",
         duration: "45–60 min",
-        priceDisplay: "Starting from Rs 35,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Weak or undefined jawline, jowling, desire for a sharper lower-face profile.",
-        tags: ["jawline", "contour", "sculpt"],
-        doctor: "dr-huma-abbas",
+          "General skin maintenance, first-time facial clients, skin refreshment.",
+        tags: ["facial", "cleansing", "classic", "maintenance"],
+        doctor: "dr-huma",
       },
       {
-        slug: "under-eye-fillers",
-        name: "Under Eye Fillers",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "glow-and-go-facial",
+        name: "Glow and Go Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Reduce dark circles and hollows beneath the eyes for a refreshed look.",
+          "A quick-result facial designed to deliver instant luminosity for busy schedules.",
         description:
-          "Tear trough filler treatment addresses under-eye hollowness, dark circles, and tired-looking eyes. Using a soft, hydrophilic filler placed with a cannula for precision, this delicate procedure requires an experienced hand. Results are subtle yet transformative, lasting 9–12 months.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 28,000",
+          "The Glow and Go Facial is our express radiance treatment, perfect for those who want visible results in minimal time. Using targeted brightening serums, gentle enzymatic exfoliation, and a hydrating finish, this facial delivers an instant lit-from-within glow. Ideal before events, weddings, or whenever your skin needs a quick pick-me-up without any downtime.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Under-eye hollows, dark circles from volume loss, tired-looking eyes.",
-        tags: ["under eye", "tear trough", "dark circles"],
-        doctor: "dr-huma-abbas",
+          "Pre-event prep, instant radiance, busy professionals, lunchtime glow-up.",
+        tags: ["glow", "express", "radiance", "brightening"],
+        doctor: "dr-huma",
       },
       {
-        slug: "nasolabial-folds",
-        name: "Nasolabial Folds",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "oxygen-facial",
+        name: "Oxygen Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Soften deep smile lines running from nose to mouth with filler injections.",
+          "Pressurized oxygen infuses vitamins and antioxidants deep into the skin for a plump, dewy finish.",
         description:
-          "Nasolabial fold treatment smooths the deep lines that run from the sides of the nose to the corners of the mouth. Using medium-viscosity HA fillers, we soften these creases while maintaining natural facial movement. The treatment is quick with results lasting 9–12 months.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 22,000",
+          "The Oxygen Facial uses a specialized device to deliver a stream of pressurized oxygen infused with vitamins, minerals, and antioxidants directly into the epidermis. This boosts cellular metabolism, promotes collagen production, and leaves the skin visibly plumped and hydrated. The treatment is gentle, soothing, and delivers an immediate dewy glow with no redness or downtime.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Deep smile lines, marionette lines, aging around the mouth area.",
-        tags: ["smile lines", "nasolabial", "anti-aging"],
-        doctor: "dr-huma-abbas",
+          "Dull skin, dehydration, fine lines, pre-event radiance.",
+        tags: ["oxygen", "hydration", "plumping", "antioxidants"],
+        doctor: "dr-huma",
       },
       {
-        slug: "chin-augmentation",
-        name: "Chin Augmentation",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "acne-facial",
+        name: "Acne Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Project and reshape the chin for a balanced facial profile without surgery.",
+          "A targeted medicated facial that deep-cleanses pores, reduces inflammation, and controls breakouts.",
         description:
-          "Non-surgical chin augmentation with fillers adds projection and definition to a recessed or weak chin, improving facial balance and profile harmony. This treatment is particularly effective when combined with jawline contouring for comprehensive lower-face sculpting. Results last 12–18 months.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 28,000",
+          "Our Acne Facial is specifically designed for breakout-prone and oily skin, using clinical-grade antibacterial and anti-inflammatory ingredients to deep-cleanse clogged pores and calm active inflammation. The treatment includes thorough extraction, a medicated mask, and blue LED therapy to kill acne-causing bacteria. Regular sessions help prevent future breakouts and reduce post-acne marks.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Receding chin, facial imbalance, desire for improved side profile.",
-        tags: ["chin", "profile", "augmentation"],
-        doctor: "dr-huma-abbas",
+          "Active acne, oily skin, clogged pores, recurring breakouts.",
+        tags: ["acne", "medicated", "extraction", "antibacterial"],
+        doctor: "dr-huma",
       },
       {
-        slug: "temple-fillers",
-        name: "Temple Fillers",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "microdermabrasion-facial",
+        name: "Microdermabrasion Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Restore volume to hollow temples for a fuller, more youthful facial frame.",
+          "Crystal or diamond-tip exfoliation that buffs away dead skin cells for a smoother, brighter complexion.",
         description:
-          "Temple hollowing is one of the earliest signs of facial aging, creating a gaunt appearance. Temple filler treatment restores this lost volume, lifting the brow area and creating a smoother transition from forehead to cheekbone. Results are subtle but significantly rejuvenating, lasting 12–18 months.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 25,000",
+          "Microdermabrasion uses a diamond-tip handpiece to mechanically exfoliate the outermost layer of dead skin cells, revealing fresher, smoother skin beneath. This treatment improves skin texture, minimizes the appearance of fine lines and shallow scars, and enhances the absorption of skincare products. A course of treatments delivers cumulative improvements in tone and clarity.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Hollow temples, gaunt appearance, overall facial rejuvenation.",
-        tags: ["temples", "volume", "rejuvenation"],
-        doctor: "dr-huma-abbas",
+          "Dull complexion, uneven texture, fine lines, shallow acne scars.",
+        tags: ["microdermabrasion", "exfoliation", "resurfacing", "texture"],
+        doctor: "dr-huma",
       },
       {
-        slug: "hand-rejuvenation",
-        name: "Hand Rejuvenation",
-        category: "Dermal Fillers",
-        categorySlug: "dermal-fillers",
+        slug: "microneedling-facial",
+        name: "Microneedling Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
         shortDesc:
-          "Restore youthful fullness to aging hands with volume-replacing fillers.",
+          "Controlled micro-injuries stimulate collagen production for firmer, smoother, and more even-toned skin.",
         description:
-          "Hands often reveal age before the face does. Hand rejuvenation with fillers restores lost volume, reducing the visibility of veins and tendons for smoother, younger-looking hands. The treatment uses a specialized HA filler designed for this delicate area, with results lasting 9–12 months.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 20,000",
+          "The Microneedling Facial uses a medical-grade device with fine needles to create thousands of controlled micro-channels in the skin, triggering the body's natural wound-healing response and stimulating new collagen and elastin production. This treatment effectively addresses acne scars, enlarged pores, fine lines, and uneven texture. Topical serums are applied during the procedure for enhanced penetration and results.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Bony or veiny hands, visible tendons, overall hand aging.",
-        tags: ["hands", "rejuvenation", "volume"],
-        doctor: "dr-huma-abbas",
+          "Acne scars, enlarged pores, fine lines, skin rejuvenation.",
+        tags: ["microneedling", "collagen", "scars", "rejuvenation"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "chemical-peel-facial",
+        name: "Chemical Peel Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
+        shortDesc:
+          "Medical-grade acids exfoliate damaged surface layers to reveal brighter, more even skin underneath.",
+        description:
+          "Our Chemical Peel Facial applies carefully selected acids — glycolic, salicylic, lactic, or TCA — to exfoliate damaged outer skin layers and stimulate cell turnover. The depth and type of peel is customized to your skin concerns, whether that is pigmentation, acne, fine lines, or overall dullness. Peeling occurs over 3–7 days post-treatment, revealing noticeably smoother, brighter, and more even-toned skin.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Pigmentation, melasma, fine lines, acne marks, dull skin.",
+        tags: ["chemical peel", "exfoliation", "pigmentation", "resurfacing"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "back-facial",
+        name: "Back Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
+        shortDesc:
+          "A deep-cleansing treatment for the back that targets acne, congestion, and rough texture.",
+        description:
+          "The Back Facial brings the same level of care we give your face to the often-neglected skin on your back. This treatment includes deep cleansing, exfoliation, extractions for back acne and congestion, a purifying mask, and hydration. It is especially popular before weddings and events where backless outfits are planned, leaving the skin smooth, clear, and even-toned.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Back acne, rough back skin, pre-wedding prep, congestion.",
+        tags: ["back", "body facial", "acne", "cleansing"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "signature-facial",
+        name: "Signature Facial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
+        shortDesc:
+          "Our most comprehensive facial combining multiple modalities for a complete skin transformation.",
+        description:
+          "The Aesthetic Lounge Signature Facial is our most luxurious and results-driven treatment, combining the best elements of our facial menu into one transformative session. It includes deep cleansing, enzyme exfoliation, targeted extractions, a customized serum infusion, LED therapy, and a nourishing mask — all tailored to your unique skin profile. This is our flagship treatment for clients who want the ultimate in skincare.",
+        duration: "75–90 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Complete skin overhaul, special occasions, premium skincare experience.",
+        tags: ["signature", "premium", "comprehensive", "luxury"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "keravive-hydrafacial",
+        name: "Keravive HydraFacial",
+        category: "Medicated Facials",
+        categorySlug: "medicated-facials",
+        shortDesc:
+          "A specialized HydraFacial for the scalp that cleanses, stimulates, and nourishes hair follicles.",
+        description:
+          "The Keravive HydraFacial is a unique scalp treatment using HydraFacial's patented vortex technology to cleanse, exfoliate, and hydrate the scalp while delivering proprietary growth factor and skin protein solutions directly to hair follicles. This three-step in-office treatment with a take-home spray promotes healthier, fuller-looking hair by creating the optimal scalp environment for hair growth.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Scalp health, thinning hair, dry scalp, hair follicle nourishment.",
+        tags: ["keravive", "hydrafacial", "scalp", "hair health"],
+        doctor: "dr-huma",
       },
     ],
   },
 
-  // ─── 2. Botox & Anti-Wrinkle ─────────────────────────────────────────
+  // ─── 2. Face Lift & Rejuvenation ─────────────────────────────────────
   {
-    slug: "botox-anti-wrinkle",
-    name: "Botox & Anti-Wrinkle",
+    slug: "face-lift-rejuvenation",
+    name: "Face Lift & Rejuvenation",
     description:
-      "Smooth away fine lines and wrinkles with precision-targeted botulinum toxin injections for a refreshed, natural-looking result.",
-    icon: "✨",
+      "Advanced anti-aging and facial rejuvenation treatments that restore volume, smooth wrinkles, and lift sagging skin — from injectables to energy-based devices.",
+    icon: "💉",
     treatments: [
       {
-        slug: "forehead-lines",
-        name: "Forehead Lines",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "skin-booster",
+        name: "Skin Booster",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Smooth horizontal forehead lines with precisely dosed Botox injections.",
+          "Micro-injections of hyaluronic acid that deeply hydrate and improve skin quality from within.",
         description:
-          "Forehead Botox targets the frontalis muscle to soften horizontal lines while preserving natural brow movement. Our micro-dosing technique ensures you can still express emotions without the etched-in lines. Results appear within 3–5 days and last 3–4 months.",
-        duration: "15–20 min",
-        priceDisplay: "Starting from Rs 15,000",
+          "Skin Boosters deliver micro-doses of stabilized hyaluronic acid just beneath the skin's surface through a series of tiny injections, providing deep hydration that topical products cannot achieve. Unlike traditional fillers that add volume, skin boosters improve overall skin quality — enhancing elasticity, smoothness, and luminosity. A course of 2–3 sessions spaced 4 weeks apart delivers the best results, with maintenance every 6 months.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Horizontal forehead creases, expressive lines, preventative anti-aging.",
-        tags: ["forehead", "botox", "wrinkles"],
-        doctor: "dr-huma-abbas",
+          "Dehydrated skin, crepey texture, dull complexion, overall skin quality improvement.",
+        tags: ["skin booster", "hyaluronic acid", "hydration", "quality"],
+        doctor: "dr-huma",
       },
       {
-        slug: "crows-feet",
-        name: "Crow's Feet",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "polynucleotide",
+        name: "Polynucleotide",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Reduce smile lines around the eyes for a smoother, more youthful eye area.",
+          "Bio-regenerative injections using DNA-derived polynucleotides to repair and rejuvenate aging skin.",
         description:
-          "Crow's feet—the fine lines radiating from the outer corners of the eyes—are among the first signs of aging. Targeted Botox injections relax the orbicularis oculi muscle, smoothing these lines while allowing natural smiling. The treatment is quick, virtually painless, and results last 3–4 months.",
-        duration: "10–15 min",
-        priceDisplay: "Starting from Rs 12,000",
+          "Polynucleotide therapy is a cutting-edge bio-regenerative treatment that uses purified DNA fragments derived from salmon to stimulate fibroblast activity, promote collagen synthesis, and repair damaged skin at a cellular level. This treatment is particularly effective for the delicate under-eye area, neck, and decolletage where skin is thin and prone to aging. Results improve progressively over 2–3 sessions.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Lines around the eyes when smiling, early signs of aging, eye area rejuvenation.",
-        tags: ["eyes", "crows feet", "botox"],
-        doctor: "dr-huma-abbas",
+          "Under-eye hollows, neck aging, skin repair, bio-regeneration.",
+        tags: ["polynucleotide", "bio-regenerative", "DNA", "repair"],
+        doctor: "dr-huma",
       },
       {
-        slug: "frown-lines",
-        name: "Frown Lines",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "botox",
+        name: "Botox",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Soften the vertical '11 lines' between the eyebrows with Botox.",
+          "Precision botulinum toxin injections that relax dynamic wrinkles for a smoother, refreshed appearance.",
         description:
-          "Glabellar lines, commonly called '11 lines' or frown lines, make you look stressed or angry even at rest. Botox injections into the procerus and corrugator muscles smooth these deep vertical creases. This is the most popular Botox treatment area, with results visible in 3–7 days lasting 3–4 months.",
-        duration: "10–15 min",
-        priceDisplay: "Starting from Rs 12,000",
+          "Botox (botulinum toxin) is the gold standard for treating dynamic wrinkles — the lines that form from repeated facial expressions like frowning, squinting, and raising the eyebrows. Our physicians use precise micro-dosing techniques to relax targeted muscles while preserving natural expression, avoiding the frozen look. Results appear within 3–7 days and last 3–4 months, with regular treatments training muscles to create fewer lines over time.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Deep vertical lines between brows, angry resting expression, glabellar creases.",
-        tags: ["frown", "glabella", "11 lines", "botox"],
-        doctor: "dr-huma-abbas",
+          "Forehead lines, crow's feet, frown lines (11s), bunny lines, gummy smile.",
+        tags: ["botox", "wrinkles", "anti-aging", "injectables"],
+        doctor: "dr-huma",
       },
       {
-        slug: "bunny-lines",
-        name: "Bunny Lines",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "dermal-fillers",
+        name: "Dermal Fillers",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Smooth the fine lines that appear on the nose bridge when scrunching.",
+          "Hyaluronic acid fillers that restore lost volume, sculpt contours, and enhance facial features.",
         description:
-          "Bunny lines are the diagonal wrinkles that form on the sides of the nose when you scrunch or laugh. A few precise units of Botox into the nasalis muscle smooth these lines without affecting your smile. This quick treatment is often combined with frown line and forehead Botox for a comprehensive upper-face refresh.",
-        duration: "5–10 min",
-        priceDisplay: "Starting from Rs 8,000",
+          "Dermal fillers use premium hyaluronic acid gel to restore volume lost through aging, sculpt and define facial contours, and enhance features like lips, cheeks, and jawline. Our physicians take a whole-face approach, assessing facial proportions and balance before creating a customized treatment plan. Results are immediate and natural-looking, lasting 6–18 months depending on the area treated and the product used.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Nose wrinkles when smiling, complement to other facial Botox areas.",
-        tags: ["nose", "bunny lines", "botox"],
-        doctor: "dr-huma-abbas",
+          "Volume loss, lip enhancement, cheek definition, jawline sculpting, nasolabial folds.",
+        tags: ["fillers", "hyaluronic acid", "volume", "contouring"],
+        doctor: "dr-huma",
       },
       {
-        slug: "lip-flip",
-        name: "Lip Flip",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "hifu",
+        name: "HIFU",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Subtly enhance the upper lip by relaxing the muscle above the lip line.",
+          "High-Intensity Focused Ultrasound that lifts and tightens skin by targeting deep tissue layers.",
         description:
-          "A Botox lip flip is a subtle alternative to lip fillers that relaxes the orbicularis oris muscle, allowing the upper lip to gently roll outward for a fuller appearance. Ideal for patients who want a slight enhancement without adding volume. Results take 5–7 days to appear and last 2–3 months.",
-        duration: "5–10 min",
-        priceDisplay: "Starting from Rs 8,000",
+          "HIFU (High-Intensity Focused Ultrasound) delivers focused ultrasound energy to the deep structural layers of the skin — the same layers addressed in a surgical facelift — without cutting the surface. This stimulates a natural regenerative response, producing new collagen and elastin that gradually lifts and tightens the treated area. Results develop over 2–3 months and can last up to a year, making HIFU an excellent non-surgical alternative to a facelift.",
+        duration: "60–90 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Thin upper lip, gummy smile, subtle lip enhancement without filler.",
-        tags: ["lip flip", "botox", "lips"],
-        doctor: "dr-huma-abbas",
+          "Sagging skin, jowls, loose neck, non-surgical facelift alternative.",
+        tags: ["HIFU", "ultrasound", "lifting", "tightening"],
+        doctor: "dr-huma",
       },
       {
-        slug: "neck-bands",
-        name: "Neck Bands",
-        category: "Botox & Anti-Wrinkle",
-        categorySlug: "botox-anti-wrinkle",
+        slug: "hifu-mpt",
+        name: "HIFU MPT",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
         shortDesc:
-          "Soften prominent platysma bands in the neck for a smoother neckline.",
+          "Next-generation HIFU with Micro-Pulsed Technology for enhanced comfort and precision lifting.",
         description:
-          "The Nefertiti Neck Lift uses Botox to relax the platysmal bands—the vertical cords that become more visible with age. By treating these bands, the jawline appears sharper and the neck smoother. This non-surgical approach to neck rejuvenation requires 20–40 units and results last 3–4 months.",
-        duration: "15–20 min",
-        priceDisplay: "Starting from Rs 18,000",
+          "HIFU MPT (Micro-Pulsed Technology) is an advanced evolution of traditional HIFU that delivers ultrasound energy in rapid micro-pulses rather than continuous bursts. This results in more comfortable treatment with less downtime while maintaining the same powerful lifting and tightening effects. The micro-pulsed delivery also allows for more precise targeting of treatment depths, making it suitable for delicate areas like the periorbital region and forehead.",
+        duration: "60–90 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Visible neck bands, turkey neck, jawline definition improvement.",
-        tags: ["neck", "platysma", "nefertiti lift", "botox"],
-        doctor: "dr-huma-abbas",
+          "Sensitive skin, periorbital tightening, comfortable lifting treatment.",
+        tags: ["HIFU", "MPT", "micro-pulse", "comfortable lifting"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "radio-frequency",
+        name: "Radio Frequency",
+        category: "Face Lift & Rejuvenation",
+        categorySlug: "face-lift-rejuvenation",
+        shortDesc:
+          "Radiofrequency energy heats deep skin layers to stimulate collagen and tighten lax facial skin.",
+        description:
+          "Radiofrequency (RF) facial treatment delivers controlled thermal energy into the deeper layers of the skin, heating collagen fibers to cause immediate contraction and tightening while stimulating long-term new collagen production. The treatment is comfortable, requires no downtime, and delivers progressive improvement in skin firmness, fine lines, and overall facial contour over a series of sessions.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Mild skin laxity, fine lines, facial contouring, collagen stimulation.",
+        tags: ["radio frequency", "RF", "tightening", "collagen"],
+        doctor: "dr-huma",
       },
     ],
   },
@@ -272,793 +320,253 @@ export const categories: Category[] = [
     slug: "laser-treatments",
     name: "Laser Treatments",
     description:
-      "Advanced diode and Nd:YAG laser technology for safe, effective, and long-lasting hair removal across all skin types, including South Asian skin tones.",
-    icon: "🔬",
+      "Medical-grade laser and light-based technologies for permanent hair reduction, skin resurfacing, tattoo removal, and targeted correction of skin concerns.",
+    icon: "⚡",
     treatments: [
       {
-        slug: "full-body-laser",
-        name: "Full Body Laser",
+        slug: "laser-hair-removal",
+        name: "Laser Hair Removal",
         category: "Laser Treatments",
         categorySlug: "laser-treatments",
         shortDesc:
-          "Complete head-to-toe laser hair removal in a single comprehensive session.",
+          "Permanent hair reduction using advanced laser technology safe for all skin tones.",
         description:
-          "Our full body laser package covers all major areas including arms, legs, underarms, bikini, stomach, back, and face. Using dual-wavelength diode technology safe for all South Asian skin tones, each session progressively reduces hair growth. A course of 6–8 sessions is recommended for optimal, long-lasting results.",
-        duration: "2–3 hours",
-        priceDisplay: "Starting from Rs 25,000",
+          "Our laser hair removal uses advanced diode and Nd:YAG technology calibrated specifically for South Asian skin tones, delivering permanent hair reduction safely and effectively. The laser targets melanin in the hair follicle, destroying its ability to regrow while leaving the surrounding skin unharmed. We offer packages for individual areas as well as full body treatments, with most clients achieving 80–90% permanent reduction over a course of 6–12 sessions.",
+        duration: "15–120 min (area dependent)",
+        priceDisplay: "Starting from Rs 1,500 (Upper Lip)",
         bestFor:
-          "Complete hair removal, multiple area treatment, long-term hair reduction.",
-        tags: ["full body", "laser hair removal", "all areas"],
+          "Unwanted body/facial hair, ingrown hairs, razor bumps, long-term hair freedom.",
+        tags: ["laser", "hair removal", "permanent", "diode"],
+        doctor: "dr-zonera",
       },
       {
-        slug: "bikini-laser",
-        name: "Bikini Laser",
+        slug: "electrolysis",
+        name: "Electrolysis",
         category: "Laser Treatments",
         categorySlug: "laser-treatments",
         shortDesc:
-          "Precise laser hair removal for the bikini line and surrounding area.",
+          "The only FDA-approved method for permanent hair removal, treating one follicle at a time.",
         description:
-          "Bikini laser hair removal targets unwanted hair along the bikini line and inner thighs for a clean, smooth finish. Our advanced cooling system ensures comfort throughout the treatment. Best results are seen after 6–8 sessions spaced 4–6 weeks apart.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 8,000",
+          "Electrolysis is the only method recognized by the FDA as truly permanent hair removal. A fine probe is inserted into each hair follicle, delivering a precise electrical current that destroys the follicle's ability to produce hair. While more time-intensive than laser, electrolysis works on all hair colors and skin types, including fine, light, and grey hairs that laser cannot target. Ideal for small areas or resistant hairs.",
+        duration: "15–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Bikini line hair, ingrown hairs, razor bump prevention.",
-        tags: ["bikini", "laser", "hair removal"],
-      },
-      {
-        slug: "underarm-laser",
-        name: "Underarm Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Quick and effective laser hair removal for silky-smooth underarms.",
-        description:
-          "Underarm laser is one of our most popular treatments, offering a permanent solution to shaving and waxing. The compact treatment area means sessions are quick, and most clients see significant reduction after just 4–6 sessions. Our laser technology also helps reduce underarm darkening over time.",
-        duration: "10–15 min",
-        priceDisplay: "Starting from Rs 5,000",
-        bestFor:
-          "Underarm hair, dark underarms, freedom from daily shaving.",
-        tags: ["underarm", "laser", "hair removal"],
-      },
-      {
-        slug: "legs-laser",
-        name: "Legs Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Full or half-leg laser hair removal for permanently smooth legs.",
-        description:
-          "Leg laser hair removal provides a long-term solution to constant shaving and painful waxing. Available as full leg or half leg options, the treatment uses rapid-pulse technology for speed and comfort. Most clients achieve 80–90% permanent reduction after completing a full course of 6–8 sessions.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 12,000",
-        bestFor:
-          "Leg hair removal, ingrown hairs, smooth legs without waxing.",
-        tags: ["legs", "laser", "hair removal"],
-      },
-      {
-        slug: "face-laser",
-        name: "Face Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Gentle facial laser hair removal for upper lip, chin, and sideburns.",
-        description:
-          "Facial laser hair removal targets fine and coarse hair on the upper lip, chin, jawline, and sideburns. Using settings calibrated for the delicate facial skin, this treatment eliminates the need for threading or waxing. Results are cumulative across 6–8 sessions with minimal redness post-treatment.",
-        duration: "15–20 min",
-        priceDisplay: "Starting from Rs 5,000",
-        bestFor:
-          "Facial hair, upper lip hair, chin hair, PCOS-related facial hair.",
-        tags: ["face", "laser", "hair removal", "PCOS"],
-      },
-      {
-        slug: "arms-laser",
-        name: "Arms Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Full or half-arm laser hair removal for smooth, hair-free arms.",
-        description:
-          "Arm laser hair removal covers the full arm from shoulder to wrist, or can be split into upper and lower arm sessions. The treatment is particularly effective on the thicker, darker hair common in South Asian skin types. A course of 6–8 sessions delivers long-lasting, smooth results.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 8,000",
-        bestFor:
-          "Arm hair removal, dark arm hair, alternative to bleaching.",
-        tags: ["arms", "laser", "hair removal"],
-      },
-      {
-        slug: "back-laser",
-        name: "Back Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Comprehensive laser hair removal covering the upper and lower back.",
-        description:
-          "Back laser hair removal addresses unwanted hair across the entire back and shoulder area. Using wide-coverage handpieces for efficiency, the treatment is popular among men and women alike. The back responds well to laser treatment, with most clients seeing excellent results after 6–8 sessions.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 10,000",
-        bestFor:
-          "Back hair removal, shoulder hair, comprehensive body grooming.",
-        tags: ["back", "laser", "hair removal"],
-      },
-      {
-        slug: "brazilian-laser",
-        name: "Brazilian Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Complete Brazilian laser hair removal for total smoothness and confidence.",
-        description:
-          "Brazilian laser provides complete hair removal for the entire bikini area, front to back. Performed in a private, comfortable setting by experienced female technicians, this treatment is one of our most requested services. Advanced cooling technology minimizes discomfort, and 6–8 sessions deliver long-lasting results.",
-        duration: "30–40 min",
-        priceDisplay: "Starting from Rs 12,000",
-        bestFor:
-          "Complete bikini area hair removal, ingrown hair prevention, hygiene.",
-        tags: ["brazilian", "laser", "bikini", "hair removal"],
-      },
-      {
-        slug: "upper-lip-laser",
-        name: "Upper Lip Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Quick, precise laser treatment for upper lip hair removal.",
-        description:
-          "Upper lip laser is a fast, targeted treatment that eliminates the need for frequent threading or waxing. The small treatment area means sessions are completed in minutes with minimal discomfort. Ideal as a standalone treatment or combined with full face laser for comprehensive results.",
-        duration: "5–10 min",
-        priceDisplay: "Starting from Rs 3,000",
-        bestFor:
-          "Upper lip hair, alternative to threading, quick lunchtime treatment.",
-        tags: ["upper lip", "laser", "hair removal"],
-      },
-      {
-        slug: "beard-shaping",
-        name: "Beard Shaping",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Laser-defined beard lines and neck cleanup for a permanently groomed look.",
-        description:
-          "Beard shaping with laser creates precise, permanent beard lines along the cheeks, neck, and jawline. This eliminates daily razor maintenance of your beard outline and prevents neck irritation from shaving. The treatment preserves desired facial hair while permanently removing hair outside your ideal beard shape.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 6,000",
-        bestFor:
-          "Beard outline definition, neck hair cleanup, men's grooming.",
-        tags: ["beard", "shaping", "laser", "men"],
-      },
-      {
-        slug: "chest-laser",
-        name: "Chest Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Smooth, hair-free chest with targeted laser hair removal treatment.",
-        description:
-          "Chest laser hair removal provides a groomed, smooth chest without the hassle of shaving or waxing. The treatment covers the entire chest and can extend to the abdomen area. Multiple sessions progressively thin and eliminate chest hair, with most clients achieving their desired result in 6–8 sessions.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 8,000",
-        bestFor:
-          "Chest hair removal, grooming, smooth chest appearance.",
-        tags: ["chest", "laser", "hair removal"],
-      },
-      {
-        slug: "stomach-laser",
-        name: "Stomach Laser",
-        category: "Laser Treatments",
-        categorySlug: "laser-treatments",
-        shortDesc:
-          "Laser hair removal for the stomach and abdominal area.",
-        description:
-          "Stomach laser hair removal targets the hair on the abdomen, including the happy trail and surrounding areas. The treatment is quick and effective, with our advanced laser technology handling both fine and coarse hair types. A full course of 6–8 sessions delivers smooth, long-lasting results.",
-        duration: "15–20 min",
-        priceDisplay: "Starting from Rs 6,000",
-        bestFor:
-          "Stomach hair, happy trail, abdominal hair removal.",
-        tags: ["stomach", "abdomen", "laser", "hair removal"],
-      },
-    ],
-  },
-
-  // ─── 4. Skin Rejuvenation ────────────────────────────────────────────
-  {
-    slug: "skin-rejuvenation",
-    name: "Skin Rejuvenation",
-    description:
-      "Advanced facial treatments combining cutting-edge technology with proven techniques to restore your skin's natural radiance, firmness, and youthful glow.",
-    icon: "🌟",
-    treatments: [
-      {
-        slug: "hifu-face-lift",
-        name: "HIFU Face Lift",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "Non-surgical face lift using high-intensity focused ultrasound for deep skin tightening.",
-        description:
-          "HIFU (High-Intensity Focused Ultrasound) delivers focused ultrasound energy to the SMAS layer—the same layer targeted in surgical facelifts. This stimulates collagen production and tightens skin from within, lifting sagging cheeks, jowls, and neck. Results develop over 2–3 months as new collagen forms, lasting up to 12 months.",
-        duration: "60–90 min",
-        priceDisplay: "Starting from Rs 35,000",
-        bestFor:
-          "Sagging skin, jowls, non-surgical lifting, collagen stimulation.",
-        tags: ["HIFU", "facelift", "skin tightening", "collagen"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "carbon-laser-facial",
-        name: "Carbon Laser Facial",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "The 'Hollywood Peel'—a carbon-infused laser treatment for instantly glowing skin.",
-        description:
-          "Also known as the Hollywood Peel or China Doll Facial, this treatment applies a layer of liquid carbon to the skin, then uses an Nd:YAG laser to vaporize it. The process deeply cleanses pores, removes dead skin cells, and stimulates collagen production. Your skin glows immediately after treatment with zero downtime.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 12,000",
-        bestFor:
-          "Dull skin, enlarged pores, oily skin, pre-event glow.",
-        tags: ["carbon", "hollywood peel", "laser facial", "glow"],
-      },
-      {
-        slug: "aqua-gold",
-        name: "Aqua Gold",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "Microchanneling treatment delivering a customized serum cocktail into the skin.",
-        description:
-          "AquaGold uses 24-karat gold-plated microneedles finer than a hair to deliver a custom blend of hyaluronic acid, vitamins, and growth factors directly into the skin. This luxurious treatment provides instant hydration, pore refinement, and a natural glass-skin effect. Results are immediate and improve over the following weeks.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 20,000",
-        bestFor:
-          "Dehydrated skin, enlarged pores, glass-skin effect, luxury facial.",
-        tags: ["aqua gold", "microneedling", "gold", "hydration"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "microneedling",
-        name: "Microneedling",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "Controlled micro-injuries stimulate natural collagen for smoother, firmer skin.",
-        description:
-          "Microneedling creates thousands of controlled micro-channels in the skin, triggering the body's wound-healing response and boosting collagen and elastin production. Effective for acne scars, fine lines, large pores, and overall skin texture improvement. A series of 3–6 treatments spaced 4 weeks apart delivers best results.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 10,000",
-        bestFor:
-          "Acne scars, fine lines, large pores, uneven skin texture.",
-        tags: ["microneedling", "collagen", "acne scars", "texture"],
-      },
-      {
-        slug: "prp-facial",
-        name: "PRP Facial",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "Harness your blood's growth factors for natural skin regeneration and glow.",
-        description:
-          "The PRP (Platelet-Rich Plasma) facial draws a small amount of your blood, concentrates the growth-factor-rich platelets, and applies them to the skin via microneedling. This 100% natural treatment accelerates cell turnover, boosts collagen, and delivers a deep, lasting glow. Ideal as part of a monthly skin health regimen.",
-        duration: "60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Dull complexion, aging skin, natural rejuvenation without synthetics.",
-        tags: ["PRP", "platelet", "natural", "regeneration"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "dermapen",
-        name: "Dermapen",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
-        shortDesc:
-          "Medical-grade automated microneedling for precise, consistent skin renewal.",
-        description:
-          "Dermapen is a medical-grade automated microneedling device offering adjustable needle depth for customized treatment of different skin concerns. More precise than manual dermarollers, it effectively treats acne scars, hyperpigmentation, stretch marks, and fine lines. Combined with serums for enhanced penetration and results.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 12,000",
-        bestFor:
-          "Acne scars, hyperpigmentation, stretch marks, skin renewal.",
-        tags: ["dermapen", "microneedling", "scars", "pigmentation"],
+          "Light or grey hairs, small areas, laser-resistant hair, permanent removal.",
+        tags: ["electrolysis", "permanent", "hair removal", "FDA"],
+        doctor: "dr-zonera",
       },
       {
         slug: "led-light-therapy",
         name: "LED Light Therapy",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
+        category: "Laser Treatments",
+        categorySlug: "laser-treatments",
         shortDesc:
-          "Therapeutic light wavelengths that heal, calm, and rejuvenate the skin.",
+          "Therapeutic light wavelengths that heal, calm, and rejuvenate the skin without downtime.",
         description:
-          "LED light therapy uses specific wavelengths—red for anti-aging and collagen stimulation, blue for acne-causing bacteria elimination, and near-infrared for deep healing. This painless, non-invasive treatment is perfect as a standalone session or add-on to other facial treatments. No downtime and suitable for all skin types.",
+          "LED Light Therapy uses specific wavelengths of light — red for collagen stimulation and anti-aging, blue for acne-causing bacteria elimination, and near-infrared for deep tissue healing — to treat various skin concerns non-invasively. The treatment is painless, requires no downtime, and can be used as a standalone session or combined with other treatments for enhanced results. Regular sessions deliver cumulative improvements in skin health.",
         duration: "20–30 min",
-        priceDisplay: "Starting from Rs 5,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Acne, inflammation, redness, post-treatment healing, collagen boost.",
-        tags: ["LED", "light therapy", "acne", "healing"],
+          "Acne, inflammation, anti-aging, wound healing, post-treatment recovery.",
+        tags: ["LED", "light therapy", "phototherapy", "healing"],
+        doctor: "dr-zonera",
       },
       {
-        slug: "oxygen-facial",
-        name: "Oxygen Facial",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
+        slug: "laser-tattoo-removal",
+        name: "Laser Tattoo Removal",
+        category: "Laser Treatments",
+        categorySlug: "laser-treatments",
         shortDesc:
-          "Pressurized oxygen infusion delivering vitamins and hydration for instant radiance.",
+          "Q-switched laser technology that safely breaks down tattoo ink for gradual removal.",
         description:
-          "The oxygen facial uses a pressurized stream to infuse oxygen, hyaluronic acid, and vitamins directly into the skin's epidermis. This celebrity-favorite treatment instantly plumps, hydrates, and adds a visible glow without any downtime. Perfect before weddings, events, or whenever your skin needs an instant pick-me-up.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 8,000",
+          "Our laser tattoo removal uses Q-switched Nd:YAG laser technology to shatter tattoo ink particles into fragments small enough for the body's immune system to clear naturally. Multiple sessions are required, spaced 6–8 weeks apart, with the number depending on the tattoo's size, color, ink depth, and age. Black and dark blue inks respond best, while lighter colors may require additional sessions.",
+        duration: "15–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Pre-event glow, dehydrated skin, jet-lagged or tired skin.",
-        tags: ["oxygen", "hydration", "glow", "event prep"],
+          "Unwanted tattoos, faded tattoos for cover-up prep, partial removal.",
+        tags: ["tattoo removal", "Q-switch", "laser", "ink"],
+        doctor: "dr-zonera",
       },
       {
-        slug: "rf-skin-tightening",
-        name: "RF Skin Tightening",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
+        slug: "photo-rejuvenation",
+        name: "Photo Rejuvenation",
+        category: "Laser Treatments",
+        categorySlug: "laser-treatments",
         shortDesc:
-          "Radiofrequency energy heats deep skin layers to tighten and firm loose skin.",
+          "Intense Pulsed Light (IPL) therapy that targets sun damage, redness, and pigmentation for an even complexion.",
         description:
-          "Radiofrequency skin tightening uses controlled heat energy to stimulate collagen remodeling in the deeper layers of the skin. The treatment progressively tightens loose skin on the face, neck, and jawline over a series of sessions. Results are cumulative—most clients see visible firming after 4–6 sessions spaced 1–2 weeks apart.",
+          "Photo Rejuvenation uses Intense Pulsed Light (IPL) to target and break down pigmented lesions, sun spots, broken capillaries, and diffuse redness. The broad-spectrum light is absorbed by the targeted chromophores in the skin, leaving surrounding tissue unharmed. This treatment evens out skin tone, reduces visible sun damage, and stimulates collagen for an overall refreshed appearance over a series of sessions.",
         duration: "30–45 min",
-        priceDisplay: "Starting from Rs 10,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Loose skin, early jowling, skin laxity, non-invasive tightening.",
-        tags: ["RF", "radiofrequency", "tightening", "firming"],
+          "Sun damage, age spots, rosacea, broken capillaries, uneven tone.",
+        tags: ["IPL", "photo rejuvenation", "pigmentation", "sun damage"],
+        doctor: "dr-zonera",
       },
       {
-        slug: "mesotherapy-face",
-        name: "Mesotherapy Face",
-        category: "Skin Rejuvenation",
-        categorySlug: "skin-rejuvenation",
+        slug: "acne-scar-treatment-laser",
+        name: "Acne Scar Treatment (Laser)",
+        category: "Laser Treatments",
+        categorySlug: "laser-treatments",
         shortDesc:
-          "Microinjections of vitamins and hyaluronic acid for deep skin nourishment.",
+          "Fractional laser resurfacing that remodels scar tissue for smoother, more even skin.",
         description:
-          "Facial mesotherapy delivers a tailored cocktail of vitamins, minerals, amino acids, and hyaluronic acid directly into the mesoderm (middle layer of skin) via superficial microinjections. This 'vitamin injection' approach provides intense nourishment that topical products cannot match. A course of 4–6 sessions delivers a dewy, healthy complexion.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 12,000",
+          "Our laser-based acne scar treatment uses fractional CO2 or erbium laser technology to create microscopic columns of thermal damage in scarred skin, triggering the body's wound-healing cascade to produce new collagen and remodel scar tissue. This treatment is highly effective for ice-pick, boxcar, and rolling acne scars. A series of 3–5 sessions spaced 4–6 weeks apart delivers significant improvement in scar depth and skin texture.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Dull skin, dehydration, fine lines, overall skin health.",
-        tags: ["mesotherapy", "vitamins", "hydration", "nourishment"],
-        doctor: "dr-huma-abbas",
+          "Ice-pick scars, boxcar scars, rolling scars, pitted acne scarring.",
+        tags: ["acne scars", "fractional laser", "resurfacing", "collagen"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "stretch-marks-treatment",
+        name: "Stretch Marks Treatment",
+        category: "Laser Treatments",
+        categorySlug: "laser-treatments",
+        shortDesc:
+          "Laser and microneedling therapies that reduce the appearance of stretch marks by stimulating skin repair.",
+        description:
+          "Our stretch marks treatment combines fractional laser technology with RF microneedling to stimulate collagen remodeling in the dermis where stretch marks form. The treatment targets both red/purple (new) and white/silver (mature) stretch marks, gradually blending them with the surrounding skin. Common treatment areas include the abdomen, thighs, hips, and upper arms. A course of 4–6 sessions delivers the most visible improvement.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Post-pregnancy stretch marks, growth-related marks, weight fluctuation marks.",
+        tags: ["stretch marks", "laser", "striae", "skin repair"],
+        doctor: "dr-zonera",
       },
     ],
   },
 
-  // ─── 5. Chemical Peels ───────────────────────────────────────────────
+  // ─── 4. IV Drips ─────────────────────────────────────────────────────
   {
-    slug: "chemical-peels",
-    name: "Chemical Peels",
+    slug: "iv-drips",
+    name: "IV Drips",
     description:
-      "Medical-grade exfoliation treatments that resurface the skin, targeting pigmentation, acne, texture irregularities, and signs of aging.",
-    icon: "🧪",
-    treatments: [
-      {
-        slug: "glycolic-peel",
-        name: "Glycolic Peel",
-        category: "Chemical Peels",
-        categorySlug: "chemical-peels",
-        shortDesc:
-          "Alpha hydroxy acid peel for brightening, smoothing, and evening skin tone.",
-        description:
-          "The glycolic peel uses glycolic acid (an AHA derived from sugarcane) to dissolve the bonds between dead skin cells, revealing fresh, bright skin beneath. Available in concentrations from 20% to 70%, the strength is customized to your skin's tolerance and concerns. Excellent for hyperpigmentation, dullness, and early signs of aging.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 6,000",
-        bestFor:
-          "Hyperpigmentation, dull skin, fine lines, uneven tone.",
-        tags: ["glycolic", "AHA", "peel", "brightening"],
-      },
-      {
-        slug: "salicylic-peel",
-        name: "Salicylic Peel",
-        category: "Chemical Peels",
-        categorySlug: "chemical-peels",
-        shortDesc:
-          "Oil-soluble BHA peel that penetrates pores to clear acne and congestion.",
-        description:
-          "The salicylic peel uses beta hydroxy acid, which is oil-soluble and can penetrate into clogged pores to dissolve sebum and debris. This makes it the gold standard for acne-prone and oily skin types. The peel reduces active breakouts, prevents future acne, and refines pore size. Mild peeling occurs over 3–5 days post-treatment.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 6,000",
-        bestFor:
-          "Acne, oily skin, clogged pores, blackheads and whiteheads.",
-        tags: ["salicylic", "BHA", "peel", "acne"],
-      },
-      {
-        slug: "tca-peel",
-        name: "TCA Peel",
-        category: "Chemical Peels",
-        categorySlug: "chemical-peels",
-        shortDesc:
-          "Medium-depth peel for significant improvement in scars, wrinkles, and pigmentation.",
-        description:
-          "Trichloroacetic acid (TCA) peels provide medium-depth exfoliation, reaching the papillary dermis for more dramatic results than superficial peels. Effective for moderate acne scars, deeper pigmentation, and sun damage. Requires 5–7 days of downtime with visible peeling, followed by significantly improved skin texture and tone.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 10,000",
-        bestFor:
-          "Acne scars, deep pigmentation, sun damage, moderate wrinkles.",
-        tags: ["TCA", "medium peel", "scars", "pigmentation"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "lactic-acid-peel",
-        name: "Lactic Acid Peel",
-        category: "Chemical Peels",
-        categorySlug: "chemical-peels",
-        shortDesc:
-          "Gentle AHA peel ideal for sensitive skin, providing hydration alongside exfoliation.",
-        description:
-          "The lactic acid peel is the gentlest of the AHA peels, making it ideal for sensitive or dry skin types. Derived from milk, lactic acid exfoliates while simultaneously hydrating the skin. It brightens dull complexions, improves mild pigmentation, and enhances overall skin radiance with virtually no downtime.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 5,000",
-        bestFor:
-          "Sensitive skin, dry skin, mild pigmentation, first-time peel patients.",
-        tags: ["lactic acid", "gentle peel", "sensitive skin", "hydrating"],
-      },
-      {
-        slug: "jessner-peel",
-        name: "Jessner Peel",
-        category: "Chemical Peels",
-        categorySlug: "chemical-peels",
-        shortDesc:
-          "Multi-acid combination peel for enhanced exfoliation and skin clarity.",
-        description:
-          "The Jessner peel combines salicylic acid, lactic acid, and resorcinol for a synergistic exfoliation that addresses multiple concerns simultaneously. The layered application allows the practitioner to control depth and intensity. Particularly effective for stubborn pigmentation, melasma, and acne-prone skin with 3–5 days of peeling post-treatment.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 8,000",
-        bestFor:
-          "Melasma, stubborn pigmentation, combination skin concerns.",
-        tags: ["jessner", "multi-acid", "melasma", "exfoliation"],
-        doctor: "dr-huma-abbas",
-      },
-    ],
-  },
-
-  // ─── 6. Thread Lifts ─────────────────────────────────────────────────
-  {
-    slug: "thread-lifts",
-    name: "Thread Lifts",
-    description:
-      "Minimally invasive lifting procedures using absorbable threads to reposition sagging tissue and stimulate long-term collagen production.",
-    icon: "🪡",
-    treatments: [
-      {
-        slug: "pdo-thread-lift",
-        name: "PDO Thread Lift",
-        category: "Thread Lifts",
-        categorySlug: "thread-lifts",
-        shortDesc:
-          "Absorbable PDO threads placed beneath the skin to lift and tighten sagging areas.",
-        description:
-          "PDO (Polydioxanone) thread lift involves inserting fine, absorbable threads beneath the skin to create an immediate lifting effect. As the threads dissolve over 6 months, they stimulate collagen production along their path, providing continued tightening. Ideal for midface, jawline, and neck lifting with minimal downtime compared to surgery.",
-        duration: "60–90 min",
-        priceDisplay: "Starting from Rs 40,000",
-        bestFor:
-          "Midface sagging, jowls, neck laxity, non-surgical facelift.",
-        tags: ["PDO", "thread lift", "lifting", "collagen"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "barbed-thread-lift",
-        name: "Barbed Thread Lift",
-        category: "Thread Lifts",
-        categorySlug: "thread-lifts",
-        shortDesc:
-          "Cog or barbed threads providing stronger mechanical lift for moderate sagging.",
-        description:
-          "Barbed (cog) threads feature tiny barbs along their length that grip the tissue for a stronger mechanical lift than smooth PDO threads. These are used for more significant sagging of the midface, cheeks, and jawline. The barbed design provides an immediate visible lift, with collagen stimulation continuing for months after placement.",
-        duration: "60–90 min",
-        priceDisplay: "Starting from Rs 50,000",
-        bestFor:
-          "Moderate sagging, stronger lift needed, cheek and jawline repositioning.",
-        tags: ["barbed", "cog thread", "lifting", "sagging"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "nose-thread-lift",
-        name: "Nose Thread Lift",
-        category: "Thread Lifts",
-        categorySlug: "thread-lifts",
-        shortDesc:
-          "Non-surgical nose reshaping using threads to define the bridge and tip.",
-        description:
-          "The nose thread lift is a non-surgical rhinoplasty alternative that uses PDO threads to elevate the nasal bridge and refine the tip. Threads are inserted along the nasal dorsum to create a sharper, more defined profile. The procedure takes under 30 minutes with minimal downtime, and results last 12–18 months as the threads stimulate collagen.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 30,000",
-        bestFor:
-          "Flat nasal bridge, droopy tip, non-surgical nose job.",
-        tags: ["nose", "thread lift", "non-surgical rhinoplasty"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "eyebrow-thread-lift",
-        name: "Eyebrow Thread Lift",
-        category: "Thread Lifts",
-        categorySlug: "thread-lifts",
-        shortDesc:
-          "Lift drooping brows for a more open, youthful eye area with PDO threads.",
-        description:
-          "An eyebrow thread lift subtly repositions sagging brows to create a more lifted, alert appearance. Fine PDO threads are inserted above the brow to counteract the gravitational descent that narrows the eye area with age. This quick procedure opens up the eye area and can reduce hooding of the upper eyelid, with results lasting 12–18 months.",
-        duration: "20–30 min",
-        priceDisplay: "Starting from Rs 20,000",
-        bestFor:
-          "Drooping brows, hooded eyes, tired eye appearance.",
-        tags: ["eyebrow", "brow lift", "thread", "eye area"],
-        doctor: "dr-huma-abbas",
-      },
-    ],
-  },
-
-  // ─── 7. HydraFacial ──────────────────────────────────────────────────
-  {
-    slug: "hydrafacial",
-    name: "HydraFacial",
-    description:
-      "The patented multi-step facial treatment that cleanses, exfoliates, extracts, and hydrates in one luxurious session with zero downtime.",
+      "Medical-grade intravenous vitamin and nutrient infusions that deliver hydration, energy, and wellness support directly into the bloodstream for maximum absorption.",
     icon: "💧",
     treatments: [
       {
-        slug: "classic-hydrafacial",
-        name: "Classic HydraFacial",
-        category: "HydraFacial",
-        categorySlug: "hydrafacial",
+        slug: "hydration-drip",
+        name: "Hydration Drip",
+        category: "IV Drips",
+        categorySlug: "iv-drips",
         shortDesc:
-          "The signature 4-step HydraFacial: cleanse, exfoliate, extract, and hydrate.",
+          "Rapid rehydration with electrolyte-balanced saline and essential vitamins.",
         description:
-          "The Classic HydraFacial uses patented vortex-fusion technology to deeply cleanse, gently exfoliate, painlessly extract blackheads, and saturate the skin with intensive serums. Unlike traditional facials, every step is comfortable and results are instant—you leave with visibly clearer, more radiant skin. Perfect for all skin types with absolutely no downtime.",
+          "The Hydration Drip delivers a balanced electrolyte solution directly into your bloodstream, providing immediate and complete rehydration that drinking water alone cannot achieve. Enhanced with B-vitamins and vitamin C, this drip replenishes fluid levels, restores mineral balance, and leaves you feeling refreshed and energized. Ideal after travel, illness, exercise, or in the Lahore heat.",
         duration: "30–45 min",
-        priceDisplay: "Starting from Rs 10,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "General skin maintenance, instant glow, lunchtime facial.",
-        tags: ["hydrafacial", "classic", "cleanse", "hydrate"],
+          "Dehydration, post-travel fatigue, hangover recovery, general wellness.",
+        tags: ["IV", "hydration", "electrolytes", "wellness"],
+        doctor: "dr-huma",
       },
       {
-        slug: "deluxe-hydrafacial",
-        name: "Deluxe HydraFacial",
-        category: "HydraFacial",
-        categorySlug: "hydrafacial",
+        slug: "nutrient-replenish-iv-drip",
+        name: "Nutrient Replenish IV Drip",
+        category: "IV Drips",
+        categorySlug: "iv-drips",
         shortDesc:
-          "Enhanced HydraFacial with LED therapy, lymphatic drainage, and premium serums.",
+          "A comprehensive vitamin and mineral infusion that replenishes nutritional deficiencies.",
         description:
-          "The Deluxe HydraFacial elevates the classic treatment with added lymphatic drainage, customized booster serums, and LED light therapy. This comprehensive session targets specific concerns like pigmentation, fine lines, or congestion with targeted actives. The result is deeply nourished, visibly transformed skin that glows for days.",
-        duration: "60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Deep skin concerns, anti-aging, pigmentation, comprehensive facial.",
-        tags: ["hydrafacial", "deluxe", "LED", "premium"],
-      },
-      {
-        slug: "hydrafacial-with-boosters",
-        name: "HydraFacial with Boosters",
-        category: "HydraFacial",
-        categorySlug: "hydrafacial",
-        shortDesc:
-          "Targeted HydraFacial with add-on boosters for specific skin concerns.",
-        description:
-          "This HydraFacial variation incorporates specialized booster serums—such as Britenol for dark spots, DermaBuilder for fine lines, or Growth Factor for skin renewal—infused during the treatment for enhanced, targeted results. Choose your booster based on your primary concern for a truly personalized facial experience.",
+          "The Nutrient Replenish IV Drip is a comprehensive blend of essential vitamins, minerals, and amino acids designed to correct nutritional deficiencies and optimize cellular function. This Myers' Cocktail-style infusion includes high-dose vitamin C, B-complex vitamins, magnesium, zinc, and glutathione. By bypassing the digestive system, IV delivery achieves 100% bioavailability for maximum therapeutic benefit.",
         duration: "45–60 min",
-        priceDisplay: "Starting from Rs 18,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Targeted concerns, personalized treatment, enhanced results.",
-        tags: ["hydrafacial", "boosters", "personalized", "targeted"],
+          "Nutritional deficiency, chronic fatigue, skin health, overall optimization.",
+        tags: ["IV", "vitamins", "minerals", "replenish"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "energy-boost-iv-formula",
+        name: "Energy Boost IV Formula",
+        category: "IV Drips",
+        categorySlug: "iv-drips",
+        shortDesc:
+          "A high-potency B-vitamin and amino acid infusion for sustained energy and mental clarity.",
+        description:
+          "The Energy Boost IV Formula combines high-dose B-complex vitamins (B1, B5, B6, B12), amino acids like taurine and L-carnitine, and co-factors that support mitochondrial energy production. This drip is designed for professionals, athletes, and anyone experiencing persistent fatigue or brain fog. The energy boost is noticeable within hours and sustains over several days, without the crash associated with caffeine or sugar.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Chronic fatigue, brain fog, athletic performance, demanding work schedules.",
+        tags: ["IV", "energy", "B-vitamins", "performance"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "immune-support-iv-drip",
+        name: "Immune Support IV Drip",
+        category: "IV Drips",
+        categorySlug: "iv-drips",
+        shortDesc:
+          "A high-dose vitamin C and zinc infusion that fortifies the immune system.",
+        description:
+          "The Immune Support IV Drip delivers therapeutic doses of vitamin C, zinc, selenium, and glutathione directly into the bloodstream to strengthen immune function and support the body's natural defense mechanisms. This drip is particularly valuable during seasonal changes, before travel, after exposure to illness, or for anyone with a weakened immune system seeking proactive protection.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Immune boosting, seasonal illness prevention, post-illness recovery, travel prep.",
+        tags: ["IV", "immune", "vitamin C", "zinc"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "detoxification-drip",
+        name: "Detoxification Drip",
+        category: "IV Drips",
+        categorySlug: "iv-drips",
+        shortDesc:
+          "A glutathione-rich infusion that supports liver detoxification and antioxidant defense.",
+        description:
+          "The Detoxification Drip centers around high-dose glutathione — the body's master antioxidant — combined with alpha-lipoic acid, N-acetyl cysteine, and B-vitamins to support liver detoxification pathways and neutralize free radicals. This drip helps the body clear accumulated toxins, supports liver health, and as a side benefit, glutathione is known for its skin-brightening properties, leaving the complexion more luminous.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Detoxification, liver support, skin brightening, antioxidant defense.",
+        tags: ["IV", "detox", "glutathione", "antioxidant"],
+        doctor: "dr-huma",
       },
     ],
   },
 
-  // ─── 8. Dental Aesthetics ────────────────────────────────────────────
-  {
-    slug: "dental-aesthetics",
-    name: "Dental Aesthetics",
-    description:
-      "Cosmetic dental treatments to perfect your smile—from professional whitening to complete smile makeovers with veneers and bonding.",
-    icon: "😁",
-    treatments: [
-      {
-        slug: "teeth-whitening",
-        name: "Teeth Whitening",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Professional in-office teeth whitening for a brighter, whiter smile in one session.",
-        description:
-          "Our professional teeth whitening uses a high-concentration hydrogen peroxide gel activated by LED light to remove years of staining from tea, coffee, and everyday wear. The in-office treatment achieves 4–8 shades of whitening in a single session, with results far superior to over-the-counter products. Touch-up kits are provided for maintenance.",
-        duration: "60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Stained teeth, yellowing, pre-wedding whitening, confidence boost.",
-        tags: ["whitening", "teeth", "bright smile"],
-        doctor: "dr-ahmed-raza",
-      },
-      {
-        slug: "dental-veneers",
-        name: "Dental Veneers",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Custom porcelain veneers to transform the shape, size, and color of your teeth.",
-        description:
-          "Dental veneers are ultra-thin porcelain shells custom-crafted to cover the front surface of teeth, instantly correcting chips, gaps, discoloration, and misalignment. Each veneer is designed to match your desired shade and shape for a natural, flawless result. The process requires 2–3 visits and results last 10–15 years with proper care.",
-        duration: "2–3 visits",
-        priceDisplay: "Starting from Rs 25,000 per tooth",
-        bestFor:
-          "Chipped teeth, gaps, discoloration, uneven teeth, smile transformation.",
-        tags: ["veneers", "porcelain", "smile", "cosmetic dentistry"],
-        doctor: "dr-ahmed-raza",
-      },
-      {
-        slug: "smile-makeover",
-        name: "Smile Makeover",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Comprehensive smile design combining multiple dental treatments for a perfect smile.",
-        description:
-          "A smile makeover is a customized combination of cosmetic dental procedures—veneers, whitening, bonding, and gum contouring—designed to create your ideal smile. We use digital smile design technology to preview your results before treatment begins. Every smile makeover starts with a detailed consultation to understand your goals and facial aesthetics.",
-        duration: "Multiple visits",
-        priceDisplay: "Starting from Rs 80,000",
-        bestFor:
-          "Complete smile transformation, multiple dental concerns, bridal prep.",
-        tags: ["smile makeover", "cosmetic", "complete transformation"],
-        doctor: "dr-ahmed-raza",
-      },
-      {
-        slug: "dental-bonding",
-        name: "Dental Bonding",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Tooth-colored composite resin to repair chips, gaps, and imperfections.",
-        description:
-          "Dental bonding applies tooth-colored composite resin to repair minor chips, close small gaps, reshape teeth, and cover stains. It is a quick, affordable alternative to veneers for minor cosmetic corrections. The procedure is completed in a single visit, requires no anesthesia for most cases, and the results blend seamlessly with natural teeth.",
-        duration: "30–60 min per tooth",
-        priceDisplay: "Starting from Rs 8,000 per tooth",
-        bestFor:
-          "Minor chips, small gaps, tooth reshaping, affordable cosmetic fix.",
-        tags: ["bonding", "composite", "repair", "cosmetic"],
-        doctor: "dr-ahmed-raza",
-      },
-      {
-        slug: "gum-contouring",
-        name: "Gum Contouring",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Reshape the gum line to reveal more tooth and create a balanced smile.",
-        description:
-          "Gum contouring (gingivectomy) uses laser technology to precisely reshape an uneven or excessive gum line, correcting a 'gummy smile.' The laser cauterizes as it works, minimizing bleeding and speeding recovery. The result is a more proportional tooth-to-gum ratio for a balanced, confident smile. Healing takes 1–2 weeks.",
-        duration: "30–60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Gummy smile, uneven gum line, short-looking teeth.",
-        tags: ["gum", "contouring", "gummy smile", "laser"],
-        doctor: "dr-ahmed-raza",
-      },
-      {
-        slug: "dental-crown",
-        name: "Dental Crown",
-        category: "Dental Aesthetics",
-        categorySlug: "dental-aesthetics",
-        shortDesc:
-          "Custom-fitted tooth cap restoring shape, strength, and natural appearance.",
-        description:
-          "A dental crown is a custom-made cap that covers the entire visible portion of a damaged or aesthetically compromised tooth. Our crowns are made from high-quality porcelain or zirconia, matched precisely to your natural tooth shade. The process involves tooth preparation, impression-taking, and fitting over two visits for a durable, beautiful result lasting 15+ years.",
-        duration: "2 visits",
-        priceDisplay: "Starting from Rs 18,000",
-        bestFor:
-          "Damaged teeth, root canal coverage, tooth restoration, aesthetic improvement.",
-        tags: ["crown", "cap", "restoration", "porcelain"],
-        doctor: "dr-ahmed-raza",
-      },
-    ],
-  },
-
-  // ─── 9. Hair Restoration ─────────────────────────────────────────────
-  {
-    slug: "hair-restoration",
-    name: "Hair Restoration",
-    description:
-      "Science-backed treatments to combat hair loss, stimulate regrowth, and restore hair density using PRP, mesotherapy, and advanced growth factors.",
-    icon: "💇",
-    treatments: [
-      {
-        slug: "prp-hair-treatment",
-        name: "PRP Hair Treatment",
-        category: "Hair Restoration",
-        categorySlug: "hair-restoration",
-        shortDesc:
-          "Platelet-rich plasma injections to stimulate dormant hair follicles and promote regrowth.",
-        description:
-          "PRP hair treatment extracts and concentrates growth factors from your own blood, then injects them into the scalp at areas of thinning. These growth factors stimulate dormant follicles, strengthen existing hair, and promote new growth. A course of 4–6 sessions spaced monthly is recommended, with maintenance sessions every 3–4 months.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Thinning hair, early-stage hair loss, male and female pattern baldness.",
-        tags: ["PRP", "hair loss", "regrowth", "scalp"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "hair-mesotherapy",
-        name: "Hair Mesotherapy",
-        category: "Hair Restoration",
-        categorySlug: "hair-restoration",
-        shortDesc:
-          "Vitamin and mineral microinjections into the scalp for healthier, stronger hair.",
-        description:
-          "Hair mesotherapy delivers a cocktail of vitamins, minerals, amino acids, and vasodilators directly into the scalp via microinjections. This nourishes hair follicles, improves blood circulation to the scalp, and strengthens hair from the root. Particularly effective for diffuse thinning and can be combined with PRP for enhanced results.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 10,000",
-        bestFor:
-          "Diffuse thinning, weak hair, scalp nourishment, hair strengthening.",
-        tags: ["mesotherapy", "hair", "vitamins", "scalp"],
-      },
-      {
-        slug: "gfc-hair-treatment",
-        name: "GFC Hair Treatment",
-        category: "Hair Restoration",
-        categorySlug: "hair-restoration",
-        shortDesc:
-          "Growth Factor Concentrate therapy delivering high-potency growth factors to the scalp.",
-        description:
-          "GFC (Growth Factor Concentrate) is a next-generation hair restoration treatment that yields a higher concentration of growth factors than traditional PRP. The technology isolates and activates platelets more effectively, resulting in a more potent growth factor solution. Clinical studies show superior hair density improvement compared to standard PRP protocols.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 18,000",
-        bestFor:
-          "Moderate hair loss, superior alternative to PRP, advanced thinning.",
-        tags: ["GFC", "growth factors", "hair loss", "advanced"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "biotin-infusion",
-        name: "Biotin Infusion",
-        category: "Hair Restoration",
-        categorySlug: "hair-restoration",
-        shortDesc:
-          "IV or scalp-injected biotin therapy for strengthening hair from within.",
-        description:
-          "Biotin infusion therapy delivers high-dose vitamin B7 (biotin) either intravenously or via direct scalp injection to combat biotin deficiency—a common contributor to hair thinning and brittleness. This treatment strengthens the hair shaft, reduces breakage, and supports the keratin infrastructure. Best results when combined with a hair restoration protocol.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 8,000",
-        bestFor:
-          "Brittle hair, hair breakage, biotin deficiency, supportive treatment.",
-        tags: ["biotin", "vitamins", "hair strength", "infusion"],
-      },
-      {
-        slug: "scalp-micropigmentation",
-        name: "Scalp Micropigmentation",
-        category: "Hair Restoration",
-        categorySlug: "hair-restoration",
-        shortDesc:
-          "Cosmetic scalp tattooing creating the appearance of fuller, denser hair.",
-        description:
-          "Scalp micropigmentation (SMP) uses specialized micro-needles to deposit pigment into the scalp, replicating the appearance of hair follicles. This creates the illusion of a fuller head of hair, a defined hairline, or camouflaged scarring. The semi-permanent treatment typically requires 2–3 sessions and lasts 3–5 years before a touch-up is needed.",
-        duration: "2–4 hours",
-        priceDisplay: "Starting from Rs 30,000",
-        bestFor:
-          "Advanced hair loss, receding hairline, scar camouflage, buzz-cut look.",
-        tags: ["SMP", "micropigmentation", "hairline", "camouflage"],
-      },
-    ],
-  },
-
-  // ─── 10. Body Contouring ─────────────────────────────────────────────
+  // ─── 5. Body Contouring ──────────────────────────────────────────────
   {
     slug: "body-contouring",
     name: "Body Contouring",
     description:
-      "Non-invasive fat reduction and body sculpting treatments that reshape your silhouette without surgery, downtime, or discomfort.",
+      "Non-invasive and minimally invasive body sculpting treatments that eliminate stubborn fat, tighten skin, and reshape your silhouette without surgery.",
     icon: "🏋️",
     treatments: [
       {
-        slug: "coolsculpting",
-        name: "CoolSculpting",
+        slug: "double-chin-treatment",
+        name: "Double Chin Treatment",
         category: "Body Contouring",
         categorySlug: "body-contouring",
         shortDesc:
-          "FDA-cleared fat freezing that permanently eliminates stubborn fat cells.",
+          "Targeted fat reduction and skin tightening to eliminate submental fullness and define the jawline.",
         description:
-          "CoolSculpting uses cryolipolysis technology to freeze and destroy fat cells in targeted areas without surgery or downtime. The body naturally eliminates the dead fat cells over 2–3 months, resulting in a 20–25% reduction in treated fat layers. Common treatment areas include the abdomen, love handles, thighs, double chin, and upper arms.",
-        duration: "35–60 min per area",
-        priceDisplay: "Starting from Rs 25,000 per area",
+          "Our Double Chin Treatment uses injectable fat dissolvers (deoxycholic acid) or cryolipolysis to permanently destroy fat cells beneath the chin, combined with RF tightening to firm the overlying skin. The result is a visibly slimmer, more defined jawline and profile. Most clients require 2–4 sessions spaced 4–6 weeks apart to achieve their desired contour, with results that are permanent once the fat cells are eliminated.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Stubborn fat pockets, love handles, double chin, post-diet plateau.",
-        tags: ["coolsculpting", "fat freezing", "cryolipolysis", "body"],
+          "Double chin, submental fat, jawline definition, profile improvement.",
+        tags: ["double chin", "fat dissolving", "jawline", "contouring"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "fat-freeze-coolsculpting",
+        name: "Fat Freeze (CoolSculpting)",
+        category: "Body Contouring",
+        categorySlug: "body-contouring",
+        shortDesc:
+          "FDA-cleared cryolipolysis technology that permanently freezes and eliminates stubborn fat cells.",
+        description:
+          "Fat Freeze (CoolSculpting) uses controlled cooling to target and crystallize fat cells beneath the skin, triggering a natural cell death process called apoptosis. The body then naturally eliminates these dead fat cells over 2–3 months, resulting in a 20–25% reduction in fat in the treated area. Common treatment areas include the abdomen, love handles, thighs, upper arms, and bra fat. Results are permanent as treated fat cells do not regenerate.",
+        duration: "35–60 min per area",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Stubborn fat pockets, love handles, belly fat, post-diet plateau.",
+        tags: ["coolsculpting", "fat freeze", "cryolipolysis", "body"],
       },
       {
         slug: "cavitation",
@@ -1066,164 +574,623 @@ export const categories: Category[] = [
         category: "Body Contouring",
         categorySlug: "body-contouring",
         shortDesc:
-          "Ultrasonic waves break down fat cells for non-surgical body slimming.",
+          "Ultrasonic waves that disrupt and break down localized fat deposits without surgery.",
         description:
-          "Ultrasonic cavitation uses low-frequency sound waves to create micro-bubbles within fat tissue, causing fat cells to rupture and release their contents. The body then metabolizes and eliminates the fat naturally through the lymphatic system. This painless treatment is effective for reducing localized fat deposits and can be combined with RF tightening for enhanced results.",
+          "Ultrasonic Cavitation uses low-frequency sound waves to create micro-bubbles within fat tissue, causing fat cell membranes to rupture and release their contents. The released triglycerides are then processed by the liver and eliminated naturally through the lymphatic system. This painless, non-invasive treatment is effective for reducing localized fat deposits and can be combined with RF body tightening for enhanced slimming and skin firming results.",
         duration: "30–45 min",
-        priceDisplay: "Starting from Rs 8,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Localized fat reduction, cellulite, body slimming without surgery.",
+          "Localized fat deposits, cellulite, non-surgical body slimming.",
         tags: ["cavitation", "ultrasound", "fat reduction", "slimming"],
       },
       {
-        slug: "rf-body-tightening",
-        name: "RF Body Tightening",
+        slug: "radio-frequency-body",
+        name: "Radio Frequency Body",
         category: "Body Contouring",
         categorySlug: "body-contouring",
         shortDesc:
-          "Radiofrequency energy tightens loose body skin and reduces cellulite.",
+          "Radiofrequency energy tightens and firms loose body skin while reducing cellulite.",
         description:
-          "Body RF tightening uses radiofrequency energy to heat the deep layers of skin, stimulating collagen production and tightening loose tissue. Particularly effective for post-weight-loss skin laxity, post-pregnancy tummy, and cellulite reduction. A course of 6–10 sessions delivers progressive firming and smoothing of treated areas.",
+          "Body RF Tightening uses radiofrequency energy to deliver controlled heat deep into the skin's dermal layers, stimulating collagen contraction and new collagen production for progressive firming and tightening. This treatment is particularly effective for post-weight-loss skin laxity, post-pregnancy tummy, and cellulite reduction. A course of 6–10 sessions delivers cumulative improvement in skin firmness and smoothness.",
         duration: "30–45 min",
-        priceDisplay: "Starting from Rs 8,000",
+        priceDisplay: "Consultation Required",
         bestFor:
           "Loose body skin, cellulite, post-pregnancy tummy, skin laxity.",
-        tags: ["RF", "body tightening", "cellulite", "skin laxity"],
+        tags: ["RF", "body tightening", "cellulite", "skin firming"],
       },
       {
-        slug: "laser-lipolysis",
-        name: "Laser Lipolysis",
+        slug: "liposuction-injections",
+        name: "Liposuction Injections",
         category: "Body Contouring",
         categorySlug: "body-contouring",
         shortDesc:
-          "Laser energy liquefies fat cells while simultaneously tightening overlying skin.",
+          "Injectable fat dissolvers that break down localized fat deposits without surgery.",
         description:
-          "Laser lipolysis uses controlled laser energy to heat and liquefy fat cells, which are then naturally eliminated by the body. Unlike some other treatments, laser lipolysis also tightens the skin over the treated area through collagen stimulation. The dual action of fat reduction plus skin tightening makes it especially effective for smaller, stubborn areas.",
-        duration: "30–45 min",
-        priceDisplay: "Starting from Rs 15,000",
+          "Liposuction Injections use synthetic deoxycholic acid — a molecule that naturally occurs in the body to break down dietary fat — injected directly into targeted fat deposits to permanently destroy fat cells. The treatment is ideal for small to moderate fat pockets that resist diet and exercise, such as the double chin, jowls, bra fat, and knee fat. Multiple sessions spaced 4–6 weeks apart are typically needed for optimal results.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Stubborn fat, simultaneous skin tightening, smaller treatment areas.",
-        tags: ["laser lipo", "fat reduction", "tightening", "contouring"],
-      },
-      {
-        slug: "body-wraps",
-        name: "Body Wraps",
-        category: "Body Contouring",
-        categorySlug: "body-contouring",
-        shortDesc:
-          "Detoxifying mineral wraps that slim, tone, and nourish the body.",
-        description:
-          "Our body wraps use a combination of mineral-rich clays, botanical extracts, and thermal blankets to draw out toxins, reduce water retention, and temporarily slim the body. The treatment deeply nourishes the skin while providing relaxation. While results are temporary, regular sessions combined with a healthy lifestyle support long-term body goals.",
-        duration: "60–90 min",
-        priceDisplay: "Starting from Rs 6,000",
-        bestFor:
-          "Pre-event slimming, detoxification, skin nourishment, relaxation.",
-        tags: ["body wrap", "detox", "slimming", "relaxation"],
-      },
-      {
-        slug: "ems-body-sculpting",
-        name: "EMS Body Sculpting",
-        category: "Body Contouring",
-        categorySlug: "body-contouring",
-        shortDesc:
-          "Electromagnetic muscle stimulation equivalent to thousands of exercises in 30 minutes.",
-        description:
-          "EMS (Electromagnetic Muscle Stimulation) body sculpting induces supramaximal muscle contractions—the equivalent of 20,000 crunches or squats in a single session. This simultaneously builds muscle and burns fat in the treated area. The treatment is popular for abdominal definition, buttock lifting, and arm toning. A course of 4–6 sessions is recommended.",
-        duration: "30 min",
-        priceDisplay: "Starting from Rs 12,000",
-        bestFor:
-          "Muscle building, ab definition, butt lift, toning.",
-        tags: ["EMS", "muscle sculpting", "toning", "body sculpt"],
-      },
-      {
-        slug: "lymphatic-drainage",
-        name: "Lymphatic Drainage",
-        category: "Body Contouring",
-        categorySlug: "body-contouring",
-        shortDesc:
-          "Pressotherapy massage to boost lymph flow, reduce bloating, and detoxify.",
-        description:
-          "Machine-assisted lymphatic drainage uses sequential compression to stimulate the lymphatic system, reducing fluid retention, bloating, and puffiness. The treatment accelerates toxin removal, boosts immunity, and complements other body contouring treatments by helping the body eliminate destroyed fat cells. Also excellent for post-surgical swelling reduction.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 5,000",
-        bestFor:
-          "Water retention, bloating, post-surgical recovery, detoxification.",
-        tags: ["lymphatic", "drainage", "detox", "bloating"],
+          "Small fat deposits, non-surgical fat reduction, spot treatment.",
+        tags: ["fat dissolving", "injections", "deoxycholic acid", "spot reduction"],
+        doctor: "dr-huma",
       },
     ],
   },
 
-  // ─── 11. PRP Therapy ─────────────────────────────────────────────────
+  // ─── 6. Skin Treatments ──────────────────────────────────────────────
   {
-    slug: "prp-therapy",
-    name: "PRP Therapy",
+    slug: "skin-treatments",
+    name: "Skin Treatments",
     description:
-      "Platelet-Rich Plasma therapy harnesses your body's own healing mechanisms for skin rejuvenation, hair restoration, and joint therapy.",
-    icon: "🩸",
+      "Targeted clinical treatments that address specific skin concerns including dark circles, pigmentation, acne, and scarring using advanced dermatological protocols.",
+    icon: "🧴",
     treatments: [
       {
-        slug: "prp-facial-therapy",
-        name: "PRP Facial",
-        category: "PRP Therapy",
-        categorySlug: "prp-therapy",
+        slug: "dark-circle-treatment",
+        name: "Dark Circle Treatment",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
         shortDesc:
-          "Your blood's concentrated growth factors applied to the face for natural rejuvenation.",
+          "Multi-modal treatment targeting the underlying causes of under-eye darkness and hollowing.",
         description:
-          "PRP facial therapy draws a small sample of your blood, processes it to concentrate the platelet-rich plasma, and applies it to the face via microneedling or injection. The growth factors stimulate collagen production, accelerate healing, and provide a natural glow. This treatment is ideal for those seeking rejuvenation without synthetic products.",
+          "Our Dark Circle Treatment addresses the multiple factors that contribute to under-eye darkness — thinning skin, volume loss, pigmentation, and visible vasculature — using a combination of topical lightening agents, PRP, polynucleotides, and hyaluronic acid fillers as needed. The treatment plan is customized after a thorough assessment of the cause of your dark circles, ensuring targeted and effective results rather than a one-size-fits-all approach.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Under-eye darkness, hollows, tired appearance, periorbital pigmentation.",
+        tags: ["dark circles", "under-eye", "pigmentation", "rejuvenation"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "hyperpigmentation-treatment",
+        name: "Hyperpigmentation Treatment",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
+        shortDesc:
+          "Clinical protocols targeting melasma, sun spots, and post-inflammatory hyperpigmentation.",
+        description:
+          "Our Hyperpigmentation Treatment uses a multi-layered approach combining chemical peels, targeted laser or IPL therapy, topical depigmenting agents, and strict sun protection to fade stubborn pigmentation. Whether your concern is melasma, sun damage, or post-inflammatory hyperpigmentation from acne, our dermatologist creates a phased treatment protocol tailored to your pigmentation type, skin tone, and lifestyle factors.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Melasma, sun spots, post-acne marks, uneven skin tone.",
+        tags: ["hyperpigmentation", "melasma", "dark spots", "brightening"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "acne-scar-treatment",
+        name: "Acne Scar Treatment",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
+        shortDesc:
+          "Comprehensive scar revision combining microneedling, peels, and subcision for smoother skin.",
+        description:
+          "Our Acne Scar Treatment combines multiple modalities — RF microneedling, TCA Cross for ice-pick scars, subcision for tethered scars, and chemical peels for textural improvement — into a comprehensive scar revision protocol. Each treatment session is customized based on your scar type, depth, and distribution. A series of 4–6 sessions delivers significant improvement in scar depth, skin texture, and overall complexion evenness.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Ice-pick scars, boxcar scars, rolling scars, post-acne texture.",
+        tags: ["acne scars", "microneedling", "subcision", "scar revision"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "acne-treatment",
+        name: "Acne Treatment",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
+        shortDesc:
+          "A structured clinical program to clear active acne and prevent future breakouts.",
+        description:
+          "Our Acne Treatment is a structured clinical program that combines in-clinic procedures — medical-grade facials, chemical peels, LED therapy, and comedone extraction — with a personalized at-home skincare regimen to clear active acne and prevent recurrence. Our dermatologist assesses your acne type, severity, and contributing factors to create a phased treatment plan that targets the root causes, not just the symptoms.",
+        duration: "30–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Persistent acne, hormonal breakouts, comedonal acne, cystic acne.",
+        tags: ["acne", "breakouts", "clinical", "treatment program"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "chemical-peels",
+        name: "Chemical Peels",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
+        shortDesc:
+          "Controlled acid exfoliation that resurfaces the skin for improved tone, texture, and clarity.",
+        description:
+          "Our Chemical Peels range from superficial to medium-depth, using medical-grade glycolic, salicylic, lactic, TCA, or Jessner's solution to exfoliate damaged surface layers and accelerate cell turnover. The type and concentration of acid is selected by our dermatologist based on your specific skin concern, skin type, and tolerance. Superficial peels have minimal downtime, while deeper peels produce more dramatic results with 5–7 days of controlled peeling.",
+        duration: "20–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Dull skin, pigmentation, fine lines, acne marks, rough texture.",
+        tags: ["chemical peel", "exfoliation", "resurfacing", "acids"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "prp-facial",
+        name: "PRP Facial",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
+        shortDesc:
+          "Your blood's concentrated growth factors applied to the face for natural rejuvenation and collagen stimulation.",
+        description:
+          "The PRP Facial draws a small sample of your blood, processes it in a centrifuge to concentrate the platelet-rich plasma containing growth factors, and applies it to the face via microneedling or injection. These natural growth factors stimulate fibroblasts to produce new collagen, accelerate healing, and provide a natural radiance. This treatment is ideal for those seeking rejuvenation without synthetic products, with results improving over 4–6 weeks.",
         duration: "60 min",
-        priceDisplay: "Starting from Rs 15,000",
+        priceDisplay: "Consultation Required",
         bestFor:
           "Natural rejuvenation, collagen stimulation, anti-aging without synthetics.",
-        tags: ["PRP", "facial", "natural", "growth factors"],
-        doctor: "dr-huma-abbas",
+        tags: ["PRP", "facial", "growth factors", "natural"],
+        doctor: "dr-huma",
       },
       {
-        slug: "prp-hair",
-        name: "PRP Hair",
-        category: "PRP Therapy",
-        categorySlug: "prp-therapy",
+        slug: "mesotherapy",
+        name: "Mesotherapy",
+        category: "Skin Treatments",
+        categorySlug: "skin-treatments",
         shortDesc:
-          "Scalp PRP injections to stimulate hair follicles and combat thinning.",
+          "Microinjections of vitamins, minerals, and hyaluronic acid for targeted skin nourishment and rejuvenation.",
         description:
-          "PRP for hair loss involves injecting platelet-rich plasma directly into the scalp at areas of thinning. The concentrated growth factors wake up dormant follicles, extend the growth phase of hair, and increase hair shaft thickness. This evidence-based treatment is effective for both men and women experiencing androgenetic alopecia or diffuse thinning.",
-        duration: "45–60 min",
-        priceDisplay: "Starting from Rs 15,000",
-        bestFor:
-          "Hair thinning, androgenetic alopecia, hair density improvement.",
-        tags: ["PRP", "hair", "scalp", "alopecia"],
-        doctor: "dr-huma-abbas",
-      },
-      {
-        slug: "prp-joint-therapy",
-        name: "PRP Joint Therapy",
-        category: "PRP Therapy",
-        categorySlug: "prp-therapy",
-        shortDesc:
-          "PRP injections into joints to reduce inflammation and promote tissue healing.",
-        description:
-          "PRP joint therapy delivers concentrated growth factors directly into damaged or inflamed joints, promoting natural tissue repair and reducing inflammation. Effective for knee, shoulder, hip, and elbow joints affected by osteoarthritis, tendinitis, or sports injuries. This regenerative approach can delay or eliminate the need for surgical intervention.",
+          "Mesotherapy delivers a customized cocktail of vitamins, minerals, amino acids, and hyaluronic acid directly into the mesoderm (middle layer of skin) through a series of superficial microinjections. This targeted delivery nourishes the skin from within, improving hydration, elasticity, and luminosity. Mesotherapy is versatile — it can address facial aging, dull skin, hair loss, and even localized fat deposits depending on the active ingredients selected.",
         duration: "30–45 min",
-        priceDisplay: "Starting from Rs 20,000",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Joint pain, osteoarthritis, sports injuries, tendon inflammation.",
-        tags: ["PRP", "joint", "arthritis", "regenerative"],
-        doctor: "dr-huma-abbas",
+          "Dull skin, dehydration, fine lines, overall skin revitalization.",
+        tags: ["mesotherapy", "vitamins", "microinjections", "rejuvenation"],
+        doctor: "dr-huma",
+      },
+    ],
+  },
+
+  // ─── 7. Skin Lesions ─────────────────────────────────────────────────
+  {
+    slug: "skin-lesions",
+    name: "Skin Lesions",
+    description:
+      "Safe and precise removal of benign skin growths, marks, and lesions using advanced laser, cautery, and cryotherapy techniques.",
+    icon: "🔬",
+    treatments: [
+      {
+        slug: "wart-removal",
+        name: "Wart Removal",
+        category: "Skin Lesions",
+        categorySlug: "skin-lesions",
+        shortDesc:
+          "Professional removal of common, plantar, and flat warts using cautery or cryotherapy.",
+        description:
+          "Our Wart Removal service uses electrocautery, cryotherapy (liquid nitrogen), or laser ablation to safely and effectively remove warts caused by the human papillomavirus (HPV). The method chosen depends on the wart's type, size, location, and your skin type. Treatment is quick with minimal discomfort, and healing typically occurs within 1–2 weeks. Stubborn or recurrent warts may require multiple sessions.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Common warts, plantar warts, flat warts, filiform warts.",
+        tags: ["wart", "removal", "cautery", "cryotherapy"],
+        doctor: "dr-zonera",
       },
       {
-        slug: "vampire-facial",
-        name: "Vampire Facial",
-        category: "PRP Therapy",
-        categorySlug: "prp-therapy",
+        slug: "mole-removal",
+        name: "Mole Removal",
+        category: "Skin Lesions",
+        categorySlug: "skin-lesions",
         shortDesc:
-          "The iconic PRP + microneedling combination for dramatic skin transformation.",
+          "Safe excision or ablation of unwanted moles with minimal scarring.",
         description:
-          "The Vampire Facial combines PRP with medical-grade microneedling for maximum skin transformation. After microneedling creates thousands of micro-channels, PRP is applied topically and massaged into the skin, delivering growth factors deep into the dermis. The result is dramatically improved texture, tone, and firmness over the following weeks. A series of 3 treatments delivers best results.",
-        duration: "60–75 min",
-        priceDisplay: "Starting from Rs 18,000",
+          "Our Mole Removal service safely eliminates unwanted moles using surgical excision, shave excision, or laser ablation depending on the mole's depth, size, and location. Every mole is assessed by our dermatologist prior to removal, and suspicious moles are sent for histopathological examination. The procedure is performed under local anesthesia with meticulous technique to minimize scarring and ensure complete removal.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
         bestFor:
-          "Dramatic skin improvement, deep scars, advanced aging, skin transformation.",
-        tags: ["vampire facial", "PRP", "microneedling", "dramatic"],
-        doctor: "dr-huma-abbas",
+          "Cosmetically bothersome moles, raised moles, moles in friction areas.",
+        tags: ["mole", "removal", "excision", "skin lesion"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "freckle-removal",
+        name: "Freckle Removal",
+        category: "Skin Lesions",
+        categorySlug: "skin-lesions",
+        shortDesc:
+          "Laser or IPL treatment to fade or eliminate unwanted freckles and sun spots.",
+        description:
+          "Our Freckle Removal treatment uses targeted laser or IPL (Intense Pulsed Light) technology to break down the excess melanin in freckles and sun spots, allowing the body to naturally clear the pigment over the following days. The treated freckles darken and crust before flaking off, revealing clearer skin beneath. Most clients see significant clearance in 1–3 sessions, with strict sun protection required to prevent recurrence.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Freckles, sun spots, lentigines, patchy pigmentation.",
+        tags: ["freckle", "removal", "IPL", "pigmentation"],
+        doctor: "dr-zonera",
+      },
+      {
+        slug: "birth-mark-treatment",
+        name: "Birth Mark Treatment",
+        category: "Skin Lesions",
+        categorySlug: "skin-lesions",
+        shortDesc:
+          "Laser treatment to lighten or remove congenital birthmarks safely and effectively.",
+        description:
+          "Our Birth Mark Treatment uses specialized laser technology — Q-switched or pulsed dye lasers depending on the birthmark type — to safely lighten or remove congenital pigmented or vascular birthmarks. The laser selectively targets the pigment or blood vessels within the birthmark without damaging surrounding skin. Multiple sessions are typically required, spaced 6–8 weeks apart, with gradual lightening visible after each treatment.",
+        duration: "15–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Cafe-au-lait spots, port-wine stains, congenital melanocytic nevi.",
+        tags: ["birthmark", "laser", "congenital", "pigmentation"],
+        doctor: "dr-zonera",
+      },
+    ],
+  },
+
+  // ─── 8. Hair Treatments ──────────────────────────────────────────────
+  {
+    slug: "hair-treatments",
+    name: "Hair Treatments",
+    description:
+      "Comprehensive hair restoration and scalp health treatments using PRP, stem cells, mesotherapy, and transplant surgery to combat hair loss and promote regrowth.",
+    icon: "💇",
+    treatments: [
+      {
+        slug: "hair-prp",
+        name: "Hair PRP",
+        category: "Hair Treatments",
+        categorySlug: "hair-treatments",
+        shortDesc:
+          "Platelet-rich plasma scalp injections that stimulate dormant follicles and promote thicker hair growth.",
+        description:
+          "Hair PRP therapy extracts and concentrates growth factors from your own blood, then injects them into the scalp at areas of thinning. These concentrated growth factors stimulate dormant follicles, extend the active growth phase of hair, and increase hair shaft thickness. A course of 4–6 sessions spaced monthly is recommended for optimal results, with maintenance sessions every 3–4 months to sustain hair density improvements.",
+        duration: "45–60 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Thinning hair, early-stage hair loss, male and female pattern baldness.",
+        tags: ["PRP", "hair loss", "regrowth", "scalp"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "stem-cell-therapy",
+        name: "Stem Cell Therapy",
+        category: "Hair Treatments",
+        categorySlug: "hair-treatments",
+        shortDesc:
+          "Advanced regenerative treatment using stem cell-derived growth factors to revive hair follicles.",
+        description:
+          "Stem Cell Therapy for hair loss uses concentrated stem cell-derived growth factors to regenerate weakened or miniaturized hair follicles. The treatment can utilize either autologous stem cells (derived from your own adipose tissue or blood) or plant-based stem cell extracts, depending on the protocol. This cutting-edge approach stimulates follicular stem cells to re-enter the active growth phase, potentially restoring hair in areas where other treatments have plateaued.",
+        duration: "60–90 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Advanced thinning, treatment-resistant hair loss, follicle regeneration.",
+        tags: ["stem cell", "regenerative", "hair loss", "advanced"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "hair-transplant",
+        name: "Hair Transplant",
+        category: "Hair Treatments",
+        categorySlug: "hair-treatments",
+        shortDesc:
+          "Permanent surgical hair restoration using FUE technique for natural, undetectable results.",
+        description:
+          "Our Hair Transplant service uses the FUE (Follicular Unit Extraction) technique, where individual hair follicles are harvested from the donor area (typically the back of the head) and implanted into areas of baldness or thinning. Each follicle is placed at the correct angle and density to mimic natural hair growth patterns for undetectable results. The transplanted hair is permanent, growing naturally for life. Results become fully visible at 9–12 months post-procedure.",
+        duration: "4–8 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Male pattern baldness, receding hairline, crown thinning, permanent restoration.",
+        tags: ["hair transplant", "FUE", "permanent", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "hair-mesotherapy",
+        name: "Hair Mesotherapy",
+        category: "Hair Treatments",
+        categorySlug: "hair-treatments",
+        shortDesc:
+          "Vitamin and mineral microinjections into the scalp for healthier, stronger hair.",
+        description:
+          "Hair Mesotherapy delivers a customized cocktail of vitamins, minerals, amino acids, and vasodilators directly into the scalp via microinjections. This nourishes hair follicles at the root level, improves blood circulation to the scalp, and strengthens hair from within. The treatment is particularly effective for diffuse thinning, brittle hair, and can be combined with PRP for enhanced results. A course of 8–10 sessions spaced weekly or biweekly is recommended.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Diffuse thinning, weak hair, scalp nourishment, hair strengthening.",
+        tags: ["mesotherapy", "hair", "vitamins", "scalp"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "led-light-therapy-hair",
+        name: "LED Light Therapy (Hair)",
+        category: "Hair Treatments",
+        categorySlug: "hair-treatments",
+        shortDesc:
+          "Low-level laser/LED therapy that stimulates hair follicles and promotes regrowth without injections.",
+        description:
+          "LED Light Therapy for hair uses specific wavelengths of red and near-infrared light to stimulate cellular metabolism in hair follicles, increase blood flow to the scalp, and extend the anagen (growth) phase of the hair cycle. This non-invasive, painless treatment is suitable for those who prefer a needle-free approach to hair restoration. It can be used as a standalone treatment or to enhance results from PRP and mesotherapy protocols.",
+        duration: "20–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Early hair thinning, needle-phobic clients, adjunct to PRP/mesotherapy.",
+        tags: ["LED", "light therapy", "hair growth", "non-invasive"],
+        doctor: "dr-huma",
+      },
+    ],
+  },
+
+  // ─── 9. Non-Surgical Treatments ──────────────────────────────────────
+  {
+    slug: "non-surgical-treatments",
+    name: "Non-Surgical Treatments",
+    description:
+      "Minimally invasive alternatives to surgery that reshape, enhance, and rejuvenate using threads, fillers, and advanced injectables — with minimal downtime.",
+    icon: "🪡",
+    treatments: [
+      {
+        slug: "thread-lift",
+        name: "Thread Lift",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Absorbable threads placed beneath the skin to lift sagging tissue and stimulate long-term collagen production.",
+        description:
+          "The Thread Lift involves inserting fine, absorbable PDO or PLLA threads beneath the skin to create an immediate mechanical lift of sagging tissue. As the threads dissolve over 6–12 months, they stimulate collagen production along their path, providing continued tightening and rejuvenation. This treatment is ideal for midface lifting, jawline definition, and neck tightening, offering a non-surgical alternative to a facelift with minimal downtime.",
+        duration: "60–90 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Midface sagging, jowls, neck laxity, non-surgical facelift.",
+        tags: ["thread lift", "PDO", "lifting", "collagen"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "nose-reshaping-non-surgical",
+        name: "Nose Reshaping (Non-Surgical)",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Dermal filler and thread-based nose reshaping for a refined profile without surgery.",
+        description:
+          "Non-Surgical Nose Reshaping uses hyaluronic acid fillers and/or PDO threads to straighten the nasal bridge, lift a drooping tip, smooth bumps, and improve overall nasal symmetry — all without a single incision. The procedure takes under 30 minutes, results are immediate, and there is minimal to no downtime. While the results are temporary (lasting 12–18 months), this treatment is an excellent option for those seeking refinement without committing to rhinoplasty surgery.",
+        duration: "15–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Nasal bump, droopy tip, flat bridge, non-surgical rhinoplasty.",
+        tags: ["nose reshaping", "non-surgical", "fillers", "threads"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "lip-rejuvenation",
+        name: "Lip Rejuvenation",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Injectable treatments that restore lip volume, define borders, and smooth fine lines around the mouth.",
+        description:
+          "Lip Rejuvenation uses premium hyaluronic acid fillers to add volume, define the cupid's bow, correct asymmetry, and smooth perioral lines (smoker's lines) around the mouth. Our physician uses precise micro-dosing techniques and a layered approach to ensure natural-looking results that complement your facial proportions. Results are immediate with minimal swelling, lasting 6–12 months depending on the product used and your metabolism.",
+        duration: "20–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Thin lips, volume loss, asymmetry, lip border definition, perioral lines.",
+        tags: ["lips", "fillers", "volume", "rejuvenation"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "hyperhidrosis-treatment",
+        name: "Hyperhidrosis Treatment",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Botulinum toxin injections that effectively control excessive sweating in targeted areas.",
+        description:
+          "Our Hyperhidrosis Treatment uses botulinum toxin (Botox) injections to block the nerve signals that trigger excessive sweating. The treatment is highly effective for the underarms, palms, and soles of the feet, providing 6–12 months of significant sweat reduction. For many patients, this treatment is life-changing — eliminating the social embarrassment and practical inconvenience of hyperhidrosis without surgery.",
+        duration: "20–30 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Excessive underarm sweating, sweaty palms, social confidence.",
+        tags: ["hyperhidrosis", "sweating", "botox", "sweat control"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "breast-enhancement-non-surgical",
+        name: "Breast Enhancement (Non-Surgical)",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Non-invasive breast lifting and volume enhancement using fillers or fat transfer techniques.",
+        description:
+          "Non-Surgical Breast Enhancement offers subtle volume increase and improved breast contour using dermal fillers (hyaluronic acid-based macrolane) or autologous fat transfer. These minimally invasive techniques provide a modest, natural-looking enhancement without implants, general anesthesia, or significant downtime. Ideal for patients seeking a subtle improvement of one-half to one cup size, or those who wish to restore volume lost after breastfeeding or weight loss.",
+        duration: "60–90 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Subtle breast enhancement, volume restoration, implant-free approach.",
+        tags: ["breast enhancement", "non-surgical", "fillers", "volume"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "body-enhancement",
+        name: "Body Enhancement",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Non-surgical body sculpting and enhancement using fillers, threads, and energy-based devices.",
+        description:
+          "Our Non-Surgical Body Enhancement services use a combination of dermal fillers, PDO threads, and energy-based devices to contour and enhance various body areas without surgery. Treatments can address hip dips, buttock contouring, hand rejuvenation, and décolletage smoothing. Each treatment plan is customized to your body goals, providing subtle, natural-looking improvements with minimal recovery time compared to surgical alternatives.",
+        duration: "45–90 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Hip dips, buttock shaping, hand rejuvenation, body contouring.",
+        tags: ["body enhancement", "non-surgical", "contouring", "fillers"],
+        doctor: "dr-huma",
+      },
+      {
+        slug: "neck-lines-treatment",
+        name: "Neck Lines Treatment",
+        category: "Non-Surgical Treatments",
+        categorySlug: "non-surgical-treatments",
+        shortDesc:
+          "Targeted treatment for horizontal neck lines and vertical platysmal bands using Botox and fillers.",
+        description:
+          "Our Neck Lines Treatment addresses both horizontal necklace lines and vertical platysmal bands using a combination of micro-Botox to relax the platysma muscle, hyaluronic acid fillers to smooth deep creases, and skin booster injections to improve overall neck skin quality. The neck is one of the first areas to show aging, and this treatment restores a smoother, more youthful neck contour without surgery.",
+        duration: "30–45 min",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Horizontal neck lines, platysmal bands, tech neck, neck aging.",
+        tags: ["neck lines", "platysma", "anti-aging", "rejuvenation"],
+        doctor: "dr-huma",
+      },
+    ],
+  },
+
+  // ─── 10. Surgical Treatments ─────────────────────────────────────────
+  {
+    slug: "surgical-treatments",
+    name: "Surgical Treatments",
+    description:
+      "Board-certified plastic surgery procedures performed to the highest safety standards for transformative, lasting results under the care of Dr. Zulfiqar.",
+    icon: "🏥",
+    treatments: [
+      {
+        slug: "liposuction",
+        name: "Liposuction",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical fat removal that permanently reshapes the body contour for a slimmer silhouette.",
+        description:
+          "Liposuction is a surgical body contouring procedure that permanently removes excess fat deposits from targeted areas including the abdomen, flanks, thighs, arms, and chin. Using advanced tumescent and power-assisted techniques, our plastic surgeon sculpts precise body contours with minimal bruising and faster recovery. The procedure is performed under local or general anesthesia depending on the extent of treatment, with results fully visible at 3–6 months.",
+        duration: "1–3 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Stubborn fat deposits, body sculpting, permanent fat removal.",
+        tags: ["liposuction", "fat removal", "body contouring", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "nose-reshaping-rhinoplasty",
+        name: "Nose Reshaping (Rhinoplasty)",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical nose reshaping to refine nasal structure, improve symmetry, and enhance facial harmony.",
+        description:
+          "Rhinoplasty is a surgical procedure that reshapes the nose to improve its appearance, proportion, and facial harmony. Our plastic surgeon can reduce or augment the nasal bridge, refine the tip, narrow wide nostrils, correct asymmetry, and address breathing difficulties. The procedure is performed using either open or closed technique depending on the complexity, with results settling over 6–12 months as swelling gradually resolves.",
+        duration: "2–3 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Nasal hump, bulbous tip, wide nostrils, deviated septum, facial harmony.",
+        tags: ["rhinoplasty", "nose job", "reshaping", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "breast-augmentation",
+        name: "Breast Augmentation",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical breast enlargement using implants or fat transfer for enhanced size and shape.",
+        description:
+          "Breast Augmentation enhances breast size, shape, and symmetry using silicone or saline implants, or autologous fat transfer. Our plastic surgeon works closely with each patient to select the optimal implant type, size, profile, and placement (above or below the muscle) to achieve natural-looking results that complement their body frame. The procedure is performed under general anesthesia with a recovery period of 4–6 weeks.",
+        duration: "1.5–2.5 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Small breast size, asymmetry, post-breastfeeding volume loss.",
+        tags: ["breast augmentation", "implants", "enlargement", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "breast-reduction",
+        name: "Breast Reduction",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical reduction of breast size to alleviate discomfort and achieve a proportionate figure.",
+        description:
+          "Breast Reduction surgery removes excess breast tissue, fat, and skin to achieve a breast size proportionate to the patient's body frame. Beyond cosmetic improvement, this procedure often provides significant relief from chronic back, neck, and shoulder pain, skin irritation, and the physical limitations caused by overly large breasts. Our plastic surgeon uses techniques that minimize scarring while achieving a lifted, natural breast shape.",
+        duration: "2–3 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Overly large breasts, chronic pain, skin irritation, physical limitation.",
+        tags: ["breast reduction", "reduction", "relief", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "eyelid-surgery-blepharoplasty",
+        name: "Eyelid Surgery (Blepharoplasty)",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical removal of excess eyelid skin and fat to restore a youthful, alert eye appearance.",
+        description:
+          "Blepharoplasty (eyelid surgery) removes excess skin, muscle, and fat from the upper and/or lower eyelids to rejuvenate the eye area. Upper blepharoplasty corrects hooding that can impair vision and make the eyes look tired, while lower blepharoplasty addresses under-eye bags and puffiness. The procedure is performed under local anesthesia with sedation, and incisions are hidden within the natural eyelid crease for virtually invisible scarring.",
+        duration: "1–2 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Droopy eyelids, under-eye bags, hooded eyes, tired appearance.",
+        tags: ["blepharoplasty", "eyelid surgery", "eye rejuvenation", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "face-lift-surgery",
+        name: "Face Lift Surgery",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Comprehensive surgical lifting and tightening of the face and neck for dramatic rejuvenation.",
+        description:
+          "A surgical facelift (rhytidectomy) addresses significant sagging of the midface, jowls, and neck by repositioning deeper facial tissues, removing excess skin, and tightening the underlying muscular layer (SMAS). Our plastic surgeon uses advanced techniques that produce natural, wind-swept-free results with long-lasting rejuvenation of 8–10 years. The procedure is performed under general anesthesia with a recovery period of 2–3 weeks.",
+        duration: "3–5 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Significant sagging, deep jowls, loose neck, comprehensive rejuvenation.",
+        tags: ["facelift", "rhytidectomy", "lifting", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "buttock-lift-bbl",
+        name: "Buttock Lift (BBL)",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Brazilian Butt Lift using autologous fat transfer to enhance buttock shape and projection.",
+        description:
+          "The Brazilian Butt Lift (BBL) is a two-in-one procedure that combines liposuction of donor areas (abdomen, flanks, thighs) with strategic fat transfer to the buttocks. The harvested fat is purified and injected in multiple layers to enhance buttock volume, shape, and projection while simultaneously slimming the areas where fat was removed. This procedure uses your own tissue for natural-looking, natural-feeling results with dual benefit body contouring.",
+        duration: "3–4 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Flat buttocks, buttock asymmetry, body contouring, volume enhancement.",
+        tags: ["BBL", "buttock lift", "fat transfer", "contouring"],
+        doctor: "dr-zulfiqar",
+      },
+      {
+        slug: "brow-lift",
+        name: "Brow Lift",
+        category: "Surgical Treatments",
+        categorySlug: "surgical-treatments",
+        shortDesc:
+          "Surgical elevation of drooping brows to restore a youthful, alert, and refreshed appearance.",
+        description:
+          "A Brow Lift (forehead lift) surgically elevates drooping brows, smooths forehead wrinkles, and reduces frown lines between the eyebrows. Our plastic surgeon uses endoscopic techniques through small, hidden incisions to reposition the brow to a more youthful height while maintaining natural expression. The procedure opens up the eye area, reduces hooding of the upper eyelids, and restores a refreshed, alert appearance that lasts 5–10 years.",
+        duration: "1–2 hours",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Drooping brows, forehead lines, frown lines, tired or angry appearance.",
+        tags: ["brow lift", "forehead lift", "endoscopic", "surgical"],
+        doctor: "dr-zulfiqar",
+      },
+    ],
+  },
+
+  // ─── 11. Skin Health ─────────────────────────────────────────────────
+  {
+    slug: "skin-health",
+    name: "Skin Health",
+    description:
+      "Science-backed nutritional and supplement protocols that support skin health from the inside out, building the foundation for lasting results from aesthetic treatments.",
+    icon: "🌿",
+    treatments: [
+      {
+        slug: "antioxidants-collagen-building-nutrients",
+        name: "Antioxidants + Collagen-Building Nutrients",
+        category: "Skin Health",
+        categorySlug: "skin-health",
+        shortDesc:
+          "A physician-guided nutritional protocol of antioxidants and collagen-building supplements for healthier skin from within.",
+        description:
+          "Our Antioxidants + Collagen-Building Nutrients program is a physician-curated supplement and nutritional protocol designed to support your skin from the inside out. The program includes high-grade antioxidants (vitamins C, E, astaxanthin), collagen peptides, hyaluronic acid, zinc, and omega-3 fatty acids in therapeutic doses. This evidence-based approach complements your in-clinic treatments by providing the raw materials your body needs to produce healthy collagen, fight oxidative stress, and maintain skin elasticity.",
+        duration: "Ongoing program",
+        priceDisplay: "Consultation Required",
+        bestFor:
+          "Overall skin health, collagen support, anti-aging from within, treatment enhancement.",
+        tags: ["antioxidants", "collagen", "supplements", "skin health"],
+        doctor: "dr-huma",
       },
     ],
   },

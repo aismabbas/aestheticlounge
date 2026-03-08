@@ -4,7 +4,10 @@ const quickLinks = [
   { href: "#doctors", label: "Our Doctors" },
   { href: "#about", label: "About Us" },
   { href: "#book", label: "Book Appointment" },
+  { href: "/feedback", label: "Feedback" },
+  { href: "/feedback/complaint", label: "Complaint Box" },
   { href: "#", label: "Price Guide" },
+  { href: "/social", label: "Social Gallery" },
 ];
 
 const topServices = [

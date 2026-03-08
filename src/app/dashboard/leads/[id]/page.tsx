@@ -18,6 +18,24 @@ interface Lead {
   notes: string;
   booked_treatment: string;
   actual_revenue: number;
+  score: number;
+  computed_score: number;
+  computed_label: 'hot' | 'warm' | 'cold';
+  score_breakdown: Record<string, number>;
+  score_factors: Record<string, number>;
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  landing_page: string;
+  pages_viewed: number;
+  time_on_site: number;
+  treatments_viewed: string[];
+  form_submissions: number;
+  whatsapp_messages: number;
+  last_activity_at: string;
+  conversion_value: number;
+  converted_at: string;
 }
 
 interface Conversation {
@@ -43,6 +61,239 @@ const stageBadgeColors: Record<string, string> = {
   lost: 'bg-red-100 text-red-700',
 };
 
+const FACTOR_LABELS: Record<string, string> = {
+  hasPhone: 'Has phone number',
+  hasEmail: 'Has email address',
+  respondedWhatsApp: 'Responded on WhatsApp',
+  pagesViewed: 'Pages viewed',
+  timeOnSiteMinutes: 'Time on site',
+  viewedHighValueTreatment: 'Viewed high-value treatment',
+  formSubmitted: 'Form submitted',
+  responseSpeedUnder5Min: 'Fast response (<5 min)',
+  referredByClient: 'Client referral',
+  repeatVisitor: 'Repeat visitor',
+};
+
+function ScoreGauge({ score, label }: { score: number; label: string }) {
+  const percentage = score;
+  const colorMap = {
+    hot: { bar: 'bg-red-500', text: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },
+    warm: { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
+    cold: { bar: 'bg-blue-500', text: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  };
+  const colors = colorMap[label as keyof typeof colorMap] || colorMap.cold;
+  const icon = label === 'hot' ? '\u{1F525}' : label === 'warm' ? '\u{2600}\u{FE0F}' : '\u{2744}\u{FE0F}';
+
+  return (
+    <div className={`rounded-xl border ${colors.border} ${colors.bg} p-5`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{icon}</span>
+          <div>
+            <p className={`text-lg font-bold ${colors.text}`}>{score}/100</p>
+            <p className={`text-xs font-medium uppercase tracking-wider ${colors.text}`}>{label} lead</p>
+          </div>
+        </div>
+        <div className={`w-16 h-16 rounded-full border-4 ${colors.border} flex items-center justify-center`}>
+          <span className={`text-xl font-bold ${colors.text}`}>{score}</span>
+        </div>
+      </div>
+      <div className="w-full bg-white rounded-full h-2.5 overflow-hidden">
+        <div className={`h-full rounded-full ${colors.bar} transition-all duration-500`} style={{ width: `${percentage}%` }} />
+      </div>
+      <div className="flex justify-between mt-1 text-[10px] text-text-muted">
+        <span>Cold (0)</span>
+        <span>Warm (40)</span>
+        <span>Hot (70)</span>
+        <span>100</span>
+      </div>
+    </div>
+  );
+}
+
+function ScoreBreakdown({ factors }: { factors: Record<string, number> }) {
+  const entries = Object.entries(factors).sort(([, a], [, b]) => b - a);
+
+  if (entries.length === 0) {
+    return <p className="text-sm text-text-muted">No scoring data yet.</p>;
+  }
+
+  const total = entries.reduce((s, [, v]) => s + v, 0);
+
+  return (
+    <div className="space-y-2">
+      {entries.map(([key, value]) => {
+        const pct = total > 0 ? (value / 100) * 100 : 0;
+        return (
+          <div key={key}>
+            <div className="flex items-center justify-between text-xs mb-0.5">
+              <span className="text-text-dark">{FACTOR_LABELS[key] || key}</span>
+              <span className="font-semibold text-text-dark">+{value}</span>
+            </div>
+            <div className="w-full bg-border-light rounded-full h-1.5 overflow-hidden">
+              <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConversionPath({ stage }: { stage: string }) {
+  const steps = ['new', 'contacted', 'qualified', 'booked', 'visited'];
+  const currentIndex = steps.indexOf(stage);
+  const isLost = stage === 'lost';
+
+  return (
+    <div className="flex items-center gap-1">
+      {steps.map((step, i) => {
+        const isActive = !isLost && i <= currentIndex;
+        const isCurrent = !isLost && step === stage;
+        return (
+          <div key={step} className="flex items-center flex-1">
+            <div className={`flex-1 flex flex-col items-center`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
+                isCurrent
+                  ? 'bg-gold text-white ring-2 ring-gold/30'
+                  : isActive
+                    ? 'bg-gold/80 text-white'
+                    : 'bg-border-light text-text-muted'
+              }`}>
+                {i + 1}
+              </div>
+              <span className={`text-[10px] mt-1 capitalize ${isCurrent ? 'font-semibold text-gold-dark' : 'text-text-muted'}`}>
+                {step}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`h-0.5 w-full mx-0.5 mt-[-12px] ${isActive && i < currentIndex ? 'bg-gold' : 'bg-border-light'}`} />
+            )}
+          </div>
+        );
+      })}
+      {isLost && (
+        <div className="flex flex-col items-center ml-2">
+          <div className="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-[10px] font-bold">
+            X
+          </div>
+          <span className="text-[10px] mt-1 text-red-600 font-semibold">Lost</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AttributionCard({ lead }: { lead: Lead }) {
+  const hasUtm = lead.utm_source || lead.utm_medium || lead.utm_campaign || lead.utm_content;
+  if (!hasUtm && !lead.landing_page) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-border p-6">
+      <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Attribution</h2>
+      <div className="grid grid-cols-2 gap-3">
+        {lead.utm_source && (
+          <div>
+            <p className="text-xs text-text-muted uppercase tracking-wider">Source</p>
+            <p className="text-sm text-text-dark mt-0.5 font-medium">{lead.utm_source}</p>
+          </div>
+        )}
+        {lead.utm_medium && (
+          <div>
+            <p className="text-xs text-text-muted uppercase tracking-wider">Medium</p>
+            <p className="text-sm text-text-dark mt-0.5">{lead.utm_medium}</p>
+          </div>
+        )}
+        {lead.utm_campaign && (
+          <div>
+            <p className="text-xs text-text-muted uppercase tracking-wider">Campaign</p>
+            <p className="text-sm text-text-dark mt-0.5">{lead.utm_campaign}</p>
+          </div>
+        )}
+        {lead.utm_content && (
+          <div>
+            <p className="text-xs text-text-muted uppercase tracking-wider">Content</p>
+            <p className="text-sm text-text-dark mt-0.5">{lead.utm_content}</p>
+          </div>
+        )}
+        {lead.landing_page && (
+          <div className="col-span-2">
+            <p className="text-xs text-text-muted uppercase tracking-wider">Landing Page</p>
+            <p className="text-sm text-text-dark mt-0.5 truncate">{lead.landing_page}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BehaviorCard({ lead }: { lead: Lead }) {
+  const hasData = lead.pages_viewed || lead.time_on_site || lead.form_submissions || lead.whatsapp_messages || (lead.treatments_viewed && lead.treatments_viewed.length > 0);
+  if (!hasData) return null;
+
+  const timeFormatted = lead.time_on_site
+    ? lead.time_on_site >= 60
+      ? `${Math.floor(lead.time_on_site / 60)}m ${lead.time_on_site % 60}s`
+      : `${lead.time_on_site}s`
+    : '-';
+
+  return (
+    <div className="bg-white rounded-xl border border-border p-6">
+      <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Behavioral Data</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-lg">
+            &#x1F4C4;
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-text-dark">{lead.pages_viewed || 0}</p>
+            <p className="text-xs text-text-muted">Pages Viewed</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 text-lg">
+            &#x23F1;
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-text-dark">{timeFormatted}</p>
+            <p className="text-xs text-text-muted">Time on Site</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 text-lg">
+            &#x1F4DD;
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-text-dark">{lead.form_submissions || 0}</p>
+            <p className="text-xs text-text-muted">Form Submissions</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg">
+            &#x1F4AC;
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-text-dark">{lead.whatsapp_messages || 0}</p>
+            <p className="text-xs text-text-muted">WhatsApp Messages</p>
+          </div>
+        </div>
+      </div>
+      {lead.treatments_viewed && lead.treatments_viewed.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-border-light">
+          <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Treatments Viewed</p>
+          <div className="flex flex-wrap gap-1.5">
+            {lead.treatments_viewed.map((t) => (
+              <span key={t} className="px-2 py-0.5 bg-gold-pale text-gold-dark text-xs rounded-full">
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -50,8 +301,9 @@ export default function LeadDetailPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState('');
+  const [recalculating, setRecalculating] = useState(false);
 
-  useEffect(() => {
+  const fetchLead = () => {
     fetch(`/api/dashboard/leads/${id}`)
       .then((r) => r.json())
       .then((data) => {
@@ -59,6 +311,11 @@ export default function LeadDetailPage() {
         setConversations(data.conversations || []);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchLead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const updateStage = async (newStage: string) => {
@@ -98,6 +355,21 @@ export default function LeadDetailPage() {
     }
   };
 
+  const recalculateScore = async () => {
+    setRecalculating(true);
+    try {
+      await fetch('/api/dashboard/leads/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: id }),
+      });
+      fetchLead();
+    } catch {
+      // silent
+    }
+    setRecalculating(false);
+  };
+
   if (loading || !lead) {
     return (
       <div className="p-8">
@@ -108,6 +380,10 @@ export default function LeadDetailPage() {
       </div>
     );
   }
+
+  const scoreToShow = lead.computed_score ?? lead.score ?? 0;
+  const labelToShow = lead.computed_label || (scoreToShow >= 70 ? 'hot' : scoreToShow >= 40 ? 'warm' : 'cold');
+  const breakdownToShow = lead.score_breakdown || lead.score_factors || {};
 
   return (
     <div className="p-8 max-w-5xl">
@@ -133,6 +409,15 @@ export default function LeadDetailPage() {
                   {lead.quality && (
                     <span className="text-xs text-text-muted">Quality: {lead.quality}</span>
                   )}
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                    labelToShow === 'hot'
+                      ? 'bg-red-100 text-red-700 border-red-300'
+                      : labelToShow === 'warm'
+                        ? 'bg-amber-100 text-amber-700 border-amber-300'
+                        : 'bg-blue-100 text-blue-600 border-blue-300'
+                  }`}>
+                    {labelToShow === 'hot' ? '\u{1F525}' : labelToShow === 'warm' ? '\u{2600}\u{FE0F}' : '\u{2744}\u{FE0F}'} Score: {scoreToShow}
+                  </span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -168,7 +453,7 @@ export default function LeadDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-text-muted uppercase tracking-wider">Source</p>
-                <p className="text-sm text-text-dark mt-1">{lead.source || '-'}</p>
+                <p className="text-sm text-text-dark mt-1">{lead.utm_source || lead.source || '-'}</p>
               </div>
               <div>
                 <p className="text-xs text-text-muted uppercase tracking-wider">Booked Treatment</p>
@@ -181,9 +466,15 @@ export default function LeadDetailPage() {
             </div>
           </div>
 
+          {/* Conversion Path */}
+          <div className="bg-white rounded-xl border border-border p-6">
+            <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Conversion Path</h2>
+            <ConversionPath stage={lead.stage} />
+          </div>
+
           {/* Stage Timeline */}
           <div className="bg-white rounded-xl border border-border p-6">
-            <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Stage</h2>
+            <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Update Stage</h2>
             <div className="flex items-center gap-1">
               {STAGES.map((stage, i) => {
                 const stageIndex = STAGES.indexOf(lead.stage as typeof STAGES[number]);
@@ -207,6 +498,12 @@ export default function LeadDetailPage() {
               })}
             </div>
           </div>
+
+          {/* Behavioral Data */}
+          <BehaviorCard lead={lead} />
+
+          {/* Attribution */}
+          <AttributionCard lead={lead} />
 
           {/* Conversation History */}
           <div className="bg-white rounded-xl border border-border p-6">
@@ -234,7 +531,7 @@ export default function LeadDetailPage() {
                         }`}
                       >
                         {new Date(msg.created_at).toLocaleString()}
-                        {msg.agent && ` · ${msg.agent}`}
+                        {msg.agent && ` \u00B7 ${msg.agent}`}
                       </p>
                     </div>
                   </div>
@@ -246,6 +543,25 @@ export default function LeadDetailPage() {
 
         {/* Right sidebar */}
         <div className="space-y-6">
+          {/* Lead Intelligence / Score */}
+          <div className="space-y-4">
+            <ScoreGauge score={scoreToShow} label={labelToShow} />
+
+            <div className="bg-white rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-serif text-lg font-semibold text-text-dark">Score Breakdown</h2>
+                <button
+                  onClick={recalculateScore}
+                  disabled={recalculating}
+                  className="text-xs px-3 py-1.5 bg-gold-pale text-gold-dark rounded-lg hover:bg-gold-light/30 transition-colors disabled:opacity-50 font-medium"
+                >
+                  {recalculating ? 'Calculating...' : 'Recalculate'}
+                </button>
+              </div>
+              <ScoreBreakdown factors={breakdownToShow} />
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="bg-white rounded-xl border border-border p-6 space-y-3">
             <h2 className="font-serif text-lg font-semibold text-text-dark mb-2">Actions</h2>
@@ -289,12 +605,24 @@ export default function LeadDetailPage() {
           </div>
 
           {/* Revenue */}
-          {lead.actual_revenue > 0 && (
+          {(lead.actual_revenue > 0 || lead.conversion_value > 0) && (
             <div className="bg-white rounded-xl border border-border p-6">
               <h2 className="font-serif text-lg font-semibold text-text-dark mb-2">Revenue</h2>
-              <p className="text-2xl font-semibold text-gold">
-                PKR {lead.actual_revenue.toLocaleString()}
-              </p>
+              {lead.actual_revenue > 0 && (
+                <p className="text-2xl font-semibold text-gold">
+                  PKR {lead.actual_revenue.toLocaleString()}
+                </p>
+              )}
+              {lead.conversion_value > 0 && (
+                <p className="text-sm text-text-muted mt-1">
+                  Conversion value: PKR {Number(lead.conversion_value).toLocaleString()}
+                </p>
+              )}
+              {lead.converted_at && (
+                <p className="text-xs text-text-muted mt-1">
+                  Converted: {new Date(lead.converted_at).toLocaleDateString()}
+                </p>
+              )}
             </div>
           )}
         </div>

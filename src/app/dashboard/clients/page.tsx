@@ -16,9 +16,20 @@ interface Client {
   treatments: unknown[];
   preferred_doctor: string;
   notes: string;
+  do_not_disturb: boolean;
+  photo_consent: boolean;
+  tags: string[];
 }
 
 type SortKey = 'name' | 'phone' | 'visit_count' | 'total_spent' | 'last_visit' | 'preferred_doctor';
+
+interface FilterState {
+  dnd: boolean;
+  photo_consent: boolean;
+  vip: boolean;
+  new: boolean;
+  tag: string;
+}
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -26,17 +37,31 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('last_visit');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterState>({
+    dnd: false,
+    photo_consent: false,
+    vip: false,
+    new: false,
+    tag: '',
+  });
 
   const fetchClients = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     params.set('sort', sortKey);
     params.set('order', sortDir.toUpperCase());
+    if (filters.dnd) params.set('dnd', 'true');
+    if (filters.photo_consent) params.set('photo_consent', 'true');
+    if (filters.vip) params.set('vip', 'true');
+    if (filters.new) params.set('new', 'true');
+    if (filters.tag) params.set('tag', filters.tag);
     const res = await fetch(`/api/dashboard/clients?${params}`);
     const data = await res.json();
     setClients(data.clients || data);
+    setAllTags(data.allTags || []);
     setLoading(false);
-  }, [search, sortKey, sortDir]);
+  }, [search, sortKey, sortDir, filters]);
 
   useEffect(() => {
     fetchClients();
@@ -49,6 +74,11 @@ export default function ClientsPage() {
       setSortKey(key);
       setSortDir('desc');
     }
+  };
+
+  const toggleFilter = (key: keyof FilterState) => {
+    if (key === 'tag') return;
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -74,13 +104,64 @@ export default function ClientsPage() {
         <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Search by name or phone..."
+            placeholder="Search by name, phone, or tag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="px-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-gold w-72"
           />
           <span className="text-sm text-text-muted">{clients.length} clients</span>
         </div>
+      </div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-xs font-semibold uppercase text-text-muted mr-1">Filters:</span>
+        {([
+          { key: 'dnd' as const, label: 'Do Not Disturb', icon: '\uD83D\uDD34' },
+          { key: 'photo_consent' as const, label: 'Photo Consent', icon: '\uD83D\uDCF8' },
+          { key: 'vip' as const, label: 'VIP', icon: '\u2B50' },
+          { key: 'new' as const, label: 'New (30d)', icon: '\uD83C\uDD95' },
+        ]).map(({ key, label, icon }) => (
+          <button
+            key={key}
+            onClick={() => toggleFilter(key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+              filters[key]
+                ? 'bg-gold text-white border-gold'
+                : 'bg-white text-text-light border-border hover:border-gold hover:text-gold'
+            }`}
+          >
+            {icon} {label}
+          </button>
+        ))}
+
+        {/* Tag filter dropdown */}
+        {allTags.length > 0 && (
+          <select
+            value={filters.tag}
+            onChange={(e) => setFilters((prev) => ({ ...prev, tag: e.target.value }))}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border appearance-none pr-6 ${
+              filters.tag
+                ? 'bg-gold text-white border-gold'
+                : 'bg-white text-text-light border-border hover:border-gold'
+            }`}
+          >
+            <option value="">All Tags</option>
+            {allTags.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        )}
+
+        {/* Clear filters */}
+        {(filters.dnd || filters.photo_consent || filters.vip || filters.new || filters.tag) && (
+          <button
+            onClick={() => setFilters({ dnd: false, photo_consent: false, vip: false, new: false, tag: '' })}
+            className="px-3 py-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
+          >
+            Clear all
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-border overflow-hidden">
@@ -110,12 +191,32 @@ export default function ClientsPage() {
             {clients.map((client) => (
               <tr key={client.id} className="border-b border-border-light hover:bg-warm-white transition-colors">
                 <td className="px-4 py-3">
-                  <Link
-                    href={`/dashboard/clients/${client.id}`}
-                    className="text-sm font-medium text-text-dark hover:text-gold transition-colors"
-                  >
-                    {client.name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/dashboard/clients/${client.id}`}
+                      className="text-sm font-medium text-text-dark hover:text-gold transition-colors"
+                    >
+                      {client.name}
+                    </Link>
+                    {client.do_not_disturb && (
+                      <span title="Do Not Disturb" className="text-xs">{'\uD83D\uDD34'}</span>
+                    )}
+                    {client.tags && client.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {client.tags.slice(0, 2).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-1.5 py-0.5 rounded-full text-[10px] bg-gold/10 text-gold font-medium"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {client.tags.length > 2 && (
+                          <span className="text-[10px] text-text-muted">+{client.tags.length - 2}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-sm text-text-light">{client.phone}</td>
                 <td className="px-4 py-3 text-sm text-text-dark font-medium">{client.visit_count}</td>

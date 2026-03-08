@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { PerformanceBanner } from './performance-banner';
 
 interface StatCard {
   label: string;
@@ -42,6 +43,7 @@ async function getOverviewData() {
     monthRevenue,
     pendingAppointments,
     recentConversations,
+    leadScoreStats,
   ] = await Promise.all([
     query(
       `SELECT COUNT(*)::int AS count FROM al_appointments WHERE scheduled_at >= $1 AND scheduled_at < $2`,
@@ -95,6 +97,17 @@ async function getOverviewData() {
        ORDER BY c.created_at DESC
        LIMIT 5`,
     ).then((r) => r.rows as RecentConversation[]).catch(() => [] as RecentConversation[]),
+
+    query(
+      `SELECT
+        COUNT(CASE WHEN score >= 70 THEN 1 END)::int AS hot_count,
+        COUNT(CASE WHEN score >= 40 AND score < 70 THEN 1 END)::int AS warm_count,
+        COUNT(CASE WHEN converted_at IS NOT NULL AND converted_at >= $1 THEN 1 END)::int AS converted_this_month,
+        COUNT(CASE WHEN created_at >= $1 THEN 1 END)::int AS leads_this_month,
+        ROUND(AVG(COALESCE(score, 0)))::int AS avg_score
+      FROM al_leads`,
+      [monthStart],
+    ).then((r) => r.rows[0]).catch(() => ({ hot_count: 0, warm_count: 0, converted_this_month: 0, leads_this_month: 0, avg_score: 0 })),
   ]);
 
   return {
@@ -106,6 +119,7 @@ async function getOverviewData() {
     monthRevenue,
     pendingAppointments,
     recentConversations,
+    leadScoreStats,
   };
 }
 
@@ -124,6 +138,9 @@ export default async function DashboardOverview() {
 
   return (
     <div>
+      {/* Performance Banner */}
+      <PerformanceBanner />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="font-serif text-2xl lg:text-3xl text-text-dark">
@@ -160,6 +177,56 @@ export default async function DashboardOverview() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Lead Pipeline Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-border-light p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-serif text-lg text-text-dark">Lead Pipeline</h2>
+          <a href="/dashboard/leads" className="text-xs text-gold font-medium hover:underline">View All</a>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-lg">
+              &#x1F525;
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-text-dark">{data.leadScoreStats.hot_count}</p>
+              <p className="text-xs text-text-muted">Hot Leads</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-lg">
+              &#x2600;&#xFE0F;
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-text-dark">{data.leadScoreStats.warm_count}</p>
+              <p className="text-xs text-text-muted">Warm Leads</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-lg">
+              &#x2705;
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-text-dark">
+                {data.leadScoreStats.leads_this_month > 0
+                  ? Math.round((data.leadScoreStats.converted_this_month / data.leadScoreStats.leads_this_month) * 100)
+                  : 0}%
+              </p>
+              <p className="text-xs text-text-muted">Conversion Rate</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-lg">
+              &#x1F4CA;
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-text-dark">{data.leadScoreStats.avg_score || 0}</p>
+              <p className="text-xs text-text-muted">Avg Score</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

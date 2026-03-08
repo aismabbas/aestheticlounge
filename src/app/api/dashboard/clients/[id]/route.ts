@@ -32,14 +32,26 @@ export async function GET(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    const appointments = await query(
-      'SELECT * FROM al_appointments WHERE phone = $1 ORDER BY date DESC, time DESC',
-      [client.rows[0].phone],
-    );
+    const [appointments, photos, payments] = await Promise.all([
+      query(
+        'SELECT * FROM al_appointments WHERE phone = $1 ORDER BY date DESC, time DESC',
+        [client.rows[0].phone],
+      ),
+      query(
+        'SELECT * FROM al_client_photos WHERE client_id = $1 ORDER BY taken_at DESC',
+        [id],
+      ),
+      query(
+        'SELECT * FROM al_payments WHERE client_id = $1 ORDER BY created_at DESC',
+        [id],
+      ),
+    ]);
 
     return NextResponse.json({
       client: client.rows[0],
       appointments: appointments.rows,
+      photos: photos.rows,
+      payments: payments.rows,
     });
   } catch (err) {
     console.error('[dashboard/clients/[id]] error:', err);
@@ -60,14 +72,24 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    const allowedFields = ['name', 'phone', 'email', 'notes', 'preferred_doctor', 'treatments'];
+    const allowedFields = [
+      'name', 'phone', 'email', 'notes', 'preferred_doctor', 'treatments',
+      'photo_consent', 'do_not_disturb', 'medical_history',
+      'skin_type', 'allergies', 'gender', 'date_of_birth', 'tags', 'wa_opted_in',
+    ];
     const updates: string[] = [];
     const values: unknown[] = [];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === 'treatments') {
+        if (field === 'treatments' || field === 'medical_history') {
           values.push(JSON.stringify(body[field]));
+        } else if (field === 'tags') {
+          // Convert array to PostgreSQL text[] format
+          const tagsArr = Array.isArray(body[field]) ? body[field] : [];
+          values.push(tagsArr);
+          updates.push(`${field} = $${values.length}::text[]`);
+          continue;
         } else {
           values.push(body[field]);
         }

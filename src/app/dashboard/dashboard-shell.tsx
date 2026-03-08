@@ -25,6 +25,8 @@ const NAV_ITEMS = [
   { label: 'Conversations',  href: '/dashboard/conversations', icon: '◫' },
   { label: 'Services',       href: '/dashboard/services',      icon: '✦' },
   { label: 'Analytics',      href: '/dashboard/analytics',     icon: '▥' },
+  { label: 'Performance',   href: '/dashboard/performance',   icon: '⏱' },
+  { label: 'Feedback',       href: '/dashboard/feedback',      icon: '☆' },
   { label: 'Settings',       href: '/dashboard/settings',      icon: '⚙' },
 ];
 
@@ -168,6 +170,19 @@ export function DashboardShell({
             );
           })}
         </nav>
+
+        {/* iPad Kiosk */}
+        <div className="px-3 pb-2">
+          <a
+            href="/intake/new?mode=ipad"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <span className="w-5 text-center text-base">&#9783;</span>
+            <span>iPad Kiosk</span>
+          </a>
+        </div>
 
         {/* User info + logout */}
         <div className="border-t border-white/10 px-4 py-4">

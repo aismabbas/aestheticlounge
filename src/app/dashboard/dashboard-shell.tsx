@@ -5,13 +5,23 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { StaffSession } from '@/lib/auth';
 
+const MARKETING_SUB_ITEMS = [
+  { label: 'Studio',     href: '/dashboard/marketing' },
+  { label: 'Reels',      href: '/dashboard/marketing/reels' },
+  { label: 'Carousels',  href: '/dashboard/marketing/carousels' },
+  { label: 'Videos',     href: '/dashboard/marketing/videos' },
+  { label: 'Calendar',   href: '/dashboard/marketing/calendar' },
+];
+
 const NAV_ITEMS = [
   { label: 'Overview',       href: '/dashboard',               icon: '▦' },
   { label: 'Leads',          href: '/dashboard/leads',         icon: '◎' },
   { label: 'Clients',        href: '/dashboard/clients',       icon: '♟' },
   { label: 'Appointments',   href: '/dashboard/appointments',  icon: '▷' },
+  { label: 'Payments',       href: '/dashboard/payments',      icon: '◉' },
   { label: 'Ads',            href: '/dashboard/ads',           icon: '◈' },
   { label: 'Content',        href: '/dashboard/content',       icon: '▤' },
+  { label: 'Marketing',      href: '/dashboard/marketing',     icon: '◆' },
   { label: 'Conversations',  href: '/dashboard/conversations', icon: '◫' },
   { label: 'Services',       href: '/dashboard/services',      icon: '✦' },
   { label: 'Analytics',      href: '/dashboard/analytics',     icon: '▥' },
@@ -33,11 +43,16 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [marketingOpen, setMarketingOpen] = useState(
+    pathname.startsWith('/dashboard/marketing')
+  );
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/dashboard/login');
   }
+
+  const isMarketingActive = pathname.startsWith('/dashboard/marketing');
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -74,6 +89,63 @@ export function DashboardShell({
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = isActive(pathname, item.href);
+
+            // Marketing item with collapsible sub-menu
+            if (item.label === 'Marketing') {
+              return (
+                <div key={item.href}>
+                  <button
+                    onClick={() => setMarketingOpen(!marketingOpen)}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+                      ${isMarketingActive
+                        ? 'bg-gold/15 text-gold font-medium'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <span className="w-5 text-center text-base">{item.icon}</span>
+                    <span>{item.label}</span>
+                    <span
+                      className={`ml-auto text-[10px] transition-transform duration-200 ${
+                        marketingOpen ? 'rotate-90' : ''
+                      }`}
+                    >
+                      ▶
+                    </span>
+                  </button>
+
+                  {/* Sub-menu */}
+                  {marketingOpen && (
+                    <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-3">
+                      {MARKETING_SUB_ITEMS.map((sub) => {
+                        const subActive =
+                          sub.href === '/dashboard/marketing'
+                            ? pathname === '/dashboard/marketing'
+                            : pathname.startsWith(sub.href);
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`
+                              block px-3 py-2 rounded-md text-xs transition-colors
+                              ${subActive
+                                ? 'text-gold font-medium'
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                              }
+                            `}
+                          >
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FAF9F6;
+  --foreground: #1A1A1A;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-elegant: var(--font-cormorant);
+
+  /* AL Brand Colors */
+  --color-gold: #B8924A;
+  --color-gold-light: #D4B876;
+  --color-gold-dark: #96742F;
+  --color-gold-pale: #F0E6D0;
+  --color-cream: #FAF9F6;
+  --color-warm-white: #F5F3EF;
+  --color-text-dark: #1A1A1A;
+  --color-text-light: #6B6B6B;
+  --color-text-muted: #999999;
+  --color-border: #EAEAEA;
+  --color-border-light: #F0F0F0;
+  --color-dark-bg: #0D0D0D;
+  --color-whatsapp: #25D366;
+  --color-star: #E5A100;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* =============================================
+   GOLD SHIMMER GRADIENT
+   ============================================= */
+.gold-shimmer-bg {
+  background: linear-gradient(135deg, #D4B876 0%, #B8924A 40%, #96742F 70%, #D4B876 100%);
+  background-size: 200% 200%;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(135deg, #D4B876 0%, #B8924A 40%, #96742F 70%, #D4B876 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+/* =============================================
+   KEYFRAME ANIMATIONS
+   ============================================= */
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes marquee-scroll {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes wa-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0; }
+}
+
+/* =============================================
+   MARQUEE
+   ============================================= */
+.marquee-track {
+  display: flex;
+  gap: 56px;
+  animation: marquee-scroll 30s linear infinite;
+  width: max-content;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* =============================================
+   REVEAL ANIMATIONS (IntersectionObserver)
+   ============================================= */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s cubic-bezier(0, 0, 0.2, 1), transform 0.9s cubic-bezier(0, 0, 0.2, 1);
+}
+.reveal-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-slide-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity 0.9s cubic-bezier(0, 0, 0.2, 1), transform 0.9s cubic-bezier(0, 0, 0.2, 1);
+}
+.reveal-slide-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.9s cubic-bezier(0, 0, 0.2, 1), transform 0.9s cubic-bezier(0, 0, 0.2, 1);
+}
+.reveal-slide-left.visible,
+.reveal-slide-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.12s; }
+.reveal-delay-2 { transition-delay: 0.24s; }
+.reveal-delay-3 { transition-delay: 0.36s; }
+.reveal-delay-4 { transition-delay: 0.48s; }
+
+/* =============================================
+   NAV LINK UNDERLINE EFFECT
+   ============================================= */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--color-gold);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* =============================================
+   BEFORE/AFTER SLIDER
+   ============================================= */
+.comparison-slider {
+  cursor: ew-resize;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* =============================================
+   SCROLLBAR HIDE (gallery scroll)
+   ============================================= */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

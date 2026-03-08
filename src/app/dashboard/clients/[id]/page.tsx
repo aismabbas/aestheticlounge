@@ -123,6 +123,117 @@ function Toggle({
 }
 
 /* ------------------------------------------------------------------ */
+/* Website Activity Card (Overview tab)                                */
+/* ------------------------------------------------------------------ */
+
+function WebsiteActivityCard({ leadId }: { leadId: string | undefined }) {
+  const [data, setData] = useState<{
+    has_data: boolean;
+    time_on_site_total: number;
+    top_pages: { url: string; title: string; views: number; is_treatment: boolean }[];
+    sessions: { started_at: string; duration_seconds: number; page_count: number }[];
+    treatments_browsed: { title: string; views: number }[];
+    total_events: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!leadId) return;
+    setLoading(true);
+    fetch(`/api/dashboard/leads/${leadId}/behavior`)
+      .then((r) => r.json())
+      .then((d) => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [leadId]);
+
+  if (!leadId) return null;
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-border p-6">
+        <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Website Activity</h2>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-border-light rounded w-32" />
+          <div className="h-16 bg-border-light rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || !data.has_data) {
+    return (
+      <div className="bg-white rounded-xl border border-border p-6">
+        <h2 className="font-serif text-lg font-semibold text-text-dark mb-2">Website Activity</h2>
+        <p className="text-sm text-text-muted">No website activity recorded for this client.</p>
+      </div>
+    );
+  }
+
+  const totalPageViews = data.top_pages.reduce((s, p) => s + p.views, 0);
+  const lastVisit = data.sessions.length > 0 ? data.sessions[0].started_at : null;
+  const avgSessionDuration = data.sessions.length > 0
+    ? Math.round(data.sessions.reduce((s, sess) => s + sess.duration_seconds, 0) / data.sessions.length)
+    : 0;
+
+  const formatDur = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-serif text-lg font-semibold text-text-dark">Website Activity</h2>
+        {leadId && (
+          <Link
+            href={`/dashboard/leads/${leadId}`}
+            className="text-xs text-gold hover:text-gold-dark font-medium transition-colors"
+          >
+            View Full Behavior
+          </Link>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <p className="text-2xl font-semibold text-text-dark">{totalPageViews}</p>
+          <p className="text-xs text-text-muted">Total Page Views</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold text-text-dark">
+            {lastVisit ? new Date(lastVisit).toLocaleDateString() : '-'}
+          </p>
+          <p className="text-xs text-text-muted">Last Visit</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold text-text-dark">{data.sessions.length}</p>
+          <p className="text-xs text-text-muted">Sessions</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold text-text-dark">{formatDur(avgSessionDuration)}</p>
+          <p className="text-xs text-text-muted">Avg Session Duration</p>
+        </div>
+      </div>
+
+      {/* Most viewed treatments */}
+      {data.treatments_browsed.length > 0 && (
+        <div className="pt-4 border-t border-border-light">
+          <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Most Viewed Treatments</p>
+          <div className="flex flex-wrap gap-1.5">
+            {data.treatments_browsed.slice(0, 6).map((t) => (
+              <span key={t.title} className="px-2.5 py-1 bg-gold-pale text-gold-dark text-xs rounded-full font-medium">
+                {t.title} ({t.views}x)
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -675,6 +786,9 @@ export default function ClientProfilePage() {
                   </table>
                 )}
               </div>
+
+              {/* Website Activity */}
+              <WebsiteActivityCard leadId={client.lead_id} />
             </div>
           )}
 

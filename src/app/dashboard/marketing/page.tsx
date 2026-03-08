@@ -44,6 +44,14 @@ const STUDIO_CARDS = [
     count: 0,
   },
   {
+    icon: '&#9998;',
+    title: 'Blog',
+    description: 'Write and manage blog posts for SEO and engagement',
+    href: '/dashboard/marketing/blog',
+    status: 'active' as const,
+    count: null,
+  },
+  {
     icon: '✦',
     title: 'Brand Assets',
     description: 'Logos, color palettes, fonts, and templates',

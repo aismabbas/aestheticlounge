@@ -7,6 +7,10 @@ import {
   getTreatmentsByCategory,
 } from "@/data/services";
 import { getDoctorBySlug } from "@/data/doctors";
+import {
+  generateServiceSchema,
+  generateBreadcrumbSchema,
+} from "@/lib/structured-data";
 
 // ─── Static params ─────────────────────────────────────────────────────
 export function generateStaticParams() {
@@ -21,13 +25,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const treatment = getTreatmentBySlug(slug);
   if (!treatment) return { title: "Treatment Not Found" };
 
+  const doctor = treatment.doctor ? getDoctorBySlug(treatment.doctor) : undefined;
+  const metaDescription = `${treatment.shortDesc} ${treatment.priceDisplay !== 'Consultation Required' ? `Starting from ${treatment.priceDisplay}.` : ''} ${treatment.duration} session${doctor ? ` with ${doctor.name}` : ''} at Aesthetic Lounge, DHA Lahore.`;
+
   return {
     title: `${treatment.name} — ${treatment.category} | Aesthetic Lounge Lahore`,
-    description: treatment.shortDesc,
+    description: metaDescription.trim(),
     openGraph: {
       title: `${treatment.name} | Aesthetic Lounge`,
-      description: treatment.shortDesc,
+      description: metaDescription.trim(),
       type: "website",
+    },
+    alternates: {
+      canonical: `https://aestheticloungeofficial.com/services/${slug}`,
     },
   };
 }
@@ -50,8 +60,24 @@ export default async function TreatmentPage({ params }: PageProps) {
     `Hi, I'm interested in ${treatment.name} at Aesthetic Lounge.`,
   );
 
+  const serviceSchema = generateServiceSchema(treatment);
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://aestheticloungeofficial.com' },
+    { name: 'Services', url: 'https://aestheticloungeofficial.com/services' },
+    { name: treatment.category, url: `https://aestheticloungeofficial.com/services#${treatment.categorySlug}` },
+    { name: treatment.name, url: `https://aestheticloungeofficial.com/services/${treatment.slug}` },
+  ]);
+
   return (
     <main className="min-h-screen bg-cream">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Hero Banner */}
       <section className="bg-text-dark py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">

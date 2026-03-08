@@ -11,6 +11,7 @@ const MARKETING_SUB_ITEMS = [
   { label: 'Carousels',  href: '/dashboard/marketing/carousels' },
   { label: 'Videos',     href: '/dashboard/marketing/videos' },
   { label: 'Calendar',   href: '/dashboard/marketing/calendar' },
+  { label: 'Blog',       href: '/dashboard/marketing/blog' },
 ];
 
 const NAV_ITEMS = [
@@ -24,6 +25,8 @@ const NAV_ITEMS = [
   { label: 'Marketing',      href: '/dashboard/marketing',     icon: '◆' },
   { label: 'Conversations',  href: '/dashboard/conversations', icon: '◫' },
   { label: 'Services',       href: '/dashboard/services',      icon: '✦' },
+  { label: 'Google Business', href: '/dashboard/google',       icon: 'G' },
+  { label: 'SEO',            href: '/dashboard/seo',           icon: '◉' },
   { label: 'Analytics',      href: '/dashboard/analytics',     icon: '▥' },
   { label: 'Performance',   href: '/dashboard/performance',   icon: '⏱' },
   { label: 'Feedback',       href: '/dashboard/feedback',      icon: '☆' },

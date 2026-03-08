@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import {
+  generateLocalBusinessSchema,
+  generateMedicalBusinessSchema,
+} from "@/lib/structured-data";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -87,57 +91,8 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "MedicalBusiness",
-  name: "Aesthetic Lounge",
-  alternateName: "Aesthetic Lounge Official",
-  url: "https://aestheticloungeofficial.com",
-  logo: "https://aestheticloungeofficial.com/logo.png",
-  image: "https://aestheticloungeofficial.com/og-image.jpg",
-  description:
-    "Premium medical aesthetics clinic offering 80+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.",
-  telephone: "+92-327-6620000",
-  email: "info@aestheticloungeofficial.com",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Plaza-126, BWB Phase 8",
-    addressLocality: "DHA Lahore Cantt",
-    addressRegion: "Punjab",
-    addressCountry: "PK",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: 31.4697,
-    longitude: 74.3762,
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      opens: "10:00",
-      closes: "21:00",
-    },
-  ],
-  medicalSpecialty: "Dermatology",
-  priceRange: "$$",
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    reviewCount: "1000",
-    bestRating: "5",
-  },
-  sameAs: [
-    "https://instagram.com/aestheticloungeofficial/",
-    "https://facebook.com/people/Aestheticloungeofficial/61567387603705/",
-    "https://youtube.com/@aestheticloungeofficial",
-  ],
-  founder: {
-    "@type": "Person",
-    name: "Dr. Huma",
-    jobTitle: "Aesthetic Physician",
-  },
-};
+const localBusinessJsonLd = generateLocalBusinessSchema();
+const medicalBusinessJsonLd = generateMedicalBusinessSchema();
 
 export default function RootLayout({
   children,
@@ -149,7 +104,11 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalBusinessJsonLd) }}
         />
       </head>
       <body

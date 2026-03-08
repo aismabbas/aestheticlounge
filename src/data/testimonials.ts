@@ -5,7 +5,9 @@ export interface Testimonial {
   treatment: string;
   rating: number;
   quote: string;
+  /** 'google' = imported from GBP dashboard, 'manual' = added manually */
+  source: 'google' | 'manual';
 }
 
-// TODO: Add real Google reviews — paste them and they'll be added here
+// Reviews can be imported from the Google Business Profile dashboard (/dashboard/google → Reviews tab)
 export const testimonials: Testimonial[] = [];

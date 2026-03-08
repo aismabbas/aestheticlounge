@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+
+interface GBPSummary {
+  configured: boolean;
+  reviews?: { total: number; average: number };
+  insights?: { searchViews: number };
+}
 
 interface AnalyticsData {
   revenue: {
@@ -33,6 +40,7 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('month');
+  const [gbp, setGbp] = useState<GBPSummary | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -43,6 +51,13 @@ export default function AnalyticsPage() {
         setLoading(false);
       });
   }, [period]);
+
+  useEffect(() => {
+    fetch('/api/dashboard/google?type=overview')
+      .then((r) => r.json())
+      .then((d) => setGbp(d))
+      .catch(() => setGbp({ configured: false }));
+  }, []);
 
   if (loading || !data) {
     return (
@@ -99,6 +114,46 @@ export default function AnalyticsPage() {
           </div>
         ))}
       </div>
+
+      {/* Google Business Profile card */}
+      {gbp?.configured && (
+        <div className="mb-8">
+          <Link href="/dashboard/google" className="block bg-white rounded-xl border border-border p-5 hover:border-gold transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+                  <span className="text-xl font-bold text-blue-600">G</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-text-dark">Google Business Profile</p>
+                  <p className="text-xs text-text-muted mt-0.5">Manage your listing, reviews, and insights</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                {gbp.reviews && (
+                  <>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-text-dark">{gbp.reviews.average?.toFixed(1) || '-'}</p>
+                      <p className="text-[10px] uppercase text-text-muted font-semibold tracking-wider">Rating</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-text-dark">{gbp.reviews.total}</p>
+                      <p className="text-[10px] uppercase text-text-muted font-semibold tracking-wider">Reviews</p>
+                    </div>
+                  </>
+                )}
+                {gbp.insights && (
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-text-dark">{gbp.insights.searchViews.toLocaleString()}</p>
+                    <p className="text-[10px] uppercase text-text-muted font-semibold tracking-wider">Search Views</p>
+                  </div>
+                )}
+                <span className="text-text-muted text-lg">&rarr;</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-6">
         {/* Revenue by Treatment */}

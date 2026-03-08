@@ -8,6 +8,7 @@ const quickLinks = [
   { href: "/feedback/complaint", label: "Complaint Box" },
   { href: "#", label: "Price Guide" },
   { href: "/social", label: "Social Gallery" },
+  { href: "/blog", label: "Blog" },
 ];
 
 const topServices = [

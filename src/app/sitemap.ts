@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { allTreatments } from '@/data/services';
+import { getPublishedPosts } from '@/data/blog-posts';
 
 export const dynamic = 'force-static';
 
@@ -14,6 +15,7 @@ const STATIC_PAGES = [
   '/doctors',
   '/contact',
   '/book',
+  '/blog',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -33,5 +35,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...treatmentEntries];
+  const blogEntries: MetadataRoute.Sitemap = getPublishedPosts().map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: post.published_at ? new Date(post.published_at) : now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...treatmentEntries, ...blogEntries];
 }

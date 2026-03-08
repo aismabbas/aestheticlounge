@@ -227,19 +227,134 @@ function AttributionCard({ lead }: { lead: Lead }) {
   );
 }
 
+interface BehaviorData {
+  has_data: boolean;
+  events: { event_type: string; page_url: string; page_title: string; created_at: string }[];
+  sessions: {
+    session_id: string;
+    started_at: string;
+    ended_at: string;
+    page_count: number;
+    pages: string[];
+    duration_seconds: number;
+    source: string;
+  }[];
+  top_pages: { url: string; title: string; views: number; is_treatment: boolean }[];
+  cta_clicks: { type: string; text: string; page: string; timestamp: string }[];
+  time_on_site_total: number;
+  treatments_browsed: { url: string; title: string; views: number }[];
+  avg_scroll_depth: number;
+  section_engagement: { section: string; seconds: number }[];
+  journey: {
+    landing_page: string | null;
+    pages_visited: number;
+    cta_clicked: boolean;
+    form_started: boolean;
+    form_submitted: boolean;
+  } | null;
+  ga4: {
+    sessions: { sessions: number; avgDurationSeconds: number; bounceRate: number } | null;
+    traffic_source: { source: string; medium: string; campaign: string } | null;
+  } | null;
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}
+
+const EVENT_ICONS: Record<string, { icon: string; bg: string; text: string }> = {
+  page_view: { icon: '\u{1F441}', bg: 'bg-blue-50', text: 'text-blue-600' },
+  cta_click: { icon: '\u{1F446}', bg: 'bg-green-50', text: 'text-green-600' },
+  scroll: { icon: '\u{2195}\u{FE0F}', bg: 'bg-purple-50', text: 'text-purple-600' },
+  time_on_page: { icon: '\u{23F1}', bg: 'bg-amber-50', text: 'text-amber-600' },
+  form_start: { icon: '\u{1F4DD}', bg: 'bg-indigo-50', text: 'text-indigo-600' },
+  form_submit: { icon: '\u{2705}', bg: 'bg-emerald-50', text: 'text-emerald-600' },
+};
+
+function JourneyMap({ journey }: { journey: BehaviorData['journey'] }) {
+  if (!journey) return null;
+
+  const steps = [
+    { label: 'Landing', done: !!journey.landing_page, detail: journey.landing_page || '' },
+    { label: `${journey.pages_visited} Pages`, done: journey.pages_visited > 1, detail: '' },
+    { label: 'CTA Click', done: journey.cta_clicked, detail: '' },
+    { label: 'Form Start', done: journey.form_started, detail: '' },
+    { label: 'Submitted', done: journey.form_submitted, detail: '' },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto py-2">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center">
+          <div className="flex flex-col items-center min-w-[64px]">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+              step.done ? 'bg-gold text-white' : 'bg-border-light text-text-muted'
+            }`}>
+              {step.done ? '\u2713' : i + 1}
+            </div>
+            <span className={`text-[10px] mt-1 text-center leading-tight ${step.done ? 'font-semibold text-gold-dark' : 'text-text-muted'}`}>
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={`h-0.5 w-6 mt-[-12px] ${step.done ? 'bg-gold' : 'bg-border-light'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EngagementGauge({ depth, timeSeconds, pages }: { depth: number; timeSeconds: number; pages: number }) {
+  // 0-100 engagement score based on scroll depth, time, and page count
+  const depthScore = Math.min(depth, 100) * 0.3;
+  const timeScore = Math.min(timeSeconds / 300, 1) * 40; // 5 min = max
+  const pageScore = Math.min(pages / 5, 1) * 30; // 5 pages = max
+  const engagementScore = Math.round(depthScore + timeScore + pageScore);
+  const level = engagementScore >= 70 ? 'High' : engagementScore >= 40 ? 'Medium' : 'Low';
+  const barColor = engagementScore >= 70 ? 'bg-green-500' : engagementScore >= 40 ? 'bg-amber-500' : 'bg-blue-400';
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-text-muted">Engagement</span>
+        <span className="text-sm font-semibold text-text-dark">{engagementScore}/100 ({level})</span>
+      </div>
+      <div className="w-full bg-border-light rounded-full h-2 overflow-hidden">
+        <div className={`h-full rounded-full ${barColor} transition-all duration-500`} style={{ width: `${engagementScore}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function BehaviorCard({ lead }: { lead: Lead }) {
-  const hasData = lead.pages_viewed || lead.time_on_site || lead.form_submissions || lead.whatsapp_messages || (lead.treatments_viewed && lead.treatments_viewed.length > 0);
-  if (!hasData) return null;
+  const [behaviorData, setBehaviorData] = useState<BehaviorData | null>(null);
+  const [behaviorLoading, setBehaviorLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<'timeline' | 'pages' | 'sessions'>('timeline');
+
+  useEffect(() => {
+    fetch(`/api/dashboard/leads/${lead.id}/behavior`)
+      .then((r) => r.json())
+      .then((data) => {
+        setBehaviorData(data);
+        setBehaviorLoading(false);
+      })
+      .catch(() => setBehaviorLoading(false));
+  }, [lead.id]);
+
+  const hasBasicData = lead.pages_viewed || lead.time_on_site || lead.form_submissions || lead.whatsapp_messages || (lead.treatments_viewed && lead.treatments_viewed.length > 0);
 
   const timeFormatted = lead.time_on_site
-    ? lead.time_on_site >= 60
-      ? `${Math.floor(lead.time_on_site / 60)}m ${lead.time_on_site % 60}s`
-      : `${lead.time_on_site}s`
+    ? formatDuration(lead.time_on_site)
     : '-';
 
   return (
-    <div className="bg-white rounded-xl border border-border p-6">
-      <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Behavioral Data</h2>
+    <div className="bg-white rounded-xl border border-border p-6 space-y-6">
+      <h2 className="font-serif text-lg font-semibold text-text-dark">Behavioral Data</h2>
+
+      {/* Summary stats */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-lg">
@@ -278,8 +393,10 @@ function BehaviorCard({ lead }: { lead: Lead }) {
           </div>
         </div>
       </div>
+
+      {/* Treatments viewed */}
       {lead.treatments_viewed && lead.treatments_viewed.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-border-light">
+        <div className="pt-4 border-t border-border-light">
           <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Treatments Viewed</p>
           <div className="flex flex-wrap gap-1.5">
             {lead.treatments_viewed.map((t) => (
@@ -289,6 +406,248 @@ function BehaviorCard({ lead }: { lead: Lead }) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Engagement gauge + Journey map */}
+      {behaviorData?.has_data && (
+        <>
+          <div className="pt-4 border-t border-border-light">
+            <EngagementGauge
+              depth={behaviorData.avg_scroll_depth}
+              timeSeconds={behaviorData.time_on_site_total}
+              pages={behaviorData.top_pages.length}
+            />
+          </div>
+
+          {/* Journey Map */}
+          {behaviorData.journey && (
+            <div className="pt-4 border-t border-border-light">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Visitor Journey</p>
+              <JourneyMap journey={behaviorData.journey} />
+            </div>
+          )}
+
+          {/* Tab selector for detailed views */}
+          <div className="pt-4 border-t border-border-light">
+            <div className="flex gap-1 mb-4">
+              {([
+                { key: 'timeline' as const, label: 'Activity Timeline' },
+                { key: 'pages' as const, label: 'Pages Visited' },
+                { key: 'sessions' as const, label: 'Sessions' },
+              ]).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveSection(tab.key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    activeSection === tab.key
+                      ? 'bg-gold text-white'
+                      : 'bg-border-light text-text-muted hover:bg-gold-pale'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Activity Timeline */}
+            {activeSection === 'timeline' && (
+              <div className="max-h-72 overflow-y-auto space-y-1.5">
+                {behaviorData.events.length === 0 ? (
+                  <p className="text-sm text-text-muted">No activity recorded yet.</p>
+                ) : (
+                  behaviorData.events.map((event, i) => {
+                    const cfg = EVENT_ICONS[event.event_type] || EVENT_ICONS.page_view;
+                    return (
+                      <div key={i} className="flex items-start gap-3 py-1.5">
+                        <div className={`w-7 h-7 rounded-md ${cfg.bg} flex items-center justify-center text-sm shrink-0 mt-0.5`}>
+                          {cfg.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-dark truncate">
+                            {event.page_title || event.page_url}
+                          </p>
+                          <p className="text-[10px] text-text-muted">
+                            {new Date(event.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Pages Visited */}
+            {activeSection === 'pages' && (
+              <div className="max-h-72 overflow-y-auto space-y-1">
+                {behaviorData.top_pages.length === 0 ? (
+                  <p className="text-sm text-text-muted">No pages recorded.</p>
+                ) : (
+                  behaviorData.top_pages.map((page, i) => (
+                    <div key={i} className={`flex items-center justify-between py-1.5 px-2 rounded-lg ${
+                      page.is_treatment ? 'bg-gold-pale/50' : ''
+                    }`}>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {page.is_treatment && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-pale text-gold-dark rounded-full shrink-0">
+                            Treatment
+                          </span>
+                        )}
+                        <span className="text-sm text-text-dark truncate">{page.title || page.url}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-text-muted ml-2 shrink-0">
+                        {page.views}x
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Sessions */}
+            {activeSection === 'sessions' && (
+              <div className="max-h-72 overflow-y-auto space-y-3">
+                {behaviorData.sessions.length === 0 ? (
+                  <p className="text-sm text-text-muted">No sessions recorded.</p>
+                ) : (
+                  behaviorData.sessions.map((session) => (
+                    <div key={session.session_id} className="bg-warm-white rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-text-dark">
+                          {new Date(session.started_at).toLocaleDateString()}{' '}
+                          {new Date(session.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="text-xs text-text-muted">
+                          {formatDuration(session.duration_seconds)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-text-muted">
+                        <span>{session.page_count} pages</span>
+                        {session.source && (
+                          <>
+                            <span className="text-border">|</span>
+                            <span className="truncate max-w-[150px]">from: {session.source}</span>
+                          </>
+                        )}
+                      </div>
+                      {session.pages.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {session.pages.slice(0, 5).map((p) => (
+                            <span key={p} className="text-[10px] px-1.5 py-0.5 bg-white rounded text-text-muted truncate max-w-[120px]">
+                              {p}
+                            </span>
+                          ))}
+                          {session.pages.length > 5 && (
+                            <span className="text-[10px] text-text-muted">+{session.pages.length - 5} more</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* CTA Clicks */}
+          {behaviorData.cta_clicks.length > 0 && (
+            <div className="pt-4 border-t border-border-light">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2">CTA Clicks</p>
+              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                {behaviorData.cta_clicks.map((cta, i) => (
+                  <div key={i} className="flex items-center justify-between py-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-700 rounded-full capitalize">
+                        {cta.type.replace(/_/g, ' ')}
+                      </span>
+                      <span className="text-text-dark truncate max-w-[180px]">{cta.text || cta.page}</span>
+                    </div>
+                    <span className="text-[10px] text-text-muted">{new Date(cta.timestamp).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section Engagement */}
+          {behaviorData.section_engagement.length > 0 && (
+            <div className="pt-4 border-t border-border-light">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Time by Section</p>
+              <div className="space-y-1.5">
+                {behaviorData.section_engagement.slice(0, 6).map((sec) => {
+                  const maxSec = behaviorData.section_engagement[0]?.seconds || 1;
+                  const pct = Math.round((sec.seconds / maxSec) * 100);
+                  return (
+                    <div key={sec.section}>
+                      <div className="flex items-center justify-between text-xs mb-0.5">
+                        <span className="text-text-dark capitalize">{sec.section === 'home' ? 'Homepage' : sec.section}</span>
+                        <span className="text-text-muted">{formatDuration(sec.seconds)}</span>
+                      </div>
+                      <div className="w-full bg-border-light rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full rounded-full bg-gold/70 transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* GA4 Data */}
+          {behaviorData.ga4 && (
+            <div className="pt-4 border-t border-border-light">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Google Analytics</p>
+              <div className="grid grid-cols-2 gap-3">
+                {behaviorData.ga4.sessions && (
+                  <>
+                    <div>
+                      <p className="text-lg font-semibold text-text-dark">{behaviorData.ga4.sessions.sessions}</p>
+                      <p className="text-xs text-text-muted">GA4 Sessions</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-text-dark">
+                        {formatDuration(Math.round(behaviorData.ga4.sessions.avgDurationSeconds))}
+                      </p>
+                      <p className="text-xs text-text-muted">Avg Duration</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-text-dark">
+                        {Math.round(behaviorData.ga4.sessions.bounceRate * 100)}%
+                      </p>
+                      <p className="text-xs text-text-muted">Bounce Rate</p>
+                    </div>
+                  </>
+                )}
+                {behaviorData.ga4.traffic_source && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-text-muted">Traffic Source</p>
+                    <p className="text-sm text-text-dark mt-0.5">
+                      {behaviorData.ga4.traffic_source.source} / {behaviorData.ga4.traffic_source.medium}
+                      {behaviorData.ga4.traffic_source.campaign !== '(not set)' && (
+                        <span className="text-text-muted"> ({behaviorData.ga4.traffic_source.campaign})</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Loading state */}
+      {behaviorLoading && hasBasicData && (
+        <div className="pt-4 border-t border-border-light">
+          <div className="animate-pulse space-y-2">
+            <div className="h-3 bg-border-light rounded w-24" />
+            <div className="h-20 bg-border-light rounded" />
+          </div>
+        </div>
+      )}
+
+      {/* No data at all */}
+      {!hasBasicData && !behaviorLoading && !behaviorData?.has_data && (
+        <p className="text-sm text-text-muted">No behavioral data recorded yet.</p>
       )}
     </div>
   );

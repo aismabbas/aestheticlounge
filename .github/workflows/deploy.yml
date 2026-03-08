@@ -23,6 +23,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Remove server-only routes for static export
+        run: |
+          rm -rf src/app/api src/app/dashboard src/middleware.ts src/lib/auth.ts
       - run: npm run build
         env:
           GITHUB_PAGES: "true"

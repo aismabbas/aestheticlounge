@@ -13,6 +13,9 @@ interface LeadPayload {
   utm_medium?: string;
   utm_campaign?: string;
   utm_content?: string;
+  landing_page?: string;
+  form_id?: string;
+  ad_id?: string;
   fbp?: string;
   fbc?: string;
 }
@@ -33,8 +36,9 @@ export async function POST(req: NextRequest) {
     // Insert into al_leads
     await query(
       `INSERT INTO al_leads (id, name, phone, email, treatment, message,
-        utm_source, utm_medium, utm_campaign, utm_content, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+        utm_source, utm_medium, utm_campaign, utm_content,
+        landing_page, form_id, ad_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())`,
       [
         leadId,
         body.name,
@@ -46,6 +50,9 @@ export async function POST(req: NextRequest) {
         body.utm_medium || null,
         body.utm_campaign || null,
         body.utm_content || null,
+        body.landing_page || null,
+        body.form_id || null,
+        body.ad_id || null,
       ],
     );
 

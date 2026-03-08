@@ -247,6 +247,15 @@ export default function ComplaintPage() {
               Share feedback
             </Link>
           </p>
+
+          {/* Privacy notice */}
+          <p className="text-center text-xs text-text-muted/70 mt-3">
+            All complaints are handled in accordance with our{' '}
+            <Link href="/privacy" className="text-[#4A4A4A]/60 hover:text-[#4A4A4A] hover:underline">
+              Privacy Policy
+            </Link>
+            . Your identity remains anonymous unless you choose to share it.
+          </p>
         </form>
       </div>
     </div>

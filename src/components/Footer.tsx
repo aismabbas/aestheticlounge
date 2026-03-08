@@ -1,3 +1,5 @@
+'use client';
+
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "#services", label: "Services" },
@@ -32,6 +34,12 @@ const socials = [
   { label: "Facebook", text: "fb", href: "https://facebook.com/people/Aestheticloungeofficial/61567387603705/" },
   { label: "YouTube", text: "yt", href: "https://youtube.com/@aestheticloungeofficial" },
 ];
+
+function openCookieSettings() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('al_open_cookie_settings'));
+  }
+}
 
 export default function Footer() {
   return (
@@ -109,6 +117,25 @@ export default function Footer() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Legal Links */}
+        <div className="border-t border-white/[0.06] py-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]">
+            <span className="text-white/40 font-medium uppercase tracking-wider text-[11px]">Legal</span>
+            <a href="/privacy" className="transition-colors hover:text-gold-light">
+              Privacy Policy
+            </a>
+            <a href="/terms" className="transition-colors hover:text-gold-light">
+              Terms of Service
+            </a>
+            <button
+              onClick={openCookieSettings}
+              className="transition-colors hover:text-gold-light cursor-pointer bg-transparent border-none text-white/60 text-[13px]"
+            >
+              Cookie Settings
+            </button>
           </div>
         </div>
 

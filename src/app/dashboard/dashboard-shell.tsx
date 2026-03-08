@@ -12,6 +12,8 @@ const MARKETING_SUB_ITEMS = [
   { label: 'Videos',     href: '/dashboard/marketing/videos' },
   { label: 'Calendar',   href: '/dashboard/marketing/calendar' },
   { label: 'Blog',       href: '/dashboard/marketing/blog' },
+  { label: 'Lead Forms', href: '/dashboard/marketing/forms' },
+  { label: 'Landing Pages', href: '/dashboard/marketing/landing-pages' },
 ];
 
 const NAV_ITEMS = [

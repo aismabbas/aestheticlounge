@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { captureUTMParams } from '@/lib/utm';
 import { trackPageView } from '@/lib/tracking';
+import { hasConsent } from '@/lib/consent';
 
 // ── Visitor identity ───────────────────────────────────────────────
 
@@ -100,8 +101,25 @@ export default function TrackingProvider({
   const maxScrollDepth = useRef<number>(0);
   const visitorId = useRef<string>('');
   const sessionId = useRef<string>('');
+  const [analyticsConsented, setAnalyticsConsented] = useState(false);
+  const [marketingConsented, setMarketingConsented] = useState(false);
 
-  // Init visitor and session IDs once
+  // Check consent on mount and listen for changes
+  useEffect(() => {
+    setAnalyticsConsented(hasConsent('analytics'));
+    setMarketingConsented(hasConsent('marketing'));
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setAnalyticsConsented(detail?.analytics ?? false);
+      setMarketingConsented(detail?.marketing ?? false);
+    };
+
+    window.addEventListener('al_consent_change', handler);
+    return () => window.removeEventListener('al_consent_change', handler);
+  }, []);
+
+  // Init visitor and session IDs once (necessary cookies — always allowed)
   useEffect(() => {
     visitorId.current = getVisitorId();
     sessionId.current = getSessionId();
@@ -109,6 +127,12 @@ export default function TrackingProvider({
 
     // Flush on page unload
     const handleUnload = () => {
+      // Only send behavior events if analytics consent is given
+      if (!hasConsent('analytics')) {
+        flushEvents(); // flush any remaining queued events
+        return;
+      }
+
       // Send time-on-page event before leaving
       const timeSpent = Math.round((Date.now() - pageEnteredAt.current) / 1000);
       if (timeSpent > 1) {
@@ -152,8 +176,10 @@ export default function TrackingProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Track scroll depth
+  // Track scroll depth (only if analytics consented)
   useEffect(() => {
+    if (!analyticsConsented) return;
+
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollHeight <= 0) return;
@@ -177,16 +203,26 @@ export default function TrackingProvider({
 
     window.addEventListener('scroll', throttledScroll, { passive: true });
     return () => window.removeEventListener('scroll', throttledScroll);
-  }, []);
+  }, [analyticsConsented]);
 
   // Track page views on route change
   useEffect(() => {
-    trackPageView();
+    // Only fire Meta Pixel PageView if marketing consent is given
+    if (marketingConsented) {
+      trackPageView();
+    }
+
+    // Only send behavior events if analytics consent is given
+    if (!analyticsConsented) {
+      // Still reset timing refs
+      pageEnteredAt.current = Date.now();
+      maxScrollDepth.current = 0;
+      return;
+    }
 
     // Send time-on-page for the PREVIOUS page (if any)
     const timeSpent = Math.round((Date.now() - pageEnteredAt.current) / 1000);
     if (timeSpent > 1 && visitorId.current) {
-      // This fires for the previous page - use the stored ref values
       queueEvent({
         visitor_id: visitorId.current,
         event_type: 'time_on_page',
@@ -227,11 +263,12 @@ export default function TrackingProvider({
         timestamp: new Date().toISOString(),
       });
     }
-  }, [pathname]);
+  }, [pathname, analyticsConsented, marketingConsented]);
 
-  // Track CTA clicks via event delegation
+  // Track CTA clicks via event delegation (respects analytics consent)
   const handleClick = useCallback((e: React.MouseEvent) => {
     if (!visitorId.current) return;
+    if (!hasConsent('analytics')) return;
 
     const target = e.target as HTMLElement;
     const ctaEl = target.closest<HTMLElement>(

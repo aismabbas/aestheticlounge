@@ -306,6 +306,15 @@ export default function FeedbackPage() {
               Submit an anonymous complaint
             </Link>
           </p>
+
+          {/* Privacy notice */}
+          <p className="text-center text-xs text-text-muted/70 mt-3">
+            Your feedback is handled in accordance with our{' '}
+            <Link href="/privacy" className="text-gold/70 hover:text-gold hover:underline">
+              Privacy Policy
+            </Link>
+            . Contact details are only used to follow up if you request it.
+          </p>
         </form>
       </div>
     </div>

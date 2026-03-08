@@ -5,6 +5,7 @@ import {
   generateLocalBusinessSchema,
   generateMedicalBusinessSchema,
 } from "@/lib/structured-data";
+import CookieConsent from "@/components/CookieConsent";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -51,6 +52,7 @@ export const metadata: Metadata = {
     "chemical peel Lahore",
   ],
   authors: [{ name: "Aesthetic Lounge Official" }],
+  referrer: "strict-origin-when-cross-origin",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -102,6 +104,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
@@ -115,6 +118,7 @@ export default function RootLayout({
         className={`${playfair.variable} ${inter.variable} ${cormorant.variable} font-sans antialiased`}
       >
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

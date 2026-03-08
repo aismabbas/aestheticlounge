@@ -520,6 +520,24 @@ export default function IntakeFormPage() {
           <h2 className={`font-serif ${sz.sectionTitle} font-semibold text-[#1A1A1A] mb-5`}>
             Consent
           </h2>
+
+          {/* Privacy notice */}
+          <div className="bg-[#B8924A]/5 border border-[#B8924A]/15 rounded-lg px-4 py-3 mb-5">
+            <p className={`${isIpad ? 'text-sm' : 'text-xs'} text-[#6B6B6B] leading-relaxed`}>
+              Your data is handled in accordance with our{' '}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#B8924A] underline underline-offset-2 hover:text-[#96742F]"
+              >
+                Privacy Policy
+              </a>
+              . Medical information receives enhanced protection and is only accessible to your
+              treating doctors and clinical staff.
+            </p>
+          </div>
+
           <div className="space-y-4">
             <label className={`flex items-start ${isIpad ? 'gap-4' : 'gap-3'} cursor-pointer ${isIpad ? 'py-2' : 'py-1'}`}>
               <input

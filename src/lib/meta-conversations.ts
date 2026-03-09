@@ -16,19 +16,19 @@ const GRAPH_BASE = 'https://graph.facebook.com/v19.0';
 /* ------------------------------------------------------------------ */
 
 function pageToken(): string | null {
-  return process.env.META_PAGE_ACCESS_TOKEN || null;
+  return process.env.META_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN || null;
 }
 function pageId(): string | null {
   return process.env.META_PAGE_ID || null;
 }
 function igId(): string | null {
-  return process.env.INSTAGRAM_BUSINESS_ID || null;
+  return process.env.INSTAGRAM_BUSINESS_ID || process.env.INSTAGRAM_ACCOUNT_ID || null;
 }
 function waPhoneId(): string | null {
-  return process.env.WHATSAPP_PHONE_ID || null;
+  return process.env.WHATSAPP_PHONE_ID || process.env.WHATSAPP_PHONE_NUMBER_ID || null;
 }
 function waToken(): string | null {
-  return process.env.WHATSAPP_TOKEN || null;
+  return process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN || null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -174,14 +174,14 @@ export async function getInstagramComments(
     return data?.data ?? null;
   }
 
-  // Get recent media, then comments
-  const media = (await graphGet(`/${id}/media?limit=10`, token)) as {
+  // Get recent media, then comments from all posts
+  const media = (await graphGet(`/${id}/media?limit=25`, token)) as {
     data?: Array<{ id: string }>;
   } | null;
   if (!media?.data) return null;
 
   const allComments: MetaComment[] = [];
-  for (const m of media.data.slice(0, 5)) {
+  for (const m of media.data) {
     const comments = await getInstagramComments(m.id);
     if (comments) allComments.push(...comments);
   }
@@ -407,11 +407,14 @@ export interface ChannelStatus {
 }
 
 export function getChannelStatus(): ChannelStatus {
+  // NOTE: instagram_dm, messenger, and fb_comment require Meta App Review approval
+  // for pages_messaging, instagram_business_manage_messages, and pages_read_engagement.
+  // Currently only ig_comment works. Enable others once App Review is approved.
   return {
     whatsapp: !!(waToken() && waPhoneId()),
-    instagram_dm: !!(pageToken() && igId()),
-    messenger: !!(pageToken() && pageId()),
+    instagram_dm: false, // Needs instagram_business_manage_messages App Review
+    messenger: false,    // Needs pages_messaging App Review
     ig_comment: !!(pageToken() && igId()),
-    fb_comment: !!(pageToken() && pageId()),
+    fb_comment: false,   // Needs pages_read_engagement App Review
   };
 }

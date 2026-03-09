@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { sendCAPIEvent } from '@/lib/capi';
+import { checkAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   const user = await checkAuth();
@@ -156,8 +144,42 @@ export async function POST(req: NextRequest) {
       status,
       receipt_number || null,
       notes || null,
-      staff_id || user.id || null,
+      staff_id || user.staffId || null,
     ]);
+
+    // Fire Meta CAPI Purchase event for closed-loop attribution
+    if (status === 'completed' && amount > 0) {
+      // Lookup client email/phone for CAPI matching
+      let clientEmail: string | undefined;
+      let clientPhone: string | undefined;
+      if (client_id) {
+        try {
+          const clientRow = await query(
+            `SELECT email, phone FROM al_clients WHERE id = $1 LIMIT 1`,
+            [client_id],
+          );
+          if (clientRow.rows[0]) {
+            clientEmail = clientRow.rows[0].email || undefined;
+            clientPhone = clientRow.rows[0].phone || undefined;
+          }
+        } catch { /* non-critical */ }
+      }
+
+      sendCAPIEvent({
+        eventName: 'Purchase',
+        eventSourceUrl: 'https://aestheticloungeofficial.com/dashboard/payments',
+        userData: {
+          email: clientEmail,
+          phone: clientPhone,
+        },
+        customData: {
+          currency: currency || 'PKR',
+          value: parseFloat(amount),
+          content_name: treatment,
+          content_category: 'treatment_payment',
+        },
+      }).catch((err) => console.error('[payments] CAPI Purchase error:', err));
+    }
 
     return NextResponse.json({ payment: result.rows[0] }, { status: 201 });
   } catch (err) {

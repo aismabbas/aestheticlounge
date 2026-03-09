@@ -68,29 +68,6 @@ export async function POST(req: NextRequest) {
       },
     }).catch((err) => console.error('[meta-webhook-test] CAPI error:', err));
 
-    // Trigger n8n webhook
-    const n8nUrl = process.env.N8N_WEBHOOK_URL || 'https://webhook.awansoft.ca/webhook/al-marketing';
-
-    fetch(n8nUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'new_lead',
-        leadId,
-        name: body.name,
-        phone: body.phone,
-        email: body.email,
-        treatment: body.treatment,
-        message: body.message,
-        source: 'meta_form',
-        utm_source: 'facebook',
-        utm_medium: 'paid',
-        utm_campaign: body.campaign_name || 'test_campaign',
-        form_id: body.form_id || 'test_form_001',
-        ad_id: body.ad_id || 'test_ad_001',
-      }),
-    }).catch((err) => console.error('[meta-webhook-test] n8n webhook error:', err));
-
     console.log(`[meta-webhook-test] Created test lead ${leadId} (${body.name})`);
 
     return NextResponse.json({ success: true, leadId });

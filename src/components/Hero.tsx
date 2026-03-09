@@ -78,12 +78,13 @@ export default function Hero() {
           {/* Gold ring */}
           <div className="absolute -top-5 -left-5 h-[120px] w-[120px] rounded-full border-[1.5px] border-gold-light opacity-30 animate-[spin-slow_20s_linear_infinite]" />
 
-          {/* Main image placeholder */}
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[200px_200px_24px_24px] bg-gradient-to-br from-warm-white to-gold-pale shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gold">
-              <span className="text-7xl">&#10022;</span>
-              <span className="text-sm font-medium text-text-muted">Clinic photo</span>
-            </div>
+          {/* Main image */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[200px_200px_24px_24px] shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+            <img
+              src="/images/hero/clinic-main.png"
+              alt="Aesthetic Lounge clinic interior — luxury medical aesthetics in DHA Lahore"
+              className="h-full w-full object-cover"
+            />
           </div>
 
           {/* Floating badge top */}

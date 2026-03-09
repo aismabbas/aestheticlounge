@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { getSiteOverview } from '@/lib/ga4';
+import { checkAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   const user = await checkAuth();
@@ -109,6 +97,21 @@ export async function GET(req: NextRequest) {
        LIMIT 10`,
     );
 
+    // GA4 site overview
+    let ga4: Awaited<ReturnType<typeof getSiteOverview>> = null;
+    try {
+      const days = period === 'week' ? 7 : period === 'month' ? 30 : 90;
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - days);
+      ga4 = await getSiteOverview({
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0],
+      });
+    } catch (err) {
+      console.error('[dashboard/analytics] GA4 error:', err);
+    }
+
     const cs = campaignStats.rows[0];
 
     return NextResponse.json({
@@ -144,6 +147,7 @@ export async function GET(req: NextRequest) {
         roas: Number(Number(cs.roas).toFixed(2)),
         top: topCampaigns.rows,
       },
+      ga4: ga4 || undefined,
     });
   } catch (err) {
     console.error('[dashboard/analytics] error:', err);

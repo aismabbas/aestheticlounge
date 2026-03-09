@@ -22,7 +22,7 @@ export default function BlogPage() {
   return (
     <main className="min-h-screen bg-cream">
       {/* Hero */}
-      <section className="bg-text-dark py-16 md:py-24">
+      <section className="bg-text-dark pt-32 pb-16 md:pb-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
           <p className="text-sm font-medium uppercase tracking-widest text-gold">
             Our Blog

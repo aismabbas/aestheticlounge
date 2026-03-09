@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { getScoreLabel } from '@/lib/lead-scoring';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   const user = await checkAuth();
@@ -39,11 +26,30 @@ export async function GET(req: NextRequest) {
                l.landing_page, l.pages_viewed, l.time_on_site, l.treatments_viewed,
                l.form_submissions, l.whatsapp_messages, l.last_activity_at,
                l.conversion_value, l.converted_at, l.assigned_to,
+               l.instagram_handle, l.facebook_id, l.whatsapp_number,
+               l.booking_value, l.lifetime_value,
                s.name AS assigned_to_name,
-               CASE WHEN rt.id IS NULL AND l.stage = 'new' THEN true ELSE false END AS is_uncontacted
+               CASE WHEN rt.id IS NULL AND l.stage = 'new' THEN true ELSE false END AS is_uncontacted,
+               COALESCE(appt_val.total_booked, 0) AS total_booked_value,
+               COALESCE(appt_val.appt_count, 0) AS appointment_count,
+               COALESCE(pay_val.total_paid, 0) AS total_paid_value,
+               COALESCE(pay_val.pay_count, 0) AS payment_count,
+               c.total_spent AS client_total_spent,
+               c.id AS linked_client_id
                FROM al_leads l
                LEFT JOIN al_staff s ON s.id = l.assigned_to
-               LEFT JOIN al_lead_response_times rt ON rt.lead_id = l.id`;
+               LEFT JOIN al_lead_response_times rt ON rt.lead_id = l.id
+               LEFT JOIN al_clients c ON c.lead_id = l.id
+               LEFT JOIN LATERAL (
+                 SELECT COALESCE(SUM(CASE WHEN a.price IS NOT NULL THEN a.price::numeric ELSE 0 END), 0) AS total_booked,
+                        COUNT(*) AS appt_count
+                 FROM al_appointments a WHERE a.lead_id = l.id
+               ) appt_val ON true
+               LEFT JOIN LATERAL (
+                 SELECT COALESCE(SUM(CASE WHEN p.amount IS NOT NULL THEN p.amount::numeric ELSE 0 END), 0) AS total_paid,
+                        COUNT(*) AS pay_count
+                 FROM al_payments p WHERE p.client_id = c.id AND p.status = 'completed'
+               ) pay_val ON true`;
     const params: unknown[] = [];
     const conditions: string[] = [];
 
@@ -100,7 +106,7 @@ export async function GET(req: NextRequest) {
     const baseWhere = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
     const countParams = params.slice(0, -1); // exclude limit
 
-    const [result, countResult, statsResult, staffResult] = await Promise.all([
+    const [result, countResult, statsResult, staffResult, valueResult] = await Promise.all([
       query(sql, params),
       query(`SELECT COUNT(*) ${baseFrom}${baseWhere}`, countParams),
       query(`SELECT
@@ -112,6 +118,10 @@ export async function GET(req: NextRequest) {
         COUNT(CASE WHEN converted_at IS NOT NULL THEN 1 END)::int AS converted_count
       FROM al_leads`),
       query(`SELECT id, name, role FROM al_staff WHERE active = true AND role IN ('receptionist', 'manager', 'admin') ORDER BY name`),
+      query(`SELECT
+        COALESCE(SUM(CASE WHEN a.status IN ('confirmed', 'completed') THEN a.price::numeric ELSE 0 END), 0)::numeric AS total_pipeline,
+        COALESCE((SELECT SUM(p.amount::numeric) FROM al_payments p WHERE p.status = 'completed'), 0)::numeric AS total_revenue
+      FROM al_appointments a`),
     ]);
 
     const stats = statsResult.rows[0];
@@ -135,6 +145,8 @@ export async function GET(req: NextRequest) {
         cold_count: stats.cold_count,
         conversion_rate: conversionRate,
         avg_score: stats.avg_score || 0,
+        total_pipeline_value: parseFloat(valueResult.rows[0]?.total_pipeline || '0'),
+        total_revenue: parseFloat(valueResult.rows[0]?.total_revenue || '0'),
       },
       staff: staffResult.rows,
     });

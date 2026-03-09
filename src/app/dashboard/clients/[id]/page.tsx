@@ -1004,7 +1004,7 @@ export default function ClientProfilePage() {
                     <div>
                       <p className="text-sm font-medium text-amber-800">Google Drive Not Configured</p>
                       <p className="text-xs text-amber-600 mt-0.5">
-                        Photo uploads require Google Drive integration. Set <code className="bg-amber-100 px-1 py-0.5 rounded text-xs">GOOGLE_SERVICE_ACCOUNT_JSON</code> and <code className="bg-amber-100 px-1 py-0.5 rounded text-xs">GOOGLE_DRIVE_ROOT_FOLDER_ID</code> environment variables to enable file uploads.
+                        Photo uploads require Google Drive integration. Configure Google service account credentials and set <code className="bg-amber-100 px-1 py-0.5 rounded text-xs">GOOGLE_DRIVE_ROOT_FOLDER_ID</code> to enable file uploads.
                       </p>
                     </div>
                   </div>

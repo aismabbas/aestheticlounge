@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { analyzeThread, computeAgentPeriodScore, type ThreadMessage, type ThreadAnalysis } from '@/lib/message-analyzer';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 function getDateRange(period: string) {
   const now = new Date();

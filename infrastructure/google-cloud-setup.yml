@@ -1,0 +1,154 @@
+# Google Cloud + GA4 Infrastructure Setup
+# Aesthetic Lounge — aestheticloungeofficial.com
+# Created: 2026-03-08
+#
+# This file tracks all Google Cloud resources provisioned for analytics,
+# CAPI, and closed-loop marketing. Run via gcloud CLI.
+
+project:
+  name: aesthetic-lounge-analytics
+  id: aesthetic-lounge-al  # will be created
+  region: us-central1
+  billing: required  # must link billing account
+
+# ── APIs to enable ──────────────────────────────────────────────────
+apis:
+  - analyticsdata.googleapis.com        # GA4 Data API (dashboard queries)
+  - analyticsadmin.googleapis.com       # GA4 Admin API (property management)
+  - searchconsole.googleapis.com        # Search Console API (SEO dashboard)
+
+# ── Service Account ─────────────────────────────────────────────────
+service_account:
+  name: al-analytics
+  display_name: "AL Analytics Service Account"
+  description: "Server-side analytics for Aesthetic Lounge dashboard"
+  key_file: ./keys/al-analytics-sa.json  # gitignored
+
+  # GA4 property access (granted via GA4 Admin UI)
+  ga4_role: Viewer
+  ga4_property_id: null  # set after property lookup
+
+# ── GA4 Configuration ───────────────────────────────────────────────
+ga4:
+  measurement_id: G-T3HJ0NXNBX
+  stream_name: "AL Website"
+  website_url: https://aestheticloungeofficial.com
+
+  # Measurement Protocol (server-side events)
+  api_secret: null  # set after creation via GA4 UI
+
+  # Events tracked server-side via Measurement Protocol
+  server_events:
+    - Lead
+    - Schedule
+    - Purchase
+    - ViewContent
+    - Contact
+
+  # Events tracked client-side via gtag.js
+  client_events:
+    - page_view
+    - scroll
+    - consent_update
+
+# ── Meta CAPI (for reference — managed via Meta Business Suite) ─────
+meta_capi:
+  pixel_id: "860835323651218"
+  events:
+    - name: Lead
+      trigger: /api/lead (POST)
+      dedup: event_id (SHA256)
+      data: email (hashed), phone (hashed), IP, UA, fbp, fbc
+    - name: Schedule
+      trigger: /api/booking (POST)
+      dedup: event_id (SHA256)
+      data: email (hashed), phone (hashed), IP, UA, fbp, fbc
+    - name: Purchase
+      trigger: /api/dashboard/payments (POST)
+      dedup: event_id (SHA256)
+      data: email (hashed), phone (hashed), amount, currency, treatment
+
+# ── Behavior Tracking (internal) ────────────────────────────────────
+behavior_tracking:
+  table: al_behavior_events
+  events:
+    - page_view
+    - scroll (depth_percent)
+    - time_on_page (seconds)
+    - cta_click (type, text, href)
+  flush_interval: 30s
+  consent_required: analytics
+  visitor_cookie: al_visitor (1 year)
+  session_storage: al_session_id
+
+# ── UTM Attribution ─────────────────────────────────────────────────
+utm_tracking:
+  cookie: al_utm (30 days)
+  params_captured:
+    - utm_source
+    - utm_medium
+    - utm_campaign
+    - utm_content
+    - fbclid (auto-converted to fbc)
+  stored_on: al_leads (source columns)
+
+# ── Closed Loop Flow ────────────────────────────────────────────────
+closed_loop:
+  flow: |
+    Meta/Google Ad (click)
+      → UTM + fbclid captured in al_utm cookie
+      → Lead form → CAPI Lead event + DB insert
+      → Booking → CAPI Schedule event + DB insert
+      → Payment → CAPI Purchase event (amount, treatment)
+      → Meta optimizes for Purchase conversions
+      → Dashboard shows ROAS per campaign/source
+
+# ── Environment Variables ────────────────────────────────────────────
+env_vars:
+  # Set on Netlify + .env.local
+  NEXT_PUBLIC_GA4_ID: G-T3HJ0NXNBX
+  GA4_MEASUREMENT_ID: G-T3HJ0NXNBX
+  GA4_API_SECRET: null                    # pending
+  GOOGLE_SERVICE_ACCOUNT_JSON: null       # pending (contents of SA key)
+  NEXT_PUBLIC_META_PIXEL_ID: "860835323651218"
+  META_PIXEL_ID: "860835323651218"
+  META_ACCESS_TOKEN: "set"                # already configured
+
+# ── Setup Commands (run in order) ────────────────────────────────────
+setup_steps:
+  - step: 1
+    desc: "Create GCP project"
+    cmd: "gcloud projects create aesthetic-lounge-al --name='Aesthetic Lounge Analytics'"
+
+  - step: 2
+    desc: "Set active project"
+    cmd: "gcloud config set project aesthetic-lounge-al"
+
+  - step: 3
+    desc: "Enable APIs"
+    cmd: |
+      gcloud services enable analyticsdata.googleapis.com
+      gcloud services enable analyticsadmin.googleapis.com
+
+  - step: 4
+    desc: "Create service account"
+    cmd: >
+      gcloud iam service-accounts create al-analytics
+      --display-name="AL Analytics Service Account"
+      --description="Server-side analytics for Aesthetic Lounge"
+
+  - step: 5
+    desc: "Generate key"
+    cmd: >
+      gcloud iam service-accounts keys create ./infrastructure/keys/al-analytics-sa.json
+      --iam-account=al-analytics@aesthetic-lounge-al.iam.gserviceaccount.com
+
+  - step: 6
+    desc: "Grant SA viewer access in GA4"
+    note: "Must be done in GA4 UI: Admin → Property Access Management → Add al-analytics@...iam.gserviceaccount.com as Viewer"
+
+  - step: 7
+    desc: "Set env vars on Netlify"
+    cmd: |
+      npx netlify env:set GA4_API_SECRET "<secret>"
+      npx netlify env:set GOOGLE_SERVICE_ACCOUNT_JSON "$(cat ./infrastructure/keys/al-analytics-sa.json)"

@@ -2,18 +2,24 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import type { StaffSession } from '@/lib/auth';
+import { hasAnyPermission, NAV_PERMISSIONS, ROLE_LABELS, type Role } from '@/lib/rbac';
 
 const MARKETING_SUB_ITEMS = [
   { label: 'Studio',     href: '/dashboard/marketing' },
+  { label: 'Posts',       href: '/dashboard/marketing/posts' },
   { label: 'Reels',      href: '/dashboard/marketing/reels' },
   { label: 'Carousels',  href: '/dashboard/marketing/carousels' },
   { label: 'Videos',     href: '/dashboard/marketing/videos' },
+  { label: 'Models',     href: '/dashboard/marketing/models' },
   { label: 'Calendar',   href: '/dashboard/marketing/calendar' },
   { label: 'Blog',       href: '/dashboard/marketing/blog' },
   { label: 'Lead Forms', href: '/dashboard/marketing/forms' },
   { label: 'Landing Pages', href: '/dashboard/marketing/landing-pages' },
+  { label: 'How It Works', href: '/dashboard/marketing/how-it-works' },
 ];
 
 const AI_INSIGHTS_SUB_ITEMS = [
@@ -36,6 +42,7 @@ const NAV_ITEMS = [
   { label: 'SEO',            href: '/dashboard/seo',           icon: '◉' },
   { label: 'Analytics',      href: '/dashboard/analytics',     icon: '▥' },
   { label: 'AI Insights',   href: '/dashboard/analytics/sentiment', icon: '✦' },
+  { label: 'Event Tracking', href: '/dashboard/events',        icon: '⇄' },
   { label: 'Performance',   href: '/dashboard/performance',   icon: '⏱' },
   { label: 'Feedback',       href: '/dashboard/feedback',      icon: '☆' },
   { label: 'Settings',       href: '/dashboard/settings',      icon: '⚙' },
@@ -58,7 +65,6 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [marketingOpen, setMarketingOpen] = useState(
     pathname.startsWith('/dashboard/marketing')
@@ -68,12 +74,24 @@ export function DashboardShell({
   );
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/dashboard/login');
+    await signOut({ callbackUrl: '/dashboard/login' });
   }
 
   const isMarketingActive = pathname.startsWith('/dashboard/marketing');
   const isAiInsightsActive = pathname.startsWith('/dashboard/analytics/sentiment') || pathname.startsWith('/dashboard/analytics/agent-quality');
+
+  // RBAC: filter nav items based on role
+  const role = session.role as Role;
+  const canSee = (href: string) => {
+    const perms = NAV_PERMISSIONS[href];
+    if (!perms) return true; // No restriction defined = visible
+    return hasAnyPermission(role, perms);
+  };
+  const visibleNavItems = NAV_ITEMS.filter((item) => canSee(item.href));
+  const visibleMarketingSubs = MARKETING_SUB_ITEMS.filter((item) => canSee(item.href));
+  const visibleAiInsightsSubs = AI_INSIGHTS_SUB_ITEMS.filter((item) => canSee(item.href));
+  const showMarketing = hasAnyPermission(role, ['marketing:view']);
+  const showAiInsights = hasAnyPermission(role, ['analytics:sentiment', 'analytics:agent_quality']);
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -97,9 +115,7 @@ export function DashboardShell({
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gold/20">
-            <span className="text-gold font-serif text-lg font-bold">AL</span>
-          </div>
+          <Image src="/logo-icon.png" alt="AL" width={36} height={36} className="h-9 w-9" />
           <div className="overflow-hidden">
             <p className="text-sm font-semibold text-white truncate">Aesthetic Lounge</p>
             <p className="text-[11px] text-white/40">Staff Dashboard</p>
@@ -108,11 +124,11 @@ export function DashboardShell({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const active = isActive(pathname, item.href);
 
             // AI Insights item with collapsible sub-menu
-            if (item.label === 'AI Insights') {
+            if (item.label === 'AI Insights' && showAiInsights) {
               return (
                 <div key={`${item.href}-ai`}>
                   <button
@@ -139,7 +155,7 @@ export function DashboardShell({
                   {/* Sub-menu */}
                   {aiInsightsOpen && (
                     <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-3">
-                      {AI_INSIGHTS_SUB_ITEMS.map((sub) => {
+                      {visibleAiInsightsSubs.map((sub) => {
                         const subActive = pathname.startsWith(sub.href);
                         return (
                           <Link
@@ -164,8 +180,13 @@ export function DashboardShell({
               );
             }
 
+            // AI Insights without permission — skip (already filtered but handle label match)
+            if (item.label === 'AI Insights' && !showAiInsights) {
+              return null;
+            }
+
             // Marketing item with collapsible sub-menu
-            if (item.label === 'Marketing') {
+            if (item.label === 'Marketing' && showMarketing) {
               return (
                 <div key={item.href}>
                   <button
@@ -192,7 +213,7 @@ export function DashboardShell({
                   {/* Sub-menu */}
                   {marketingOpen && (
                     <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-3">
-                      {MARKETING_SUB_ITEMS.map((sub) => {
+                      {visibleMarketingSubs.map((sub) => {
                         const subActive =
                           sub.href === '/dashboard/marketing'
                             ? pathname === '/dashboard/marketing'
@@ -264,7 +285,7 @@ export function DashboardShell({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white truncate">{session.name}</p>
-              <p className="text-[11px] text-white/40 capitalize">{session.role}</p>
+              <p className="text-[11px] text-white/40">{ROLE_LABELS[role] || session.role}</p>
             </div>
             <button
               onClick={handleLogout}
@@ -292,7 +313,7 @@ export function DashboardShell({
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <span className="text-gold font-serif text-lg font-bold">AL</span>
+          <Image src="/logo-icon.png" alt="AL" width={32} height={32} className="h-8 w-8" />
           <div className="w-8" /> {/* spacer */}
         </header>
 

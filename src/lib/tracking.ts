@@ -33,15 +33,21 @@ export function trackViewContent(
   });
 }
 
-export function trackLead(contentName?: string): void {
-  fbq('track', 'Lead', contentName ? { content_name: contentName } : undefined);
+export function generateEventId(eventName: string): string {
+  return `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function trackSchedule(contentName?: string, value?: number): void {
+export function trackLead(contentName?: string, eventId?: string): void {
+  const eid = eventId || generateEventId('Lead');
+  fbq('track', 'Lead', contentName ? { content_name: contentName } : undefined, { eventID: eid });
+}
+
+export function trackSchedule(contentName?: string, value?: number, eventId?: string): void {
+  const eid = eventId || generateEventId('Schedule');
   fbq('track', 'Schedule', {
     ...(contentName && { content_name: contentName }),
     ...(value != null && { value, currency: 'PKR' }),
-  });
+  }, { eventID: eid });
 }
 
 export function trackContact(contentName?: string): void {

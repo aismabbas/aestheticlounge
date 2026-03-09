@@ -24,8 +24,8 @@ function isCacheValid(): boolean {
 export async function fetchRecentPosts(
   limit: number = 6,
 ): Promise<InstagramPost[]> {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-  const businessId = process.env.INSTAGRAM_BUSINESS_ID;
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  const businessId = process.env.INSTAGRAM_ACCOUNT_ID;
 
   if (!token || !businessId) {
     return [];
@@ -39,7 +39,7 @@ export async function fetchRecentPosts(
   try {
     const fields =
       "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp";
-    const url = `https://graph.instagram.com/${businessId}/media?fields=${fields}&limit=20&access_token=${token}`;
+    const url = `https://graph.facebook.com/v21.0/${businessId}/media?fields=${fields}&limit=20&access_token=${token}`;
 
     const res = await fetch(url, { next: { revalidate: 300 } });
 
@@ -65,7 +65,7 @@ export async function fetchRecentPosts(
  * Get oEmbed HTML for a given Instagram post URL.
  */
 export async function getPostEmbed(url: string): Promise<string | null> {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
   if (!token) return null;
 
   try {

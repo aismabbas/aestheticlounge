@@ -3,14 +3,15 @@
 import { useRef, useCallback } from "react";
 
 const comparisons = [
-  { title: "Lip Enhancement", treatment: "Dermal Fillers" },
-  { title: "Acne Scarring", treatment: "Chemical Peel + PRP" },
-  { title: "Pigmentation", treatment: "Laser Treatment" },
-  { title: "Skin Glow", treatment: "HydraFacial" },
-  { title: "Forehead Lines", treatment: "Botox" },
+  { title: "Lip Enhancement", treatment: "Dermal Fillers", slug: "lip-fillers" },
+  { title: "Acne Scarring", treatment: "Chemical Peel + PRP", slug: "acne-scarring" },
+  { title: "Pigmentation", treatment: "Laser Treatment", slug: "pigmentation" },
+  { title: "Skin Glow", treatment: "HydraFacial", slug: "hydrafacial" },
+  { title: "Forehead Lines", treatment: "Botox", slug: "botox-forehead" },
+  { title: "Exosome Therapy", treatment: "Exosomes", slug: "exosomes" },
 ];
 
-function ComparisonSlider({ title, treatment }: { title: string; treatment: string }) {
+function ComparisonSlider({ title, treatment, slug }: { title: string; treatment: string; slug: string }) {
   const compRef = useRef<HTMLDivElement>(null);
   const beforeRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
@@ -58,16 +59,16 @@ function ComparisonSlider({ title, treatment }: { title: string; treatment: stri
         onPointerUp={onPointerUp}
       >
         {/* After (background) */}
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#F8F0E8] to-[#F2E8D8] text-sm font-semibold uppercase tracking-[0.1em] text-text-muted">
-          After
+        <div className="absolute inset-0">
+          <img src={`/images/before-after/${slug}-after.png`} alt={`${title} — After`} className="h-full w-full object-cover" />
         </div>
         {/* Before (clipped overlay) */}
         <div
           ref={beforeRef}
-          className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#F0ECE6] to-[#E8E2DA] text-sm font-semibold uppercase tracking-[0.1em] text-text-muted"
+          className="absolute inset-0"
           style={{ clipPath: "inset(0 50% 0 0)" }}
         >
-          Before
+          <img src={`/images/before-after/${slug}-before.png`} alt={`${title} — Before`} className="h-full w-full object-cover" />
         </div>
         {/* Divider */}
         <div

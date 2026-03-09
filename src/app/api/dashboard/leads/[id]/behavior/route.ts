@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import {
   getPageViewsForUser,
@@ -7,19 +6,7 @@ import {
   getUserSessionData,
   getTrafficSource,
 } from '@/lib/ga4';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 /**
  * GET /api/dashboard/leads/[id]/behavior

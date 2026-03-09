@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
 
     // Insert into al_leads
     await query(
-      `INSERT INTO al_leads (id, name, phone, email, treatment, message,
+      `INSERT INTO al_leads (id, name, phone, email, treatment, message, source,
         utm_source, utm_medium, utm_campaign, utm_content,
         landing_page, form_id, ad_id, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())`,
       [
         leadId,
         body.name,
@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
         body.email || null,
         body.treatment || null,
         body.message || null,
+        'website',
         body.utm_source || null,
         body.utm_medium || null,
         body.utm_campaign || null,
@@ -66,6 +67,8 @@ export async function POST(req: NextRequest) {
 
     // Fire Meta CAPI Lead event
     const eventSourceUrl = req.headers.get('referer') || 'https://aestheticloungeofficial.com';
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || undefined;
+    const clientUa = req.headers.get('user-agent') || undefined;
     sendCAPIEvent({
       eventName: 'Lead',
       eventSourceUrl,
@@ -74,35 +77,20 @@ export async function POST(req: NextRequest) {
         phone: body.phone,
         fbp: body.fbp,
         fbc: body.fbc,
+        clientIpAddress: clientIp,
+        clientUserAgent: clientUa,
       },
       customData: {
         content_name: body.treatment || 'general_inquiry',
       },
     }).catch((err) => console.error('[lead] CAPI error:', err));
 
-    // Trigger n8n webhook
-    fetch('https://webhook.awansoft.ca/webhook/al-marketing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'new_lead',
-        leadId,
-        name: body.name,
-        phone: body.phone,
-        email: body.email,
-        treatment: body.treatment,
-        message: body.message,
-        utm_source: body.utm_source,
-        utm_medium: body.utm_medium,
-        utm_campaign: body.utm_campaign,
-      }),
-    }).catch((err) => console.error('[lead] n8n webhook error:', err));
-
     return NextResponse.json({ success: true, leadId });
   } catch (err) {
     console.error('[lead] error:', err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: message },
       { status: 500 },
     );
   }

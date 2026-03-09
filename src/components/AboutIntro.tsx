@@ -12,12 +12,12 @@ export default function AboutIntro() {
         {/* Images */}
         <div className="relative">
           {/* Primary image */}
-          <div className="flex aspect-[3/4] w-[85%] items-center justify-center rounded-2xl bg-gradient-to-br from-warm-white to-gold-pale text-6xl text-gold-light shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-            &#10022;
+          <div className="aspect-[3/4] w-[85%] overflow-hidden rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+            <img src="/images/clinic/about-primary.png" alt="Aesthetic Lounge clinic interior" className="h-full w-full object-cover" />
           </div>
           {/* Secondary image (overlapping) */}
-          <div className="absolute -bottom-8 right-0 flex aspect-square w-[55%] items-center justify-center rounded-2xl border-[5px] border-white bg-gradient-to-br from-gold-pale to-warm-white text-4xl text-gold-light shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
-            &#10022;
+          <div className="absolute -bottom-8 right-0 aspect-square w-[55%] overflow-hidden rounded-2xl border-[5px] border-white shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+            <img src="/images/clinic/about-secondary.png" alt="Aesthetic Lounge treatment details" className="h-full w-full object-cover" />
           </div>
           {/* Experience badge */}
           <div className="absolute -top-4 right-[20%] rounded-[14px] bg-text-dark px-6 py-5 text-center shadow-[0_20px_60px_rgba(0,0,0,0.08)]">

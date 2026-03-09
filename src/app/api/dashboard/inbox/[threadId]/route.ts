@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 /* ------------------------------------------------------------------ */
 /*  PATCH — Update thread (assign, status)                             */
@@ -41,6 +28,18 @@ export async function PATCH(
       idx++;
       updates.push(`assigned_to = $${idx}`);
       values.push(body.assigned_to || null);
+    }
+
+    if (body.lead_id !== undefined) {
+      idx++;
+      updates.push(`lead_id = $${idx}`);
+      values.push(body.lead_id || null);
+    }
+
+    if (body.client_id !== undefined) {
+      idx++;
+      updates.push(`client_id = $${idx}`);
+      values.push(body.client_id || null);
     }
 
     if (body.status !== undefined) {
@@ -107,11 +106,18 @@ export async function POST(
       const email = body.email || '';
       const treatment = body.treatment || '';
 
+      // Auto-populate social profiles from thread data
+      const igHandle = thread.contact_ig_handle || null;
+      const fbId = thread.contact_fb_id || null;
+      const waNumber = thread.channel === 'whatsapp' ? (thread.contact_phone || null) : null;
+
       await query(
         `INSERT INTO al_leads (
-          id, name, phone, email, treatment, source, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-        [leadId, name, phone, email || null, treatment || null, `inbox_${thread.channel}`],
+          id, name, phone, email, booked_treatment, source,
+          instagram_handle, facebook_id, whatsapp_number, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+        [leadId, name, phone, email || null, treatment || null, `inbox_${thread.channel}`,
+         igHandle, fbId, waNumber],
       );
 
       await query(

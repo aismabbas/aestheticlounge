@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
     | null;
 
   const configured = !!(
-    process.env.INSTAGRAM_ACCESS_TOKEN &&
-    process.env.INSTAGRAM_BUSINESS_ID
+    (process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN) &&
+    process.env.INSTAGRAM_ACCOUNT_ID
   );
 
   let posts = await fetchRecentPosts(20);

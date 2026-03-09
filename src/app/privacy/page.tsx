@@ -66,47 +66,23 @@ const tocItems = [
   { id: 'data-we-collect', label: '2. Data We Collect' },
   { id: 'how-we-use', label: '3. How We Use Your Data' },
   { id: 'third-party', label: '4. Third-Party Services' },
-  { id: 'data-sharing', label: '5. Data Sharing' },
-  { id: 'cookies', label: '6. Cookies & Tracking' },
-  { id: 'your-rights', label: '7. Your Rights' },
-  { id: 'medical-data', label: '8. Medical Data' },
-  { id: 'data-retention', label: '9. Data Retention' },
-  { id: 'children', label: '10. Children' },
-  { id: 'international', label: '11. International Data' },
-  { id: 'contact', label: '12. Contact Us' },
-  { id: 'changes', label: '13. Policy Changes' },
+  { id: 'meta-platform', label: '5. Facebook & Instagram Data' },
+  { id: 'data-sharing', label: '6. Data Sharing' },
+  { id: 'cookies', label: '7. Cookies & Tracking' },
+  { id: 'your-rights', label: '8. Your Rights' },
+  { id: 'data-deletion', label: '9. Data Deletion' },
+  { id: 'medical-data', label: '10. Medical Data' },
+  { id: 'data-retention', label: '11. Data Retention' },
+  { id: 'children', label: '12. Children' },
+  { id: 'international', label: '13. International Data' },
+  { id: 'contact', label: '14. Contact Us' },
+  { id: 'changes', label: '15. Policy Changes' },
 ];
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
-      {/* Header */}
-      <div className="bg-white border-b border-[#EAEAEA]">
-        <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full font-serif text-lg font-bold text-white"
-              style={{
-                background:
-                  'linear-gradient(135deg, #D4B876 0%, #B8924A 40%, #96742F 70%, #D4B876 100%)',
-              }}
-            >
-              A
-            </div>
-            <div className="font-serif text-xl font-semibold tracking-tight">
-              Aesthetic <span className="text-[#B8924A]">Lounge</span>
-            </div>
-          </Link>
-          <Link
-            href="/"
-            className="text-sm text-[#6B6B6B] hover:text-[#B8924A] transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-3xl px-5 py-12 md:py-20">
+      <div className="mx-auto max-w-3xl px-5 pt-32 pb-12 md:pb-20">
         {/* Title */}
         <div className="text-center mb-12">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A] mb-3">
@@ -276,7 +252,7 @@ export default function PrivacyPolicyPage() {
           {/* 4. Third-Party Services */}
           <section id="third-party" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              4. Third-Party Services
+              4. Third-Party Services &amp; Integrations
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>We use the following third-party services, each with their own privacy policies:</p>
@@ -300,6 +276,21 @@ export default function PrivacyPolicyPage() {
                       <td className="py-2.5 pr-4">Meta Pixel (Facebook/Instagram)</td>
                       <td className="py-2.5 pr-4">Ad performance measurement and audience targeting</td>
                       <td className="py-2.5">Marketing consent</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4">Meta Conversions API (CAPI)</td>
+                      <td className="py-2.5 pr-4">Server-side conversion tracking for ad optimization</td>
+                      <td className="py-2.5">Marketing consent</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4">Instagram Graph API</td>
+                      <td className="py-2.5 pr-4">Respond to DMs and comments on our business account</td>
+                      <td className="py-2.5">N/A (business messaging)</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4">Facebook Messenger API</td>
+                      <td className="py-2.5 pr-4">Respond to messages sent to our Facebook Page</td>
+                      <td className="py-2.5">N/A (business messaging)</td>
                     </tr>
                     <tr>
                       <td className="py-2.5 pr-4">WhatsApp Business API</td>
@@ -327,10 +318,80 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 5. Data Sharing */}
+          {/* 5. Facebook & Instagram Data */}
+          <section id="meta-platform" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
+            <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
+              5. Facebook &amp; Instagram Data
+            </h2>
+            <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-4">
+              <p>
+                We use Meta Platform APIs (Facebook and Instagram) to provide customer service
+                and communicate with you. This section explains how we handle data received through
+                these platforms.
+              </p>
+
+              <div>
+                <h3 className="font-semibold text-[#1A1A1A] mb-2">Data We Receive from Meta</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Instagram Direct Messages sent to our business account</li>
+                  <li>Facebook Messenger conversations with our Page</li>
+                  <li>Comments on our Instagram posts and Facebook Page posts</li>
+                  <li>Your public profile information (name, profile picture, username)</li>
+                  <li>Ad interaction data (click identifiers, conversion events)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#1A1A1A] mb-2">How We Use Meta Data</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Respond to your inquiries and provide customer support</li>
+                  <li>Match conversations to existing client records for continuity of care</li>
+                  <li>Measure the effectiveness of our advertising campaigns</li>
+                  <li>Send appointment confirmations and reminders (with your consent)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#1A1A1A] mb-2">Meta Data Restrictions</h3>
+                <p>We commit to the following restrictions on Meta Platform data:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>We do <strong className="text-[#1A1A1A]">not</strong> sell Meta Platform data to third parties</li>
+                  <li>We do <strong className="text-[#1A1A1A]">not</strong> use Meta data for purposes unrelated to our services</li>
+                  <li>We do <strong className="text-[#1A1A1A]">not</strong> share Meta data with data brokers or advertising networks</li>
+                  <li>We do <strong className="text-[#1A1A1A]">not</strong> use Meta data for surveillance or unauthorized profiling</li>
+                  <li>Message content is stored securely and only accessible to authorized staff</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#1A1A1A] mb-2">Meta Conversions API (CAPI)</h3>
+                <p>
+                  We use Meta&apos;s Conversions API to send conversion events (leads, bookings,
+                  payments) server-to-server. This data is sent with hashed identifiers (SHA-256
+                  hashed email and phone) and is used solely to measure ad performance and optimize
+                  ad delivery. Event deduplication ensures no data is sent twice.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#1A1A1A] mb-2">Your Rights Regarding Meta Data</h3>
+                <p>
+                  You can request deletion of all data we received through Facebook and Instagram at
+                  any time. See{' '}
+                  <a href="/data-deletion" className="text-[#B8924A] hover:underline">
+                    our Data Deletion page
+                  </a>{' '}
+                  or remove our app from your{' '}
+                  <strong className="text-[#1A1A1A]">Facebook Settings &gt; Apps and Websites</strong>.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 6. Data Sharing */}
           <section id="data-sharing" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              5. Data Sharing
+              6. Data Sharing
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p className="font-semibold text-[#1A1A1A]">
@@ -346,10 +407,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 6. Cookies */}
+          {/* 7. Cookies */}
           <section id="cookies" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              6. Cookies &amp; Tracking Technologies
+              7. Cookies &amp; Tracking Technologies
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-4">
               <p>
@@ -408,10 +469,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 7. Your Rights */}
+          {/* 8. Your Rights */}
           <section id="your-rights" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              7. Your Rights
+              8. Your Rights
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>
@@ -462,10 +523,50 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 8. Medical Data */}
+          {/* 9. Data Deletion */}
+          <section id="data-deletion" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
+            <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
+              9. Data Deletion
+            </h2>
+            <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
+              <p>
+                You have the right to request deletion of your personal data at any time. We provide
+                multiple ways to submit a deletion request:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>
+                  Visit our{' '}
+                  <a href="/data-deletion" className="text-[#B8924A] hover:underline">
+                    Data Deletion Request page
+                  </a>
+                </li>
+                <li>
+                  Email{' '}
+                  <a href="mailto:info@aestheticloungeofficial.com?subject=Data%20Deletion%20Request" className="text-[#B8924A] hover:underline">
+                    info@aestheticloungeofficial.com
+                  </a>{' '}
+                  with the subject &quot;Data Deletion Request&quot;
+                </li>
+                <li>Remove our app from your Facebook Settings &gt; Apps and Websites</li>
+              </ul>
+              <p>
+                Upon receiving your request, we will delete your data within 30 calendar days and
+                provide a confirmation code you can use to verify the deletion status. Certain data
+                may be retained if required by law (see Section 11: Data Retention).
+              </p>
+              <p>
+                For full details on what data is deleted and our deletion timeline, please visit our{' '}
+                <a href="/data-deletion" className="text-[#B8924A] hover:underline">
+                  Data Deletion page
+                </a>.
+              </p>
+            </div>
+          </section>
+
+          {/* 10. Medical Data */}
           <section id="medical-data" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              8. Medical Data
+              10. Medical Data
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>
@@ -499,10 +600,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 9. Data Retention */}
+          {/* 11. Data Retention */}
           <section id="data-retention" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              9. Data Retention
+              11. Data Retention
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed">
               <div className="overflow-x-auto">
@@ -556,10 +657,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 10. Children */}
+          {/* 12. Children */}
           <section id="children" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              10. Children
+              12. Children
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed">
               <p>
@@ -571,10 +672,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 11. International */}
+          {/* 13. International */}
           <section id="international" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              11. International Data Transfers
+              13. International Data Transfers
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>
@@ -590,10 +691,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 12. Contact */}
+          {/* 14. Contact */}
           <section id="contact" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              12. Contact Us
+              14. Contact Us
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>For any privacy-related inquiries, data requests, or complaints:</p>
@@ -624,10 +725,10 @@ export default function PrivacyPolicyPage() {
             </div>
           </section>
 
-          {/* 13. Changes */}
+          {/* 15. Changes */}
           <section id="changes" className="bg-white rounded-xl border border-[#EAEAEA] p-6 md:p-8">
             <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-4">
-              13. Policy Changes
+              15. Policy Changes
             </h2>
             <div className="text-sm text-[#6B6B6B] leading-relaxed space-y-3">
               <p>

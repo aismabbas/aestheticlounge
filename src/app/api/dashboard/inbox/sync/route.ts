@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
 import {
@@ -9,19 +8,7 @@ import {
   getFacebookComments,
   getChannelStatus,
 } from '@/lib/meta-conversations';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 export async function POST(req: NextRequest) {
   const user = await checkAuth();
@@ -45,7 +32,7 @@ export async function POST(req: NextRequest) {
       if (convos) {
         for (const convo of convos) {
           const participant = convo.participants?.data?.find(
-            (p) => p.id !== process.env.INSTAGRAM_BUSINESS_ID,
+            (p) => p.id !== process.env.INSTAGRAM_ACCOUNT_ID,
           );
           if (!participant) continue;
 

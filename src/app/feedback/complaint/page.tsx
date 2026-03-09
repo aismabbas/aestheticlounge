@@ -96,27 +96,7 @@ export default function ComplaintPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F7F4]">
-      {/* Header */}
-      <div className="bg-white border-b border-border">
-        <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4A4A4A] font-serif text-lg font-bold text-white">
-              A
-            </div>
-            <div className="font-serif text-xl font-semibold tracking-tight text-text-dark">
-              Aesthetic <span className="text-[#4A4A4A]">Lounge</span>
-            </div>
-          </Link>
-          <Link
-            href="/feedback"
-            className="text-sm text-text-light hover:text-text-dark transition-colors"
-          >
-            Leave Feedback
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-2xl px-5 py-12 md:py-20">
+      <div className="mx-auto max-w-2xl px-5 pt-32 pb-12 md:pb-20">
         <div className="text-center mb-10">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-text-dark mb-3">
             We Want to Hear From You

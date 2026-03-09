@@ -6,6 +6,29 @@ import FAQAccordion from './faq-accordion';
 import StickyCTA from './sticky-cta';
 import LPTracking from './lp-tracking';
 
+const lpBeforeAfter: Record<string, { slug: string; folder: string; label: string }[]> = {
+  'laser-hair-removal': [
+    { slug: 'carbon-laser', folder: 'gallery', label: 'Carbon Laser' },
+    { slug: 'pigmentation', folder: 'before-after', label: 'Pigmentation' },
+    { slug: 'hydrafacial', folder: 'before-after', label: 'Skin Glow' },
+  ],
+  'hydrafacial': [
+    { slug: 'hydrafacial', folder: 'before-after', label: 'HydraFacial' },
+    { slug: 'acne-scarring', folder: 'before-after', label: 'Acne Scarring' },
+    { slug: 'exosomes', folder: 'before-after', label: 'Exosome Therapy' },
+  ],
+  'botox': [
+    { slug: 'botox-forehead', folder: 'before-after', label: 'Forehead Lines' },
+    { slug: 'crows-feet', folder: 'gallery', label: "Crow's Feet" },
+    { slug: 'lip-fillers', folder: 'before-after', label: 'Lip Fillers' },
+  ],
+  'default': [
+    { slug: 'hydrafacial', folder: 'before-after', label: 'HydraFacial' },
+    { slug: 'lip-fillers', folder: 'before-after', label: 'Lip Fillers' },
+    { slug: 'botox-forehead', folder: 'before-after', label: 'Botox' },
+  ],
+};
+
 // ── Static generation ─────────────────────────────────────────────
 
 export function generateStaticParams() {
@@ -176,20 +199,16 @@ export default async function LandingPage({
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="overflow-hidden rounded-2xl border border-border bg-white">
+            {(lpBeforeAfter[slug] || lpBeforeAfter['default']).map((ba) => (
+              <div key={ba.slug} className="overflow-hidden rounded-2xl border border-border bg-white">
                 <div className="grid grid-cols-2">
-                  <div className="flex aspect-[4/5] items-center justify-center bg-warm-white">
-                    <div className="text-center">
-                      <span className="mb-1 block text-3xl text-text-muted">&#9633;</span>
-                      <span className="text-xs text-text-muted">Before</span>
-                    </div>
+                  <div className="aspect-[4/5] overflow-hidden relative">
+                    <img src={`/images/${ba.folder}/${ba.slug}-before.png`} alt={`${ba.label} — Before`} className="h-full w-full object-cover" />
+                    <span className="absolute bottom-2 left-2 rounded bg-text-dark/70 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Before</span>
                   </div>
-                  <div className="flex aspect-[4/5] items-center justify-center bg-gold-pale/30">
-                    <div className="text-center">
-                      <span className="mb-1 block text-3xl text-gold">&#10022;</span>
-                      <span className="text-xs text-gold-dark">After</span>
-                    </div>
+                  <div className="aspect-[4/5] overflow-hidden relative">
+                    <img src={`/images/${ba.folder}/${ba.slug}-after.png`} alt={`${ba.label} — After`} className="h-full w-full object-cover" />
+                    <span className="absolute bottom-2 right-2 rounded bg-gold px-2 py-0.5 text-[10px] font-bold uppercase text-white">After</span>
                   </div>
                 </div>
                 <div className="border-t border-border px-4 py-3">

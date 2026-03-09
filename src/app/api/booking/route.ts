@@ -33,28 +33,37 @@ export async function POST(req: NextRequest) {
     const appointmentId = ulid();
     const leadId = ulid();
 
-    // Upsert into al_leads (create or update by phone)
-    await query(
-      `INSERT INTO al_leads (id, name, phone, email, treatment,
-        utm_source, utm_medium, utm_campaign, utm_content, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-       ON CONFLICT (phone) DO UPDATE SET
-         name = EXCLUDED.name,
-         email = COALESCE(EXCLUDED.email, al_leads.email),
-         treatment = EXCLUDED.treatment,
-         updated_at = NOW()`,
-      [
-        leadId,
-        body.name,
-        body.phone,
-        body.email || null,
-        body.treatment,
-        body.utm_source || null,
-        body.utm_medium || null,
-        body.utm_campaign || null,
-        body.utm_content || null,
-      ],
+    // Check if lead exists by phone, update or create
+    const existing = await query(
+      `SELECT id FROM al_leads WHERE phone = $1 LIMIT 1`,
+      [body.phone],
     );
+
+    if (existing.rows.length > 0) {
+      await query(
+        `UPDATE al_leads SET name = $1, email = COALESCE($2, email), treatment = $3, updated_at = NOW()
+         WHERE phone = $4`,
+        [body.name, body.email || null, body.treatment, body.phone],
+      );
+    } else {
+      await query(
+        `INSERT INTO al_leads (id, name, phone, email, treatment, source,
+          utm_source, utm_medium, utm_campaign, utm_content, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+        [
+          leadId,
+          body.name,
+          body.phone,
+          body.email || null,
+          body.treatment,
+          'booking',
+          body.utm_source || null,
+          body.utm_medium || null,
+          body.utm_campaign || null,
+          body.utm_content || null,
+        ],
+      );
+    }
 
     // Insert into al_appointments
     await query(
@@ -74,6 +83,8 @@ export async function POST(req: NextRequest) {
 
     // Fire Meta CAPI Schedule event
     const eventSourceUrl = req.headers.get('referer') || 'https://aestheticloungeofficial.com';
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || undefined;
+    const clientUa = req.headers.get('user-agent') || undefined;
     sendCAPIEvent({
       eventName: 'Schedule',
       eventSourceUrl,
@@ -82,37 +93,20 @@ export async function POST(req: NextRequest) {
         phone: body.phone,
         fbp: body.fbp,
         fbc: body.fbc,
+        clientIpAddress: clientIp,
+        clientUserAgent: clientUa,
       },
       customData: {
         content_name: body.treatment,
       },
     }).catch((err) => console.error('[booking] CAPI error:', err));
 
-    // Trigger n8n webhook
-    fetch('https://webhook.awansoft.ca/webhook/al-marketing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'new_booking',
-        appointmentId,
-        name: body.name,
-        phone: body.phone,
-        email: body.email,
-        treatment: body.treatment,
-        date: body.date,
-        time: body.time,
-        notes: body.notes,
-        utm_source: body.utm_source,
-        utm_medium: body.utm_medium,
-        utm_campaign: body.utm_campaign,
-      }),
-    }).catch((err) => console.error('[booking] n8n webhook error:', err));
-
     return NextResponse.json({ success: true, appointmentId });
   } catch (err) {
     console.error('[booking] error:', err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: message },
       { status: 500 },
     );
   }

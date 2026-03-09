@@ -8,7 +8,7 @@
  *   GA4_MEASUREMENT_ID   - e.g. G-XXXXXXXXXX
  *   GA4_API_SECRET       - Measurement Protocol API secret
  *   GA4_PROPERTY_ID      - numeric property ID for Data API
- *   GOOGLE_SERVICE_ACCOUNT_JSON - service account key JSON (stringified)
+ *   Google SA credentials (via google-auth helper)
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -32,12 +32,13 @@ interface DateRange {
 
 // ── Config ─────────────────────────────────────────────────────────
 
+import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+
 function getConfig() {
   return {
     measurementId: process.env.GA4_MEASUREMENT_ID || '',
     apiSecret: process.env.GA4_API_SECRET || '',
-    propertyId: process.env.GA4_PROPERTY_ID || '',
-    serviceAccountJson: process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '',
+    propertyId: process.env.GA4_PROPERTY_ID || '527621079',
   };
 }
 
@@ -47,8 +48,7 @@ function isMeasurementEnabled(): boolean {
 }
 
 function isDataApiEnabled(): boolean {
-  const c = getConfig();
-  return !!(c.propertyId && c.serviceAccountJson);
+  return !!(getConfig().propertyId && isGoogleConfigured());
 }
 
 // ── Access Token (Data API) ────────────────────────────────────────
@@ -63,12 +63,13 @@ async function getAccessToken(): Promise<string | null> {
   }
 
   try {
-    const sa = JSON.parse(getConfig().serviceAccountJson);
+    const sa = getGoogleCredentials();
     const now = Math.floor(Date.now() / 1000);
 
-    // Build JWT
-    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-    const payload = btoa(
+    // Build JWT (use Buffer for Node.js compatibility)
+    const toBase64Url = (str: string) => Buffer.from(str).toString('base64url');
+    const header = toBase64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const payload = toBase64Url(
       JSON.stringify({
         iss: sa.client_email,
         scope: 'https://www.googleapis.com/auth/analytics.readonly',
@@ -188,6 +189,85 @@ export async function sendGA4Event(
   } catch (err) {
     console.error('[ga4] Measurement Protocol send error:', err);
   }
+}
+
+// ── Data API: Site-wide overview ───────────────────────────────────
+
+/**
+ * Get site-wide analytics overview: users, sessions, pageviews, bounce rate, top pages, traffic sources.
+ */
+export async function getSiteOverview(
+  dateRange?: DateRange,
+): Promise<{
+  totals: { users: number; sessions: number; pageviews: number; avgDuration: number; bounceRate: number };
+  topPages: { page: string; views: number; users: number }[];
+  trafficSources: { source: string; medium: string; users: number; sessions: number }[];
+  dailyUsers: { date: string; users: number; sessions: number }[];
+} | null> {
+  if (!isDataApiEnabled()) return null;
+
+  const range = dateRange || defaultDateRange();
+  const dr = [{ startDate: range.start, endDate: range.end }];
+
+  const [totalsRows, pagesRows, sourcesRows, dailyRows] = await Promise.all([
+    runReport({
+      dateRanges: dr,
+      metrics: [
+        { name: 'activeUsers' },
+        { name: 'sessions' },
+        { name: 'screenPageViews' },
+        { name: 'averageSessionDuration' },
+        { name: 'bounceRate' },
+      ],
+    }),
+    runReport({
+      dateRanges: dr,
+      dimensions: [{ name: 'pagePath' }],
+      metrics: [{ name: 'screenPageViews' }, { name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+      limit: 10,
+    }),
+    runReport({
+      dateRanges: dr,
+      dimensions: [{ name: 'sessionSource' }, { name: 'sessionMedium' }],
+      metrics: [{ name: 'activeUsers' }, { name: 'sessions' }],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: 10,
+    }),
+    runReport({
+      dateRanges: dr,
+      dimensions: [{ name: 'date' }],
+      metrics: [{ name: 'activeUsers' }, { name: 'sessions' }],
+      orderBys: [{ dimension: { dimensionName: 'date' }, desc: false }],
+    }),
+  ]);
+
+  const t = totalsRows[0];
+  return {
+    totals: {
+      users: t ? parseInt(t.metricValues[0].value, 10) : 0,
+      sessions: t ? parseInt(t.metricValues[1].value, 10) : 0,
+      pageviews: t ? parseInt(t.metricValues[2].value, 10) : 0,
+      avgDuration: t ? parseFloat(t.metricValues[3].value) : 0,
+      bounceRate: t ? parseFloat(t.metricValues[4].value) : 0,
+    },
+    topPages: pagesRows.map((r) => ({
+      page: r.dimensionValues[0].value,
+      views: parseInt(r.metricValues[0].value, 10),
+      users: parseInt(r.metricValues[1].value, 10),
+    })),
+    trafficSources: sourcesRows.map((r) => ({
+      source: r.dimensionValues[0].value,
+      medium: r.dimensionValues[1].value,
+      users: parseInt(r.metricValues[0].value, 10),
+      sessions: parseInt(r.metricValues[1].value, 10),
+    })),
+    dailyUsers: dailyRows.map((r) => ({
+      date: r.dimensionValues[0].value,
+      users: parseInt(r.metricValues[0].value, 10),
+      sessions: parseInt(r.metricValues[1].value, 10),
+    })),
+  };
 }
 
 // ── Data API: User-level queries ───────────────────────────────────

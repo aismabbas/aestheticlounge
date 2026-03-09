@@ -79,7 +79,7 @@ export default async function TreatmentPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       {/* Hero Banner */}
-      <section className="bg-text-dark py-16 md:py-24">
+      <section className="bg-text-dark pt-32 pb-16 md:pb-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
           <Link
             href="/services"

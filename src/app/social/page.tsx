@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
 
 interface Post {
   id: string;
@@ -155,8 +154,6 @@ export default function SocialPage() {
 
   return (
     <>
-      <Header />
-
       {/* Hero banner */}
       <section className="relative overflow-hidden bg-warm-white pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(184,146,74,0.08)_0%,transparent_60%)]" />
@@ -255,7 +252,6 @@ export default function SocialPage() {
         </div>
       </section>
 
-      <Footer />
     </>
   );
 }

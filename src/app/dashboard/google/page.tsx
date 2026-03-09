@@ -263,7 +263,7 @@ export default function GoogleBusinessPage() {
               <li>Create a Google Cloud project and enable the Business Profile API</li>
               <li>Create a service account and download the JSON key</li>
               <li>Grant the service account access to your Business Profile</li>
-              <li>Set <code className="font-mono text-xs bg-white px-1 py-0.5 rounded">GOOGLE_SERVICE_ACCOUNT_JSON</code> with the full JSON key</li>
+              <li>Set Google service account credentials (<code className="font-mono text-xs bg-white px-1 py-0.5 rounded">GOOGLE_SA_CLIENT_EMAIL</code> + <code className="font-mono text-xs bg-white px-1 py-0.5 rounded">GOOGLE_SA_PRIVATE_KEY</code>)</li>
               <li>Set <code className="font-mono text-xs bg-white px-1 py-0.5 rounded">GBP_ACCOUNT_ID</code> (format: <code className="font-mono text-xs">accounts/123456</code>)</li>
               <li>Set <code className="font-mono text-xs bg-white px-1 py-0.5 rounded">GBP_LOCATION_ID</code> (format: <code className="font-mono text-xs">locations/789012</code>)</li>
               <li>Restart the app</li>

@@ -33,33 +33,7 @@ const tocItems = [
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
-      {/* Header */}
-      <div className="bg-white border-b border-[#EAEAEA]">
-        <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full font-serif text-lg font-bold text-white"
-              style={{
-                background:
-                  'linear-gradient(135deg, #D4B876 0%, #B8924A 40%, #96742F 70%, #D4B876 100%)',
-              }}
-            >
-              A
-            </div>
-            <div className="font-serif text-xl font-semibold tracking-tight">
-              Aesthetic <span className="text-[#B8924A]">Lounge</span>
-            </div>
-          </Link>
-          <Link
-            href="/"
-            className="text-sm text-[#6B6B6B] hover:text-[#B8924A] transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-3xl px-5 py-12 md:py-20">
+      <div className="mx-auto max-w-3xl px-5 pt-32 pb-12 md:pb-20">
         {/* Title */}
         <div className="text-center mb-12">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A] mb-3">

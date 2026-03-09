@@ -1,104 +1,56 @@
-import Link from "next/link";
-import { promotions, type Promotion } from "@/data/promotions";
+'use client';
 
-function formatPrice(price: number): string {
-  return `PKR ${price.toLocaleString("en-PK")}`;
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+
+interface LiveAd {
+  id: string;
+  campaign: string;
+  headline: string | null;
+  body: string | null;
+  cta: string | null;
+  image_url: string | null;
+  treatment: string;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-PK", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function badgeColor(badge: string): string {
-  switch (badge) {
-    case "Popular":
-      return "bg-gold text-white";
-    case "Limited Time":
-      return "bg-red-600 text-white";
-    case "New":
-      return "bg-emerald-600 text-white";
-    default:
-      return "bg-gold-pale text-gold-dark";
-  }
-}
-
-function PromoCard({ promo }: { promo: Promotion }) {
-  return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-light bg-white shadow-[0_2px_20px_rgba(184,146,74,0.08)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_12px_48px_rgba(184,146,74,0.18)]">
-      {/* Gold shimmer top accent */}
-      <div className="gold-shimmer-bg h-1" />
-
-      {/* Badge */}
-      {promo.badge && (
-        <span
-          className={`absolute top-5 right-5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${badgeColor(promo.badge)}`}
-        >
-          {promo.badge}
-        </span>
-      )}
-
-      <div className="flex flex-1 flex-col p-7 pt-6">
-        {/* Treatment tag */}
-        <span className="mb-3 inline-block w-fit rounded-full border border-gold-pale bg-warm-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-dark">
-          {promo.treatment}
-        </span>
-
-        <h3 className="mb-2 font-serif text-xl font-semibold tracking-tight text-text-dark transition-colors duration-300 group-hover:text-gold-dark">
-          {promo.title}
-        </h3>
-
-        <p className="mb-5 flex-1 text-sm leading-relaxed text-text-light">
-          {promo.description}
-        </p>
-
-        {/* Pricing */}
-        <div className="mb-5">
-          {promo.originalPrice && promo.promoPrice ? (
-            <div className="flex items-baseline gap-3">
-              <span className="text-lg font-bold text-gold">
-                {formatPrice(promo.promoPrice)}
-              </span>
-              <span className="text-sm text-text-muted line-through">
-                {formatPrice(promo.originalPrice)}
-              </span>
-              {promo.discount && (
-                <span className="rounded bg-gold-pale px-2 py-0.5 text-xs font-semibold text-gold-dark">
-                  {promo.discount}
-                </span>
-              )}
-            </div>
-          ) : promo.discount ? (
-            <span className="inline-block rounded bg-gold-pale px-3 py-1.5 text-sm font-semibold text-gold-dark">
-              {promo.discount}
-            </span>
-          ) : null}
-        </div>
-
-        {/* Valid until */}
-        <p className="mb-5 text-xs text-text-muted">
-          Valid until {formatDate(promo.validUntil)}
-        </p>
-
-        {/* CTA */}
-        <Link
-          href="/book"
-          className="gold-shimmer-bg inline-flex items-center justify-center rounded-md px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(184,146,74,0.25)]"
-        >
-          Book Now
-        </Link>
-      </div>
-    </div>
-  );
-}
+const ctaLabels: Record<string, string> = {
+  BOOK_TRAVEL: 'Book Now',
+  BOOK_NOW: 'Book Now',
+  LEARN_MORE: 'Learn More',
+  SIGN_UP: 'Sign Up',
+  CONTACT_US: 'Contact Us',
+};
 
 export default function Promotions() {
-  const activePromos = promotions.filter((p) => p.active);
+  const [ads, setAds] = useState<LiveAd[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (activePromos.length === 0) return null;
+  useEffect(() => {
+    fetch('/api/promotions/active-ads')
+      .then((r) => r.json())
+      .then((data) => {
+        setAds((data.ads || []).slice(0, 3));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="promotions" className="relative bg-warm-white py-20 lg:py-36">
+        <div className="mx-auto max-w-[1320px] px-5 md:px-8">
+          <div className="animate-pulse grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-96 bg-border-light rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (ads.length === 0) return null;
 
   return (
     <section id="promotions" className="relative bg-warm-white py-20 lg:py-36">
@@ -115,15 +67,70 @@ export default function Promotions() {
             Special Offers <em className="italic text-gold">for You</em>
           </h2>
           <p className="mx-auto max-w-[520px] text-base leading-[1.7] text-text-light">
-            Take advantage of our limited-time packages and save on the treatments
-            you love.
+            Take advantage of our featured treatments and book your appointment
+            today.
           </p>
         </div>
 
         {/* Cards grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {activePromos.map((promo) => (
-            <PromoCard key={promo.id} promo={promo} />
+          {ads.map((ad) => (
+            <div
+              key={ad.id}
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-light bg-white shadow-[0_2px_20px_rgba(184,146,74,0.08)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_12px_48px_rgba(184,146,74,0.18)]"
+            >
+              {/* Ad creative image */}
+              {ad.image_url ? (
+                <div className="relative aspect-[4/5] overflow-hidden bg-warm-white">
+                  <Image
+                    src={ad.image_url}
+                    alt={ad.headline || ad.treatment}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    unoptimized
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+
+                  {/* Treatment tag */}
+                  <span className="absolute top-4 left-4 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-dark backdrop-blur-sm">
+                    {ad.treatment
+                      .replace(/^AL\s*-\s*/i, '')
+                      .replace(/\s*-\s*\w+\s*\d{4}$/i, '')}
+                  </span>
+                </div>
+              ) : (
+                <div className="gold-shimmer-bg h-1" />
+              )}
+
+              <div className="flex flex-1 flex-col p-7 pt-6">
+                {!ad.image_url && (
+                  <span className="mb-3 inline-block w-fit rounded-full border border-gold-pale bg-warm-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gold-dark">
+                    {ad.treatment
+                      .replace(/^AL\s*-\s*/i, '')
+                      .replace(/\s*-\s*\w+\s*\d{4}$/i, '')}
+                  </span>
+                )}
+
+                {ad.headline && (
+                  <h3 className="mb-2 font-serif text-xl font-semibold tracking-tight text-text-dark transition-colors duration-300 group-hover:text-gold-dark">
+                    {ad.headline}
+                  </h3>
+                )}
+
+                {ad.body && (
+                  <p className="mb-5 flex-1 text-sm leading-relaxed text-text-light line-clamp-3">
+                    {ad.body}
+                  </p>
+                )}
+
+                <Link
+                  href="/book"
+                  className="gold-shimmer-bg inline-flex items-center justify-center rounded-md px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(184,146,74,0.25)]"
+                >
+                  {ad.cta ? ctaLabels[ad.cta] || 'Book Now' : 'Book Now'}
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
 

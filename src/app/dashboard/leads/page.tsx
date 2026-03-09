@@ -34,6 +34,17 @@ interface Lead {
   assigned_to_name: string;
   is_uncontacted: boolean;
   treatment: string;
+  instagram_handle: string | null;
+  facebook_id: string | null;
+  whatsapp_number: string | null;
+  booking_value: number;
+  lifetime_value: number;
+  total_booked_value: number;
+  appointment_count: number;
+  total_paid_value: number;
+  payment_count: number;
+  client_total_spent: number;
+  linked_client_id: string | null;
 }
 
 interface StaffOption {
@@ -49,6 +60,8 @@ interface LeadStats {
   cold_count: number;
   conversion_rate: number;
   avg_score: number;
+  total_pipeline_value: number;
+  total_revenue: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -190,6 +203,12 @@ function FunnelBar({ stats }: { stats: LeadStats }) {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-text-dark">Conversion Funnel</h2>
         <div className="flex items-center gap-4 text-xs text-text-muted">
+          {stats.total_revenue > 0 && (
+            <span>Revenue: <strong className="text-green-700">PKR {stats.total_revenue.toLocaleString()}</strong></span>
+          )}
+          {stats.total_pipeline_value > 0 && (
+            <span>Pipeline: <strong className="text-amber-700">PKR {stats.total_pipeline_value.toLocaleString()}</strong></span>
+          )}
           <span>Avg Score: <strong className="text-text-dark">{stats.avg_score}</strong></span>
           <span>Conversion: <strong className="text-text-dark">{stats.conversion_rate}%</strong></span>
         </div>
@@ -422,7 +441,7 @@ type SortOption = 'created_at' | 'score' | 'last_activity';
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [staffList, setStaffList] = useState<StaffOption[]>([]);
-  const [stats, setStats] = useState<LeadStats>({ total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0 });
+  const [stats, setStats] = useState<LeadStats>({ total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0, total_pipeline_value: 0, total_revenue: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [noteText, setNoteText] = useState('');
@@ -526,7 +545,7 @@ export default function LeadsPage() {
     const res = await fetch(`/api/dashboard/leads?${params}`);
     const data = await res.json();
     setLeads(data.leads || []);
-    setStats(data.stats || { total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0 });
+    setStats(data.stats || { total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0, total_pipeline_value: 0, total_revenue: 0 });
     setStaffList(data.staff || []);
     // Reset tick base on each data refresh
     baseTimeRef.current = Date.now();
@@ -723,7 +742,67 @@ export default function LeadsPage() {
                         <ScoreBadge score={lead.score || 0} label={lead.score_label || 'cold'} />
                       </div>
 
+                      {/* Value bar - GHL style */}
+                      {(() => {
+                        const totalValue = Number(lead.total_paid_value || 0) || Number(lead.client_total_spent || 0) || Number(lead.actual_revenue || 0);
+                        const bookedValue = Number(lead.total_booked_value || 0) || Number(lead.booking_value || 0);
+                        const hasValue = totalValue > 0 || bookedValue > 0;
+                        if (!hasValue) return null;
+                        return (
+                          <div className="flex items-center gap-2 mt-1 px-2 py-1 rounded bg-green-50 border border-green-100">
+                            {totalValue > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-green-600 font-medium">Paid</span>
+                                <span className="text-xs font-bold text-green-700">PKR {totalValue.toLocaleString()}</span>
+                              </div>
+                            )}
+                            {bookedValue > 0 && totalValue > 0 && <span className="text-green-300">|</span>}
+                            {bookedValue > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-amber-600 font-medium">Booked</span>
+                                <span className="text-xs font-bold text-amber-700">PKR {bookedValue.toLocaleString()}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       <p className="text-xs text-text-muted mt-0.5">{lead.phone}</p>
+
+                      {/* Social profiles */}
+                      {(lead.instagram_handle || lead.facebook_id || lead.whatsapp_number) && (
+                        <div className="flex items-center gap-1 mt-1">
+                          {lead.instagram_handle && (
+                            <a
+                              href={`https://instagram.com/${lead.instagram_handle}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#E1306C]/10 text-[#E1306C] font-medium hover:bg-[#E1306C]/20"
+                            >
+                              @{lead.instagram_handle}
+                            </a>
+                          )}
+                          {lead.facebook_id && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#1877F2]/10 text-[#1877F2] font-medium">
+                              FB
+                            </span>
+                          )}
+                          {lead.whatsapp_number && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#25D366]/10 text-[#25D366] font-medium">
+                              WA
+                            </span>
+                          )}
+                          <Link
+                            href={`/dashboard/conversations?search=${encodeURIComponent(lead.name)}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[9px] px-1.5 py-0.5 rounded-full bg-gold/10 text-gold-dark font-medium hover:bg-gold/20"
+                          >
+                            Messages
+                          </Link>
+                        </div>
+                      )}
+
                       {lead.interest && (
                         <p className="text-xs text-gold-dark mt-1 truncate">{lead.interest}</p>
                       )}
@@ -869,6 +948,45 @@ export default function LeadsPage() {
               </div>
             </div>
 
+            {/* Lead Value — GHL style */}
+            {(() => {
+              const totalPaid = Number(selectedLead.total_paid_value || 0) || Number(selectedLead.client_total_spent || 0) || Number(selectedLead.actual_revenue || 0);
+              const totalBooked = Number(selectedLead.total_booked_value || 0) || Number(selectedLead.booking_value || 0);
+              const apptCount = Number(selectedLead.appointment_count || 0);
+              const payCount = Number(selectedLead.payment_count || 0);
+              return (
+                <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <h3 className="text-xs font-semibold uppercase text-green-700 tracking-wider mb-3">Lead Value</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-green-600 font-medium uppercase">Total Paid</p>
+                      <p className="text-xl font-bold text-green-800">
+                        PKR {totalPaid.toLocaleString()}
+                      </p>
+                      <p className="text-[10px] text-green-600">{payCount} payment{payCount !== 1 ? 's' : ''}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-amber-600 font-medium uppercase">Booked Value</p>
+                      <p className="text-xl font-bold text-amber-700">
+                        PKR {totalBooked.toLocaleString()}
+                      </p>
+                      <p className="text-[10px] text-amber-600">{apptCount} appointment{apptCount !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                  {(totalPaid > 0 || totalBooked > 0) && (
+                    <div className="mt-3 pt-3 border-t border-green-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-green-700 font-semibold">Lifetime Value</span>
+                        <span className="text-lg font-bold text-green-900">
+                          PKR {Math.max(totalPaid, totalBooked).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Assigned To */}
             <div className="mb-4">
               <h3 className="text-xs font-semibold uppercase text-text-muted tracking-wider mb-2">Assigned To</h3>
@@ -896,6 +1014,31 @@ export default function LeadsPage() {
                 <h3 className="text-xs font-semibold uppercase text-text-muted tracking-wider mb-2">Contact</h3>
                 <p className="text-sm text-text-dark">{selectedLead.phone}</p>
                 {selectedLead.email && <p className="text-sm text-text-light">{selectedLead.email}</p>}
+                {/* Social profiles */}
+                {(selectedLead.instagram_handle || selectedLead.facebook_id || selectedLead.whatsapp_number) && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {selectedLead.instagram_handle && (
+                      <a
+                        href={`https://instagram.com/${selectedLead.instagram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-[#E1306C]/10 text-[#E1306C] font-medium hover:bg-[#E1306C]/20"
+                      >
+                        @{selectedLead.instagram_handle}
+                      </a>
+                    )}
+                    {selectedLead.facebook_id && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1877F2]/10 text-[#1877F2] font-medium">
+                        FB Connected
+                      </span>
+                    )}
+                    {selectedLead.whatsapp_number && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#25D366]/10 text-[#25D366] font-medium">
+                        WA: {selectedLead.whatsapp_number}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Quick Actions */}
@@ -920,6 +1063,12 @@ export default function LeadsPage() {
                 >
                   Log Contact
                 </button>
+                <Link
+                  href={`/dashboard/conversations?search=${encodeURIComponent(selectedLead.name)}`}
+                  className="flex-1 text-center px-3 py-2 text-xs font-medium bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                >
+                  Messages
+                </Link>
                 <Link
                   href={`/dashboard/leads/${selectedLead.id}`}
                   className="flex-1 text-center px-3 py-2 text-xs font-medium bg-gold-pale text-gold-dark rounded-lg hover:bg-gold-light/30 transition-colors"

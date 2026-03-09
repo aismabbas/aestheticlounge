@@ -112,27 +112,7 @@ export default function FeedbackPage() {
 
   return (
     <div className="min-h-screen bg-warm-white">
-      {/* Header */}
-      <div className="bg-white border-b border-border">
-        <div className="mx-auto max-w-[1320px] px-5 md:px-8 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="gold-shimmer-bg flex h-10 w-10 items-center justify-center rounded-full font-serif text-lg font-bold text-white">
-              A
-            </div>
-            <div className="font-serif text-xl font-semibold tracking-tight">
-              Aesthetic <span className="text-gold">Lounge</span>
-            </div>
-          </Link>
-          <Link
-            href="/"
-            className="text-sm text-text-light hover:text-gold transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-2xl px-5 py-12 md:py-20">
+      <div className="mx-auto max-w-2xl px-5 pt-32 pb-12 md:pb-20">
         <div className="text-center mb-10">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-text-dark mb-3">
             Share Your Experience

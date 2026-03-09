@@ -3,10 +3,12 @@
  *
  * Uses a Google Service Account to interact with the Business Profile API.
  * Env vars required:
- *   GOOGLE_SERVICE_ACCOUNT_JSON — stringified JSON key file
+ *   Google SA credentials (via google-auth helper)
  *   GBP_ACCOUNT_ID             — accounts/{id}
  *   GBP_LOCATION_ID            — locations/{id}
  */
+
+import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
 
 /* ---------- types ---------- */
 
@@ -78,7 +80,7 @@ export function starToNumber(star: string): number {
 
 function isConfigured(): boolean {
   return !!(
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON &&
+    isGoogleConfigured() &&
     process.env.GBP_ACCOUNT_ID &&
     process.env.GBP_LOCATION_ID
   );
@@ -86,7 +88,7 @@ function isConfigured(): boolean {
 
 export function getConfigStatus(): { configured: boolean; missing: string[] } {
   const missing: string[] = [];
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) missing.push('GOOGLE_SERVICE_ACCOUNT_JSON');
+  if (!isGoogleConfigured()) missing.push('Google Service Account');
   if (!process.env.GBP_ACCOUNT_ID) missing.push('GBP_ACCOUNT_ID');
   if (!process.env.GBP_LOCATION_ID) missing.push('GBP_LOCATION_ID');
   return { configured: missing.length === 0, missing };
@@ -97,7 +99,7 @@ export function getConfigStatus(): { configured: boolean; missing: string[] } {
 async function getAccessToken(): Promise<string> {
   if (!isConfigured()) throw new Error('Google Business Profile API not configured');
 
-  const key = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!);
+  const key = getGoogleCredentials();
   const now = Math.floor(Date.now() / 1000);
 
   // Build JWT

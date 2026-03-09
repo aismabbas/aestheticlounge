@@ -21,7 +21,7 @@ export default function ContentApprovalPage() {
   const fetchPending = async () => {
     const res = await fetch('/api/dashboard/campaigns?status=pending_approval');
     const data = await res.json();
-    setPending(data.campaigns || data);
+    setPending(Array.isArray(data.campaigns) ? data.campaigns : Array.isArray(data) ? data : []);
     setLoading(false);
   };
 

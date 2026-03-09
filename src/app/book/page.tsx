@@ -1,16 +1,78 @@
 "use client";
 
+import { useState, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import { categories, allTreatments } from "@/data/services";
+import { getUTMParams } from "@/lib/utm";
 
 function BookingForm() {
   const searchParams = useSearchParams();
   const preselected = searchParams.get("treatment") ?? "";
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus('submitting');
+    setErrorMsg('');
+
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const utm = getUTMParams();
+
+    // Resolve treatment slug to display name
+    const treatmentSlug = fd.get('treatment') as string;
+    const treatment = allTreatments.find(t => t.slug === treatmentSlug);
+    const treatmentName = treatment?.name || treatmentSlug;
+
+    try {
+      const res = await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fd.get('name'),
+          phone: fd.get('phone'),
+          email: fd.get('email') || undefined,
+          treatment: treatmentName,
+          date: fd.get('date'),
+          time: fd.get('time'),
+          notes: fd.get('notes') || undefined,
+          ...utm,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      setStatus('success');
+      form.reset();
+    } catch (err) {
+      setStatus('error');
+      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong');
+    }
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="rounded-lg bg-green-50 border border-green-200 p-8 text-center">
+        <p className="text-green-800 font-medium text-lg">Appointment Requested!</p>
+        <p className="text-green-600 text-sm mt-2">We will confirm your appointment via WhatsApp or phone within 2 hours.</p>
+        <button
+          onClick={() => setStatus('idle')}
+          className="mt-4 text-sm text-gold hover:text-gold-dark font-medium"
+        >
+          Book another appointment
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <form className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Treatment selector */}
       <div>
         <label
@@ -155,11 +217,16 @@ function BookingForm() {
         />
       </div>
 
+      {status === 'error' && (
+        <p className="text-sm text-red-600">{errorMsg}</p>
+      )}
+
       <button
         type="submit"
-        className="w-full rounded-full bg-gold py-3 font-medium text-white transition-colors hover:bg-gold-dark"
+        disabled={status === 'submitting'}
+        className="w-full rounded-full bg-gold py-3 font-medium text-white transition-colors hover:bg-gold-dark disabled:opacity-50"
       >
-        Request Appointment
+        {status === 'submitting' ? 'Submitting...' : 'Request Appointment'}
       </button>
 
       <p className="text-center text-xs text-text-muted">
@@ -173,7 +240,7 @@ export default function BookPage() {
   return (
     <main className="min-h-screen bg-cream">
       {/* Hero */}
-      <section className="bg-text-dark py-20 text-center text-white">
+      <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
           Book an Appointment
         </h1>

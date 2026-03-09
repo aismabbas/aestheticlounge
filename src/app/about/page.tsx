@@ -71,7 +71,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-cream">
       {/* Hero */}
-      <section className="bg-text-dark py-20 text-center text-white">
+      <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
           Where Science Meets Beauty
         </h1>
@@ -111,23 +111,22 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Clinic Photos Placeholder */}
+      {/* Clinic Photos */}
       <section className="bg-warm-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {["Reception & Lounge", "Treatment Room", "Consultation Suite"].map(
-              (label) => (
+            {[
+              { label: "Reception & Lounge", file: "reception" },
+              { label: "Treatment Room", file: "treatment-room" },
+              { label: "Consultation Suite", file: "consultation-suite" },
+            ].map((item) => (
                 <div
-                  key={label}
-                  className="aspect-[4/3] rounded-2xl bg-gold-pale border border-gold/20 flex items-center justify-center"
+                  key={item.label}
+                  className="aspect-[4/3] overflow-hidden rounded-2xl"
                 >
-                  <div className="text-center text-text-muted">
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs mt-1">Photo coming soon</p>
-                  </div>
+                  <img src={`/images/clinic/${item.file}.png`} alt={item.label} className="h-full w-full object-cover" />
                 </div>
-              ),
-            )}
+              ))}
           </div>
         </div>
       </section>

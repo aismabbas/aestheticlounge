@@ -217,28 +217,6 @@ async function processOneLead(event: MetaLeadValue, accessToken: string): Promis
     },
   }).catch((err) => console.error('[meta-webhook] CAPI error:', err));
 
-  // 5. Trigger n8n NurtureAgent webhook
-  const n8nUrl = process.env.N8N_WEBHOOK_URL || 'https://webhook.awansoft.ca/webhook/al-marketing';
-
-  fetch(n8nUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'new_lead',
-      leadId,
-      name,
-      phone,
-      email,
-      treatment,
-      message,
-      source: 'meta_form',
-      utm_source: 'facebook',
-      utm_medium: 'paid',
-      utm_campaign: campaignName,
-      form_id: event.form_id,
-      ad_id: event.ad_id,
-    }),
-  }).catch((err) => console.error('[meta-webhook] n8n webhook error:', err));
 }
 
 /**

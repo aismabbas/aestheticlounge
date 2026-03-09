@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+interface Client {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+}
 
 interface Payment {
   id: string;
@@ -54,6 +61,37 @@ export default function PaymentsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Client search
+  const [clients, setClients] = useState<Client[]>([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const clientRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch('/api/dashboard/clients?limit=500')
+      .then((r) => r.json())
+      .then((d) => setClients(d.clients || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (clientRef.current && !clientRef.current.contains(e.target as Node)) {
+        setShowClientDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredClients = clientSearch.length > 0
+    ? clients.filter(
+        (c) =>
+          c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+          c.phone.includes(clientSearch),
+      ).slice(0, 10)
+    : clients.slice(0, 10);
 
   // Form state
   const [form, setForm] = useState({
@@ -191,15 +229,43 @@ export default function PaymentsPage() {
         <div className="bg-white rounded-xl border border-border p-6 mb-6">
           <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Record New Payment</h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1">Client Name *</label>
+            <div ref={clientRef} className="relative">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1">Client *</label>
               <input
                 type="text"
                 required
                 value={form.client_name}
-                onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, client_name: e.target.value, client_id: '' });
+                  setClientSearch(e.target.value);
+                  setShowClientDropdown(true);
+                }}
+                onFocus={() => setShowClientDropdown(true)}
+                placeholder="Search by name or phone..."
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-gold"
               />
+              {showClientDropdown && filteredClients.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-border rounded-lg shadow-lg">
+                  {filteredClients.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, client_name: c.name, client_id: c.id });
+                        setClientSearch('');
+                        setShowClientDropdown(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-warm-white transition-colors flex items-center justify-between"
+                    >
+                      <span className="font-medium text-text-dark">{c.name}</span>
+                      <span className="text-xs text-text-muted">{c.phone}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {form.client_id && (
+                <p className="mt-1 text-xs text-emerald-600">Linked to client record</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1">Treatment *</label>

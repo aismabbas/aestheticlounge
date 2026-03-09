@@ -1,13 +1,37 @@
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
+import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
 
 /* ------------------------------------------------------------------ */
-/* Google Drive helper for AL client before/after photos               */
+/* Google Drive API client — API-only, no local filesystem dependency. */
+/* Uses the AL service account for authentication.                     */
+/* Works in Netlify serverless, Hostinger VPS, n8n — anywhere.        */
 /*                                                                     */
-/* Folder structure:                                                   */
+/* Folder structure (marketing assets):                                */
+/*   AestheticLounge / BrandAssets / Models / {character_name} /      */
+/*   AestheticLounge / AdCreatives /                                   */
+/*   AestheticLounge / Reels /                                         */
+/*   AestheticLounge / Campaigns / AdImages /                          */
+/*                                                                     */
+/* Folder structure (client photos):                                   */
 /*   AL Clinic Photos / {client_name}_{client_id} / {treatment} /     */
-/*     before_2026-03-08.jpg                                           */
 /* ------------------------------------------------------------------ */
+
+// Marketing asset folder IDs (shared with SA + info@aestheticloungeofficial.com)
+export const DRIVE_FOLDERS = {
+  root: '1km1DM6bJwgU_0kEi2z9fN_FBE96TzIoA',
+  ad_creatives: '1fj_gR6Y5zkquq4tm__EpwtqYlyMOGw0w',
+  brand_assets: '1tkui8WF41TjVsjbpOyIdSIGBHcMmWWN2',
+  models: '1126tL24ODp9GeTCfKvBapLHZQ_Z2-Irp',
+  video_ads: '1m5pdSGjt5yRNUDf6z6sFmUarbZvfUqDO',
+  campaigns: '12E_x6yXL1qhikpbmC-I-dfG3-f5QJ9lC',
+  campaigns_ad_images: '19fpZJ71W2pgkte_KHIAUd9Ypz35_7yCl',
+  research: '1P_UClKEvXhskkq893-j5tj-Chq6lwGAy',
+  reels: '1ZRN4fIYu9Tks6mB2-y2I441dhb5Kaf8-',
+  logo: '1pS_I9buHo-try9c3gtgk5ZKR5FVlD9sm',
+} as const;
+
+export type DriveFolderKey = keyof typeof DRIVE_FOLDERS;
 
 let driveClient: drive_v3.Drive | null = null;
 
@@ -15,10 +39,7 @@ let driveClient: drive_v3.Drive | null = null;
  * Returns true if the required env vars are set for Google Drive.
  */
 export function isGoogleDriveConfigured(): boolean {
-  return !!(
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON &&
-    process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID
-  );
+  return isGoogleConfigured() && !!process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
 }
 
 /**
@@ -27,12 +48,7 @@ export function isGoogleDriveConfigured(): boolean {
 function getDrive(): drive_v3.Drive {
   if (driveClient) return driveClient;
 
-  const credsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!credsJson) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON env var is not set');
-  }
-
-  const credentials = JSON.parse(credsJson);
+  const credentials = getGoogleCredentials();
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/drive'],
@@ -230,4 +246,132 @@ export async function deletePhoto(fileId: string): Promise<void> {
  */
 export function getDirectUrl(fileId: string): string {
   return `https://drive.google.com/uc?id=${fileId}&export=view`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Marketing Asset Functions (for n8n pipeline + dashboard)            */
+/* ------------------------------------------------------------------ */
+
+/** Upload a file from a remote URL to Drive (API-only, no local FS) */
+export async function uploadFromUrl(
+  url: string,
+  fileName: string,
+  folderId: string,
+  mimeType = 'image/png',
+): Promise<{ id: string; name: string; webViewLink: string }> {
+  const drive = getDrive();
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+
+  const res = await drive.files.create({
+    requestBody: { name: fileName, parents: [folderId] },
+    media: { mimeType, body: stream },
+    fields: 'id,name,webViewLink',
+    supportsAllDrives: true,
+  });
+
+  // Make publicly viewable
+  await drive.permissions.create({
+    fileId: res.data.id!,
+    requestBody: { role: 'reader', type: 'anyone' },
+  });
+
+  return {
+    id: res.data.id!,
+    name: res.data.name!,
+    webViewLink: res.data.webViewLink || `https://drive.google.com/file/d/${res.data.id}/view`,
+  };
+}
+
+/** Download a file as a buffer (API-only) */
+export async function downloadFile(fileId: string): Promise<Buffer> {
+  const drive = getDrive();
+  const res = await drive.files.get(
+    { fileId, alt: 'media', supportsAllDrives: true },
+    { responseType: 'arraybuffer' },
+  );
+  return Buffer.from(res.data as ArrayBuffer);
+}
+
+/** List all files in a folder */
+export async function listFiles(folderId: string, maxResults = 50) {
+  const drive = getDrive();
+  const res = await drive.files.list({
+    q: `'${folderId}' in parents and trashed = false`,
+    fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,thumbnailLink)',
+    orderBy: 'modifiedTime desc',
+    pageSize: maxResults,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+  });
+  return res.data.files || [];
+}
+
+/** Search files by name */
+export async function searchFiles(query: string, folderId?: string, maxResults = 20) {
+  const drive = getDrive();
+  let q = `name contains '${query.replace(/'/g, "\\'")}' and trashed = false`;
+  if (folderId) q += ` and '${folderId}' in parents`;
+
+  const res = await drive.files.list({
+    q,
+    fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,parents)',
+    orderBy: 'modifiedTime desc',
+    pageSize: maxResults,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+  });
+  return res.data.files || [];
+}
+
+/** Create a subfolder */
+export async function createDriveFolder(name: string, parentId: string) {
+  const drive = getDrive();
+  const res = await drive.files.create({
+    requestBody: {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    },
+    fields: 'id,name,webViewLink',
+    supportsAllDrives: true,
+  });
+  return res.data;
+}
+
+/** Get model reference images for reel/ad creation */
+export async function getModelImages(modelName: string) {
+  const modelFolders = await listFiles(DRIVE_FOLDERS.models);
+  const modelFolder = modelFolders.find(
+    (f) => f.name?.toLowerCase() === modelName.toLowerCase(),
+  );
+
+  if (modelFolder?.id) {
+    return listFiles(modelFolder.id, 20);
+  }
+  return searchFiles(modelName, DRIVE_FOLDERS.models);
+}
+
+/** Get brand assets (logos + top-level assets) */
+export async function getBrandAssets() {
+  const [logos, assets] = await Promise.all([
+    listFiles(DRIVE_FOLDERS.logo, 10),
+    listFiles(DRIVE_FOLDERS.brand_assets, 10),
+  ]);
+  return { logos, assets };
+}
+
+/** Get thumbnail URL helper */
+export function getThumbnailUrl(fileId: string, size = 400): string {
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
+}
+
+/** Get download URL helper */
+export function getDownloadUrl(fileId: string): string {
+  return `https://drive.google.com/uc?export=download&id=${fileId}`;
 }

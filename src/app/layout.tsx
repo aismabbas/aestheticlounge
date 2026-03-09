@@ -6,6 +6,10 @@ import {
   generateMedicalBusinessSchema,
 } from "@/lib/structured-data";
 import CookieConsent from "@/components/CookieConsent";
+import MetaPixel from "@/components/MetaPixel";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import TrackingProvider from "@/components/TrackingProvider";
+import { PublicHeader, PublicFooter } from "@/components/PublicShell";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -117,7 +121,13 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${inter.variable} ${cormorant.variable} font-sans antialiased`}
       >
-        {children}
+        <MetaPixel />
+        <GoogleAnalytics />
+        <TrackingProvider>
+          <PublicHeader />
+          {children}
+          <PublicFooter />
+        </TrackingProvider>
         <CookieConsent />
       </body>
     </html>

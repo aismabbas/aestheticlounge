@@ -9,6 +9,13 @@ interface GBPSummary {
   insights?: { searchViews: number };
 }
 
+interface GA4Overview {
+  totals: { users: number; sessions: number; pageviews: number; avgDuration: number; bounceRate: number };
+  topPages: { page: string; views: number; users: number }[];
+  trafficSources: { source: string; medium: string; users: number; sessions: number }[];
+  dailyUsers: { date: string; users: number; sessions: number }[];
+}
+
 interface AnalyticsData {
   revenue: {
     total: number;
@@ -32,6 +39,7 @@ interface AnalyticsData {
     roas: number;
     top: { name: string; treatment: string; status: string; budget_spent: number; leads: number; booked: number; cpl: number; cpa: number; roas: number }[];
   };
+  ga4?: GA4Overview;
 }
 
 type Period = 'week' | 'month' | 'all';
@@ -152,6 +160,90 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </Link>
+        </div>
+      )}
+
+      {/* GA4 Website Analytics */}
+      {data.ga4 && (
+        <div className="mb-8">
+          <h2 className="font-serif text-lg font-semibold text-text-dark mb-4">Website Analytics (GA4)</h2>
+          <div className="grid grid-cols-5 gap-4 mb-6">
+            <div className="bg-white rounded-xl border border-border p-5">
+              <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Users</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{data.ga4.totals.users.toLocaleString()}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-5">
+              <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Sessions</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{data.ga4.totals.sessions.toLocaleString()}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-5">
+              <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Page Views</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{data.ga4.totals.pageviews.toLocaleString()}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-5">
+              <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Avg Duration</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{Math.round(data.ga4.totals.avgDuration)}s</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-5">
+              <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Bounce Rate</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{(data.ga4.totals.bounceRate * 100).toFixed(1)}%</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            {/* Top Pages */}
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="text-sm font-semibold uppercase text-text-muted tracking-wider mb-3">Top Pages</h3>
+              {data.ga4.topPages.length === 0 ? (
+                <p className="text-sm text-text-muted">No page data yet — GA4 was just connected.</p>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 text-xs font-semibold uppercase text-text-muted">Page</th>
+                      <th className="text-right py-2 text-xs font-semibold uppercase text-text-muted">Views</th>
+                      <th className="text-right py-2 text-xs font-semibold uppercase text-text-muted">Users</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.ga4.topPages.map((p) => (
+                      <tr key={p.page} className="border-b border-border-light">
+                        <td className="py-2 text-sm text-text-dark truncate max-w-[200px]">{p.page}</td>
+                        <td className="py-2 text-sm text-text-light text-right">{p.views}</td>
+                        <td className="py-2 text-sm text-text-dark text-right font-medium">{p.users}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Traffic Sources */}
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="text-sm font-semibold uppercase text-text-muted tracking-wider mb-3">Traffic Sources</h3>
+              {data.ga4.trafficSources.length === 0 ? (
+                <p className="text-sm text-text-muted">No traffic data yet — GA4 was just connected.</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.ga4.trafficSources.map((s) => {
+                    const maxSessions = Math.max(...data.ga4!.trafficSources.map((t) => t.sessions));
+                    const pct = maxSessions > 0 ? (s.sessions / maxSessions) * 100 : 0;
+                    return (
+                      <div key={`${s.source}-${s.medium}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-text-dark">{s.source} / {s.medium}</span>
+                          <span className="text-sm font-medium text-text-dark">{s.sessions} sessions</span>
+                        </div>
+                        <div className="w-full bg-border-light rounded-full h-2">
+                          <div className="bg-blue-500 rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

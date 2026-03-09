@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
-  { href: "#services", label: "Services" },
-  { href: "#doctors", label: "Doctors" },
-  { href: "#results", label: "Results" },
-  { href: "#about", label: "About" },
+  { href: "/#services", label: "Services" },
+  { href: "/#doctors", label: "Doctors" },
+  { href: "/#results", label: "Results" },
+  { href: "/#about", label: "About" },
   { href: "/promotions", label: "Promotions" },
   { href: "/social", label: "Social" },
   { href: "/blog", label: "Blog" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export default function Header() {
@@ -34,13 +35,15 @@ export default function Header() {
     >
       <div className="mx-auto flex max-w-[1320px] items-center justify-between px-5 md:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <div className="gold-shimmer-bg flex h-10 w-10 items-center justify-center rounded-full font-serif text-lg font-bold text-white">
-            A
-          </div>
-          <div className="font-serif text-xl font-semibold tracking-tight">
-            Aesthetic <span className="text-gold">Lounge</span>
-          </div>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo-icon.png"
+            alt="Aesthetic Lounge"
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px]"
+            priority
+          />
         </Link>
 
         {/* Desktop Nav */}
@@ -58,7 +61,7 @@ export default function Header() {
 
         {/* Book CTA */}
         <a
-          href="#book"
+          href="/#book"
           className="gold-shimmer-bg relative hidden overflow-hidden rounded-md px-7 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(184,146,74,0.15)] md:inline-block"
         >
           Book a Visit
@@ -102,7 +105,7 @@ export default function Header() {
             </a>
           ))}
           <a
-            href="#book"
+            href="/#book"
             className="gold-shimmer-bg mt-2 inline-block rounded-md px-7 py-3 text-center text-[13px] font-semibold uppercase tracking-[0.04em] text-white"
             onClick={() => setMobileOpen(false)}
           >

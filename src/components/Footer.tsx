@@ -1,14 +1,16 @@
 'use client';
 
+import Image from 'next/image';
+
 const quickLinks = [
   { href: "/", label: "Home" },
-  { href: "#services", label: "Services" },
-  { href: "#doctors", label: "Our Doctors" },
-  { href: "#about", label: "About Us" },
-  { href: "#book", label: "Book Appointment" },
+  { href: "/#services", label: "Services" },
+  { href: "/#doctors", label: "Our Doctors" },
+  { href: "/#about", label: "About Us" },
+  { href: "/#book", label: "Book Appointment" },
   { href: "/feedback", label: "Feedback" },
   { href: "/feedback/complaint", label: "Complaint Box" },
-  { href: "#", label: "Price Guide" },
+  { href: "/price-guide", label: "Price Guide" },
   { href: "/social", label: "Social Gallery" },
   { href: "/blog", label: "Blog" },
 ];
@@ -48,9 +50,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 pb-16 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] lg:gap-12">
           {/* Brand */}
           <div>
-            <div className="font-serif text-[22px] font-semibold text-white">
-              Aesthetic <span className="text-gold-light">Lounge</span>
-            </div>
+            <Image
+              src="/logo-icon.png"
+              alt="Aesthetic Lounge"
+              width={100}
+              height={100}
+              className="h-[100px] w-[100px]"
+            />
             <p className="mt-5 mb-7 max-w-[280px] text-sm leading-[1.8]">
               Lahore&apos;s premier destination for advanced aesthetic treatments. Where science
               meets beauty, and every visit is an experience.
@@ -142,7 +148,13 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-2 border-t border-white/[0.06] py-6 text-[13px] sm:flex-row">
           <p>&copy; 2026 Aesthetic Lounge Official. All rights reserved.</p>
-          <p>Crafted with care in Lahore</p>
+          <div className="flex items-center gap-4">
+            <a href="/dashboard/login" className="transition-colors hover:text-gold-light">
+              Employee Login
+            </a>
+            <span className="text-white/20">|</span>
+            <p>Crafted with care in Lahore</p>
+          </div>
         </div>
       </div>
     </footer>

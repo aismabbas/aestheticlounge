@@ -78,7 +78,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       />
 
       {/* Hero */}
-      <section className="bg-text-dark py-16 md:py-24">
+      <section className="bg-text-dark pt-32 pb-16 md:pb-24">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Link

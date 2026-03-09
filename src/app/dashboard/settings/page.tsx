@@ -71,7 +71,7 @@ export default function SettingsPage() {
   const fetchStaff = async () => {
     const res = await fetch('/api/dashboard/staff');
     const data = await res.json();
-    setStaff(data.staff || data);
+    setStaff(Array.isArray(data.staff) ? data.staff : Array.isArray(data) ? data : []);
     setLoading(false);
   };
 
@@ -95,10 +95,10 @@ export default function SettingsPage() {
   }, []);
 
   const toggleActive = async (s: Staff) => {
-    await fetch('/api/dashboard/staff', {
+    await fetch(`/api/dashboard/staff/${s.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: s.id, active: !s.active }),
+      body: JSON.stringify({ active: !s.active }),
     });
     fetchStaff();
   };

@@ -10,11 +10,14 @@ type CAPIEventName = 'Lead' | 'Schedule' | 'Purchase' | 'ViewContent' | 'Contact
 interface CAPIParams {
   eventName: CAPIEventName;
   eventSourceUrl: string;
+  eventId?: string; // for client/server dedup
   userData: {
     email?: string;
     phone?: string;
     fbp?: string;
     fbc?: string;
+    clientIpAddress?: string;
+    clientUserAgent?: string;
   };
   customData?: {
     currency?: string;
@@ -37,16 +40,22 @@ export async function sendCAPIEvent(params: CAPIParams): Promise<void> {
     return;
   }
 
-  const { eventName, eventSourceUrl, userData, customData } = params;
+  const { eventName, eventSourceUrl, eventId, userData, customData } = params;
+
+  // Generate dedup event_id if not provided
+  const dedupId = eventId || sha256(`${eventName}-${Date.now()}-${userData.email || userData.phone || ''}`);
 
   const userDataPayload: Record<string, string | undefined> = {};
   if (userData.email) userDataPayload.em = sha256(userData.email);
   if (userData.phone) userDataPayload.ph = sha256(userData.phone.replace(/\D/g, ''));
   if (userData.fbp) userDataPayload.fbp = userData.fbp;
   if (userData.fbc) userDataPayload.fbc = userData.fbc;
+  if (userData.clientIpAddress) userDataPayload.client_ip_address = userData.clientIpAddress;
+  if (userData.clientUserAgent) userDataPayload.client_user_agent = userData.clientUserAgent;
 
   const event = {
     event_name: eventName,
+    event_id: dedupId,
     event_time: Math.floor(Date.now() / 1000),
     event_source_url: eventSourceUrl,
     action_source: 'website',

@@ -58,8 +58,8 @@ export default function ClientsPage() {
     if (filters.tag) params.set('tag', filters.tag);
     const res = await fetch(`/api/dashboard/clients?${params}`);
     const data = await res.json();
-    setClients(data.clients || data);
-    setAllTags(data.allTags || []);
+    setClients(Array.isArray(data.clients) ? data.clients : Array.isArray(data) ? data : []);
+    setAllTags(Array.isArray(data.allTags) ? data.allTags : []);
     setLoading(false);
   }, [search, sortKey, sortDir, filters]);
 

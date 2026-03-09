@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/auth';
 import { DashboardShell } from './dashboard-shell';
+import AuthProvider from '@/components/AuthProvider';
 
 export const metadata = {
   title: 'Dashboard | Aesthetic Lounge',
@@ -14,12 +15,14 @@ export default async function DashboardLayout({
 
   // No session = login page (middleware handles redirect for other pages)
   if (!session) {
-    return <>{children}</>;
+    return <AuthProvider>{children}</AuthProvider>;
   }
 
   return (
-    <DashboardShell session={session}>
-      {children}
-    </DashboardShell>
+    <AuthProvider>
+      <DashboardShell session={session}>
+        {children}
+      </DashboardShell>
+    </AuthProvider>
   );
 }

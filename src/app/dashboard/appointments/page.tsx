@@ -65,7 +65,7 @@ export default function AppointmentsPage() {
 
     const res = await fetch(`/api/dashboard/appointments?${params}`);
     const data = await res.json();
-    setAppointments(data.appointments || data);
+    setAppointments(Array.isArray(data.appointments) ? data.appointments : Array.isArray(data) ? data : []);
     setLoading(false);
   }, [selectedDate, filterDoctor, filterStatus, viewMode]);
 

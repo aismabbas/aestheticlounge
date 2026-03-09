@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { randomBytes } from 'crypto';
 import {
@@ -9,19 +8,7 @@ import {
   uploadPhoto,
   getDirectUrl,
 } from '@/lib/google-drive';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { checkAuth } from '@/lib/api-auth';
 
 export async function GET(
   _req: NextRequest,
@@ -75,7 +62,7 @@ export async function POST(
     if (contentType.includes('multipart/form-data')) {
       if (!isGoogleDriveConfigured()) {
         return NextResponse.json(
-          { error: 'Google Drive is not configured. Set GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_DRIVE_ROOT_FOLDER_ID environment variables.' },
+          { error: 'Google Drive is not configured. Set Google service account credentials and GOOGLE_DRIVE_ROOT_FOLDER_ID.' },
           { status: 503 },
         );
       }

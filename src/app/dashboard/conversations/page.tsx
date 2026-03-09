@@ -64,6 +64,45 @@ interface StaffMember {
   name: string;
 }
 
+interface ContactProfile {
+  thread_id: string;
+  lead: {
+    id: string; name: string; phone: string; email: string; source: string;
+    stage: string; quality: string; interest: string; notes: string;
+    booked_treatment: string; booking_value: number; score: number;
+    score_factors: string; treatments_viewed: string; utm_source: string;
+    utm_medium: string; utm_campaign: string; landing_page: string;
+    visit_count: number; time_on_site: number; created_at: string;
+    last_activity_at: string;
+    instagram_handle: string | null; facebook_id: string | null;
+    whatsapp_number: string | null;
+  } | null;
+  client: {
+    id: string; name: string; phone: string; email: string; gender: string;
+    date_of_birth: string; created_at: string;
+  } | null;
+  appointments: Array<{
+    id: string; treatment: string; date: string; time: string; status: string;
+    created_at: string;
+  }>;
+  payments: Array<{
+    id: string; amount: number; currency: string; treatment: string;
+    status: string; created_at: string;
+  }>;
+  behavior_events: Array<{
+    event_type: string; page_url: string; page_title: string;
+    metadata: Record<string, unknown>; session_id: string; created_at: string;
+  }>;
+  journey: {
+    landing_page: string | null; pages_visited: number; page_list: string[];
+    cta_clicked: boolean; form_submitted: boolean; total_time: number;
+  } | null;
+  match_suggestions: Array<{
+    type: 'lead' | 'client'; id: string; name: string; phone: string;
+    email: string; stage?: string; source?: string;
+  }>;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Channel config                                                     */
 /* ------------------------------------------------------------------ */
@@ -205,6 +244,14 @@ export default function UnifiedInboxPage() {
   const [newLeadName, setNewLeadName] = useState('');
   const [newLeadPhone, setNewLeadPhone] = useState('');
   const [newLeadTreatment, setNewLeadTreatment] = useState('');
+  const [infoPanelOpen, setInfoPanelOpen] = useState(true);
+  const [contactProfile, setContactProfile] = useState<ContactProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [linkClientId, setLinkClientId] = useState('');
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookingTreatment, setBookingTreatment] = useState('');
+  const [bookingDate, setBookingDate] = useState('');
+  const [bookingTime, setBookingTime] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch threads
@@ -244,8 +291,21 @@ export default function UnifiedInboxPage() {
     }
   }, [channelFilter, statusFilter, searchQuery]);
 
+  // Auto-sync from Meta on first load, then fetch threads
+  const hasSynced = useRef(false);
   useEffect(() => {
-    fetchThreads();
+    async function initLoad() {
+      if (!hasSynced.current) {
+        hasSynced.current = true;
+        try {
+          await fetch('/api/dashboard/inbox/sync', { method: 'POST' });
+        } catch {
+          // Sync failed, still show DB threads
+        }
+      }
+      fetchThreads();
+    }
+    initLoad();
   }, [fetchThreads]);
 
   // Fetch staff for assignment dropdown
@@ -312,6 +372,72 @@ export default function UnifiedInboxPage() {
     setThreads((prev) =>
       prev.map((t) => (t.id === thread.id ? { ...t, unread_count: 0 } : t)),
     );
+    // Fetch contact profile
+    fetchContactProfile(thread.id);
+  };
+
+  const fetchContactProfile = async (threadId: string) => {
+    setProfileLoading(true);
+    try {
+      const res = await fetch(`/api/dashboard/inbox/contact-profile?thread_id=${threadId}`);
+      const data = await res.json();
+      setContactProfile(data);
+    } catch {
+      setContactProfile(null);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleLinkContact = async (type: 'lead' | 'client', contactId: string) => {
+    if (!selectedThread) return;
+    try {
+      if (type === 'lead') {
+        // Link existing lead
+        await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lead_id: contactId }),
+        });
+      } else {
+        await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'link_client', client_id: contactId }),
+        });
+      }
+      // Refresh profile
+      fetchContactProfile(selectedThread.id);
+    } catch (err) {
+      console.error('Link contact failed:', err);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!selectedThread || !bookingTreatment || !bookingDate) return;
+    try {
+      await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contactProfile?.lead?.name || contactProfile?.client?.name || getContactDisplay(selectedThread),
+          phone: contactProfile?.lead?.phone || contactProfile?.client?.phone || selectedThread.contact_phone || '',
+          email: contactProfile?.lead?.email || contactProfile?.client?.email || '',
+          treatment: bookingTreatment,
+          date: bookingDate,
+          time: bookingTime || '10:00',
+          source: `inbox_${selectedThread.channel}`,
+        }),
+      });
+      setShowBooking(false);
+      setBookingTreatment('');
+      setBookingDate('');
+      setBookingTime('');
+      // Refresh profile to show new appointment
+      fetchContactProfile(selectedThread.id);
+    } catch (err) {
+      console.error('Book appointment failed:', err);
+    }
   };
 
   // Send message
@@ -658,8 +784,8 @@ export default function UnifiedInboxPage() {
           </div>
         </div>
 
-        {/* ---- Right Panel: Conversation ---- */}
-        <div className="flex-1 flex flex-col">
+        {/* ---- Center Panel: Conversation ---- */}
+        <div className="flex-1 flex flex-col min-w-0">
           {!selectedThread ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
@@ -804,6 +930,19 @@ export default function UnifiedInboxPage() {
                       + Lead
                     </button>
                   )}
+
+                  {/* Info panel toggle */}
+                  <button
+                    onClick={() => setInfoPanelOpen(!infoPanelOpen)}
+                    className={`p-1.5 rounded transition-colors ${infoPanelOpen ? 'bg-gold/15 text-gold' : 'text-text-muted hover:bg-warm-white'}`}
+                    title={infoPanelOpen ? 'Hide info panel' : 'Show info panel'}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <circle cx="8" cy="8" r="6" />
+                      <line x1="8" y1="6" x2="8" y2="11" />
+                      <circle cx="8" cy="4.5" r="0.5" fill="currentColor" stroke="none" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -1079,7 +1218,429 @@ export default function UnifiedInboxPage() {
             </>
           )}
         </div>
+
+        {/* ---- Right Panel: Contact Info ---- */}
+        {selectedThread && infoPanelOpen && (
+          <div className="w-80 border-l border-border flex flex-col shrink-0 overflow-y-auto bg-warm-white">
+            {profileLoading ? (
+              <div className="p-4 space-y-3">
+                <div className="h-6 bg-border-light rounded animate-pulse" />
+                <div className="h-20 bg-border-light rounded animate-pulse" />
+                <div className="h-20 bg-border-light rounded animate-pulse" />
+              </div>
+            ) : (
+              <div className="p-4 space-y-4">
+                {/* Contact Card */}
+                <div className="bg-white rounded-xl border border-border p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gold-pale flex items-center justify-center text-gold-dark text-sm font-semibold">
+                      {getInitial(selectedThread)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-text-dark truncate">
+                        {contactProfile?.lead?.name || contactProfile?.client?.name || getContactDisplay(selectedThread)}
+                      </p>
+                      <p className="text-xs text-text-muted truncate">
+                        {contactProfile?.lead?.phone || contactProfile?.client?.phone || selectedThread.contact_phone || getContactSub(selectedThread)}
+                      </p>
+                      {(contactProfile?.lead?.email || contactProfile?.client?.email) && (
+                        <p className="text-xs text-text-muted truncate">
+                          {contactProfile?.lead?.email || contactProfile?.client?.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Social profiles */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {contactProfile?.lead?.instagram_handle && (
+                      <a
+                        href={`https://instagram.com/${contactProfile.lead.instagram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-[#E1306C]/10 text-[#E1306C] font-medium hover:bg-[#E1306C]/20"
+                      >
+                        @{contactProfile.lead.instagram_handle}
+                      </a>
+                    )}
+                    {contactProfile?.lead?.facebook_id && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1877F2]/10 text-[#1877F2] font-medium">
+                        FB: {contactProfile.lead.facebook_id.slice(0, 10)}...
+                      </span>
+                    )}
+                    {contactProfile?.lead?.whatsapp_number && (
+                      <a
+                        href={`https://wa.me/${contactProfile.lead.whatsapp_number.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-[#25D366]/10 text-[#25D366] font-medium hover:bg-[#25D366]/20"
+                      >
+                        WA: {contactProfile.lead.whatsapp_number}
+                      </a>
+                    )}
+                    {/* Also show from thread if no lead linked */}
+                    {!contactProfile?.lead && selectedThread.contact_ig_handle && (
+                      <a
+                        href={`https://instagram.com/${selectedThread.contact_ig_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-[#E1306C]/10 text-[#E1306C] font-medium hover:bg-[#E1306C]/20"
+                      >
+                        @{selectedThread.contact_ig_handle}
+                      </a>
+                    )}
+                    {!contactProfile?.lead && selectedThread.contact_fb_id && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1877F2]/10 text-[#1877F2] font-medium">
+                        FB Connected
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Lead/Client badge */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {contactProfile?.lead && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">
+                        Lead: {contactProfile.lead.stage || 'new'}
+                      </span>
+                    )}
+                    {contactProfile?.client && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                        Client
+                      </span>
+                    )}
+                    {contactProfile?.lead?.score != null && contactProfile.lead.score > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-medium">
+                        Score: {contactProfile.lead.score}
+                      </span>
+                    )}
+                    {contactProfile?.lead?.source && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                        {contactProfile.lead.source}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Lead details */}
+                  {contactProfile?.lead?.utm_source && (
+                    <div className="mt-2 text-[10px] text-text-muted">
+                      <span className="font-medium">Campaign:</span>{' '}
+                      {contactProfile.lead.utm_source}
+                      {contactProfile.lead.utm_campaign ? ` / ${contactProfile.lead.utm_campaign}` : ''}
+                    </div>
+                  )}
+                  {contactProfile?.lead?.interest && (
+                    <div className="mt-1 text-[10px] text-text-muted">
+                      <span className="font-medium">Interest:</span> {contactProfile.lead.interest}
+                    </div>
+                  )}
+                  {contactProfile?.lead?.notes && (
+                    <div className="mt-1 text-[10px] text-text-muted">
+                      <span className="font-medium">Notes:</span> {contactProfile.lead.notes}
+                    </div>
+                  )}
+                </div>
+
+                {/* Match Suggestions — merge with contact */}
+                {contactProfile?.match_suggestions && contactProfile.match_suggestions.length > 0 && (
+                  <div className="bg-white rounded-xl border border-amber-200 p-4">
+                    <h4 className="text-xs font-semibold text-amber-800 mb-2">Possible Matches</h4>
+                    <div className="space-y-2">
+                      {contactProfile.match_suggestions.map((s) => (
+                        <div key={s.id} className="flex items-center justify-between p-2 rounded-lg bg-amber-50">
+                          <div>
+                            <p className="text-xs font-medium text-text-dark">{s.name}</p>
+                            <p className="text-[10px] text-text-muted">{s.phone} {s.type === 'lead' ? `(${s.stage || 'lead'})` : '(client)'}</p>
+                          </div>
+                          <button
+                            onClick={() => handleLinkContact(s.type, s.id)}
+                            className="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-800 font-medium hover:bg-amber-200"
+                          >
+                            Link
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sentiment Summary */}
+                {messages.length > 0 && (() => {
+                  const threadMsgs: ThreadMessage[] = messages
+                    .filter((m) => m.content && m.direction === 'inbound')
+                    .map((m) => ({
+                      id: m.id, direction: m.direction, content: m.content, created_at: m.created_at,
+                      agent: m.sent_by || undefined,
+                    }));
+                  if (threadMsgs.length === 0) return null;
+                  const ta = analyzeThread(messages.filter((m) => m.content).map((m) => ({
+                    id: m.id, direction: m.direction, content: m.content, created_at: m.created_at,
+                    agent: m.sent_by || undefined,
+                  })));
+                  const sentimentColor: Record<string, string> = {
+                    positive: 'text-green-600', neutral: 'text-gray-600',
+                    negative: 'text-orange-600', angry: 'text-red-600',
+                  };
+                  const sentimentBg: Record<string, string> = {
+                    positive: 'bg-green-50', neutral: 'bg-gray-50',
+                    negative: 'bg-orange-50', angry: 'bg-red-50',
+                  };
+                  return (
+                    <div className="bg-white rounded-xl border border-border p-4">
+                      <h4 className="text-xs font-semibold text-text-dark mb-2">Sentiment Analysis</h4>
+                      <div className={`flex items-center gap-2 p-2.5 rounded-lg ${sentimentBg[ta.overallSentiment] || 'bg-gray-50'}`}>
+                        <span className="text-lg">
+                          {ta.overallSentiment === 'positive' ? '\u{1F60A}' : ta.overallSentiment === 'neutral' ? '\u{1F610}' : ta.overallSentiment === 'negative' ? '\u{1F61F}' : '\u{1F621}'}
+                        </span>
+                        <div>
+                          <p className={`text-xs font-semibold capitalize ${sentimentColor[ta.overallSentiment] || ''}`}>
+                            {ta.overallSentiment}
+                          </p>
+                          <p className="text-[10px] text-text-muted">
+                            Trend: {ta.sentimentTrend} &middot; Score: {ta.avgSentimentScore.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      {ta.flagged && ta.flagReasons.length > 0 && (
+                        <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-red-50 text-xs text-red-700 font-medium">
+                          {ta.flagReasons[0]}
+                        </div>
+                      )}
+                      {ta.topics.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {ta.topics.slice(0, 5).map((t) => (
+                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-text-muted">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* User Journey */}
+                {contactProfile?.journey && (
+                  <div className="bg-white rounded-xl border border-border p-4">
+                    <h4 className="text-xs font-semibold text-text-dark mb-3">User Journey</h4>
+                    <div className="space-y-2">
+                      {/* Journey steps */}
+                      <div className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-[10px] text-blue-700 font-bold">1</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-medium text-text-dark">Landing Page</p>
+                          <p className="text-[10px] text-text-muted truncate max-w-[200px]">
+                            {contactProfile.journey.landing_page || 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-[10px] text-blue-700 font-bold">2</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-medium text-text-dark">
+                            Browsed {contactProfile.journey.pages_visited} pages
+                          </p>
+                          <p className="text-[10px] text-text-muted">
+                            {Math.round(contactProfile.journey.total_time / 60)}min total time
+                          </p>
+                        </div>
+                      </div>
+                      {contactProfile.journey.page_list.length > 0 && (
+                        <div className="ml-7 flex flex-wrap gap-1">
+                          {contactProfile.journey.page_list.map((p) => (
+                            <span key={p} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-text-muted truncate max-w-[120px]">
+                              {p.replace(/^https?:\/\/[^/]+/, '')}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {contactProfile.journey.cta_clicked && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-[10px] text-green-700 font-bold">3</span>
+                          </div>
+                          <p className="text-[11px] font-medium text-green-700">CTA Clicked</p>
+                        </div>
+                      )}
+                      {contactProfile.journey.form_submitted && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-[10px] text-gold-dark font-bold">{contactProfile.journey.cta_clicked ? '4' : '3'}</span>
+                          </div>
+                          <p className="text-[11px] font-medium text-gold-dark">Form Submitted</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Appointments */}
+                {contactProfile?.appointments && contactProfile.appointments.length > 0 && (
+                  <div className="bg-white rounded-xl border border-border p-4">
+                    <h4 className="text-xs font-semibold text-text-dark mb-2">Appointments</h4>
+                    <div className="space-y-2">
+                      {contactProfile.appointments.map((appt) => (
+                        <div key={appt.id} className="flex items-center justify-between p-2 rounded-lg bg-warm-white">
+                          <div>
+                            <p className="text-xs font-medium text-text-dark">{appt.treatment}</p>
+                            <p className="text-[10px] text-text-muted">
+                              {new Date(appt.date).toLocaleDateString()} {appt.time}
+                            </p>
+                          </div>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                            appt.status === 'confirmed' ? 'bg-green-50 text-green-700'
+                            : appt.status === 'cancelled' ? 'bg-red-50 text-red-600'
+                            : 'bg-amber-50 text-amber-700'
+                          }`}>
+                            {appt.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payments */}
+                {contactProfile?.payments && contactProfile.payments.length > 0 && (
+                  <div className="bg-white rounded-xl border border-border p-4">
+                    <h4 className="text-xs font-semibold text-text-dark mb-2">Payments</h4>
+                    <div className="space-y-2">
+                      {contactProfile.payments.map((pay) => (
+                        <div key={pay.id} className="flex items-center justify-between p-2 rounded-lg bg-warm-white">
+                          <div>
+                            <p className="text-xs font-medium text-text-dark">{pay.treatment}</p>
+                            <p className="text-[10px] text-text-muted">
+                              {new Date(pay.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <p className="text-xs font-semibold text-text-dark">
+                            {pay.currency} {Number(pay.amount).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Actions */}
+                <div className="bg-white rounded-xl border border-border p-4">
+                  <h4 className="text-xs font-semibold text-text-dark mb-3">Quick Actions</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {!contactProfile?.lead && !contactProfile?.client && (
+                      <button
+                        onClick={() => {
+                          setNewLeadName(selectedThread.contact_name || '');
+                          setNewLeadPhone(selectedThread.contact_phone || '');
+                          setShowCreateLead(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors"
+                      >
+                        <span>+</span> Create Lead
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowBooking(true)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gold/10 text-gold-dark text-xs font-medium hover:bg-gold/20 transition-colors"
+                    >
+                      <span>&#9654;</span> Book Appt
+                    </button>
+                    {contactProfile?.lead && (
+                      <a
+                        href={`/dashboard/leads?id=${contactProfile.lead.id}`}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        Open Lead
+                      </a>
+                    )}
+                    {contactProfile?.client && (
+                      <a
+                        href={`/dashboard/clients?id=${contactProfile.client.id}`}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        Open Client
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* ---- Booking Modal ---- */}
+      {showBooking && selectedThread && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 className="font-serif text-lg font-semibold text-text-dark mb-4">
+              Book Appointment
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-text-muted mb-1">Treatment</label>
+                <select
+                  value={bookingTreatment}
+                  onChange={(e) => setBookingTreatment(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold"
+                >
+                  <option value="">Select treatment...</option>
+                  <option value="HydraFacial">HydraFacial</option>
+                  <option value="Chemical Peel">Chemical Peel</option>
+                  <option value="Laser Hair Removal">Laser Hair Removal</option>
+                  <option value="Microneedling">Microneedling</option>
+                  <option value="PRP Therapy">PRP Therapy</option>
+                  <option value="Botox">Botox</option>
+                  <option value="Dermal Fillers">Dermal Fillers</option>
+                  <option value="Carbon Peel">Carbon Peel</option>
+                  <option value="BB Glow">BB Glow</option>
+                  <option value="Consultation">Consultation</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-muted mb-1">Date</label>
+                <input
+                  type="date"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-muted mb-1">Time</label>
+                <select
+                  value={bookingTime}
+                  onChange={(e) => setBookingTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold"
+                >
+                  <option value="">Select time...</option>
+                  {['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+                    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+                    '18:00', '18:30', '19:00'].map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                onClick={() => setShowBooking(false)}
+                className="px-4 py-2 text-sm text-text-muted hover:text-text-dark"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBookAppointment}
+                disabled={!bookingTreatment || !bookingDate}
+                className="px-5 py-2 bg-gold text-white text-sm font-medium rounded-lg disabled:opacity-50"
+              >
+                Book Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ---- Template Modal ---- */}
       {showTemplateModal && (

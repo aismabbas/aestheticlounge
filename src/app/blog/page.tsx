@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getPublishedPosts, BLOG_CATEGORIES } from '@/data/blog-posts';
 
@@ -59,10 +60,19 @@ export default function BlogPage() {
             className="group block mb-12 rounded-2xl border border-gold-pale bg-white overflow-hidden shadow-sm hover:shadow-md transition-all"
           >
             <div className="grid md:grid-cols-2">
-              <div className="aspect-[16/9] md:aspect-auto bg-gradient-to-br from-gold/10 to-gold/5 flex items-center justify-center">
-                <span className="text-6xl opacity-30 group-hover:opacity-50 transition-opacity">
-                  &#9830;
-                </span>
+              <div className="aspect-[16/9] md:aspect-auto relative bg-gradient-to-br from-gold/10 to-gold/5 min-h-[250px]">
+                {featured.featured_image ? (
+                  <Image
+                    src={featured.featured_image}
+                    alt={featured.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-6xl opacity-30">&#9830;</span>
+                  </div>
+                )}
               </div>
               <div className="p-8 flex flex-col justify-center">
                 <div className="flex items-center gap-3 mb-3">
@@ -105,10 +115,19 @@ export default function BlogPage() {
                 href={`/blog/${post.slug}`}
                 className="group rounded-2xl border border-gold-pale bg-white overflow-hidden shadow-sm hover:shadow-md hover:border-gold transition-all"
               >
-                <div className="aspect-[16/9] bg-gradient-to-br from-gold/10 to-gold/5 flex items-center justify-center">
-                  <span className="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">
-                    &#9830;
-                  </span>
+                <div className="aspect-[16/9] relative bg-gradient-to-br from-gold/10 to-gold/5 overflow-hidden">
+                  {post.featured_image ? (
+                    <Image
+                      src={post.featured_image}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-4xl opacity-20">&#9830;</span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-2">

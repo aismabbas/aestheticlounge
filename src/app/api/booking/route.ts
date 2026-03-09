@@ -38,8 +38,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate date and time format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (!dateRegex.test(body.date)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
+        { status: 400 },
+      );
+    }
+    if (!timeRegex.test(body.time)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid time format. Use HH:MM' },
+        { status: 400 },
+      );
+    }
+
     // Reject past dates
     const bookingDate = new Date(body.date + 'T00:00:00');
+    if (isNaN(bookingDate.getTime())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date' },
+        { status: 400 },
+      );
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (bookingDate < today) {

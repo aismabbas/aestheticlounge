@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPostBySlug, getPostsByCategory, sampleBlogPosts } from '@/data/blog-posts';
@@ -111,6 +112,21 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      {/* Featured Image */}
+      {post.featured_image && (
+        <div className="mx-auto max-w-4xl px-4 -mt-8 mb-8 sm:px-6">
+          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl shadow-lg">
+            <Image
+              src={post.featured_image}
+              alt={post.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <article className="mx-auto max-w-[720px] px-4 py-12 sm:px-6">

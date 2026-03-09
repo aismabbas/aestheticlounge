@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { checkAuth } from '@/lib/api-auth';
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const { id } = await params;
+    const result = await query(
+      'SELECT id, email, name, role, phone, active, created_at FROM al_staff WHERE id = $1',
+      [id],
+    );
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+    }
+    return NextResponse.json(result.rows[0]);
+  } catch (err) {
+    console.error('[dashboard/staff/[id]] GET error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

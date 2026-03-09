@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     if (existingLead.rows.length === 0) {
       const leadId = ulid();
       await query(
-        `INSERT INTO al_leads (id, name, phone, treatment, stage, utm_source, created_at)
+        `INSERT INTO al_leads (id, name, phone, treatment, stage, source, created_at)
          VALUES ($1, $2, $3, $4, 'booked', $5, NOW())`,
         [leadId, name, phone, treatment, source || 'dashboard'],
       );

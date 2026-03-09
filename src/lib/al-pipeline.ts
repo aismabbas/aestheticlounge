@@ -140,10 +140,10 @@ export async function saveChatMessage(
   content: string,
 ): Promise<void> {
   const sessionId = SESSION_KEYS[agent];
-  // message column is JSONB — pass object directly, pg driver handles serialization
+  // message column is JSONB — pass object directly, driver handles serialization
   await query(
-    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2::jsonb)`,
-    [sessionId, JSON.stringify({ role, content })],
+    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2)`,
+    [sessionId, JSON.stringify({ role, content: content.slice(0, 10000) })],
   );
 }
 
@@ -289,9 +289,9 @@ export async function callClaude(opts: {
     { role: 'user' as const, content: userMessage },
   ];
 
-  // 20s timeout to prevent Netlify function hang
+  // 45s timeout — Haiku responds in 5-15s, this is a safety net
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
+  const timeout = setTimeout(() => controller.abort(), 45000);
 
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',

@@ -157,7 +157,7 @@ export async function logDecision(
   result?: string,
 ): Promise<void> {
   await query(
-    `INSERT INTO al_decision_log (agent, action, decision, result, created_at)
+    `INSERT INTO al_decision_log (agent, action, reasoning, data, timestamp)
      VALUES ($1, $2, $3, $4, NOW())`,
     [agent, action, decision, result || null],
   );

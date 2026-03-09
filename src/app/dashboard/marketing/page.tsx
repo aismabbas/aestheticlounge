@@ -95,6 +95,7 @@ export default function MarketingStudioPage() {
   const [pipelineAction, setPipelineAction] = useState('orchestrate');
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineResult, setPipelineResult] = useState<Record<string, unknown> | null>(null);
+  const [pipelineSteps, setPipelineSteps] = useState<{ step: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string }[]>([]);
 
   const showFeedback = (text: string, type: 'success' | 'error') => {
     setFeedbackMsg({ text, type });
@@ -153,10 +154,42 @@ export default function MarketingStudioPage() {
     }
   }
 
-  // Pipeline trigger
+  // Pipeline trigger with streaming progress
   async function runPipeline() {
     setPipelineRunning(true);
     setPipelineResult(null);
+
+    // Set up progress steps based on action
+    const stepMap: Record<string, string[]> = {
+      orchestrate: ['Connecting to AI Engine', 'Loading agent memory', 'Analyzing trends & history', 'Picking topic & content type', 'Saving decision'],
+      research: ['Connecting to AI Engine', 'Loading researcher memory', 'Researching topic', 'Extracting insights', 'Saving research'],
+      write_content: ['Connecting to AI Engine', 'Loading copywriter memory', 'Writing copy & captions', 'Creating draft', 'Saving to queue'],
+      design: ['Connecting to AI Engine', 'Loading designer memory', 'Generating design brief', 'Creating image prompts', 'Updating draft'],
+      analyze: ['Connecting to AI Engine', 'Loading analyst memory', 'Analyzing performance data', 'Generating recommendations', 'Saving analysis'],
+    };
+    const steps = (stepMap[pipelineAction] || ['Processing...']).map((s) => ({ step: s, status: 'pending' as const }));
+    setPipelineSteps(steps);
+
+    // Animate steps with timed progression
+    let currentStep = 0;
+    const advanceStep = () => {
+      setPipelineSteps((prev) => prev.map((s, i) =>
+        i === currentStep ? { ...s, status: 'running' } :
+        i < currentStep ? { ...s, status: 'done' } : s
+      ));
+    };
+    advanceStep();
+
+    // Progress timer — advance steps at intervals to show activity
+    const stepInterval = setInterval(() => {
+      currentStep++;
+      if (currentStep < steps.length - 1) { // Leave last step for completion
+        advanceStep();
+      } else {
+        clearInterval(stepInterval);
+      }
+    }, 3000);
+
     try {
       const body: Record<string, unknown> = { action: pipelineAction };
       if (pipelineTopic) body.topic = pipelineTopic;
@@ -167,17 +200,33 @@ export default function MarketingStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      clearInterval(stepInterval);
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { error: `Non-JSON response (${res.status}): ${text.slice(0, 200)}` }; }
+
       if (data.success) {
+        // Mark all steps done
+        setPipelineSteps((prev) => prev.map((s) => ({ ...s, status: 'done' })));
         setPipelineResult(data);
         showFeedback(`Pipeline ${pipelineAction} completed`, 'success');
         fetchDrafts();
         fetchStatus();
       } else {
-        showFeedback(data.error || 'Pipeline failed', 'error');
+        // Mark current step as error
+        setPipelineSteps((prev) => prev.map((s, i) =>
+          s.status === 'running' ? { ...s, status: 'error', detail: data.error } :
+          i === prev.length - 1 && !prev.some((x) => x.status === 'running') ? { ...s, status: 'error', detail: data.error } : s
+        ));
+        showFeedback(data.error || `Pipeline failed (${res.status})`, 'error');
       }
-    } catch {
-      showFeedback('Pipeline request failed', 'error');
+    } catch (err) {
+      clearInterval(stepInterval);
+      setPipelineSteps((prev) => prev.map((s) =>
+        s.status === 'running' ? { ...s, status: 'error', detail: err instanceof Error ? err.message : 'Request failed' } : s
+      ));
+      showFeedback(`Pipeline request failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
     } finally {
       setPipelineRunning(false);
     }
@@ -347,6 +396,52 @@ export default function MarketingStudioPage() {
               >
                 {pipelineRunning ? 'Running...' : 'Run Pipeline'}
               </button>
+
+              {/* Pipeline progress */}
+              {pipelineSteps.length > 0 && (pipelineRunning || pipelineSteps.some((s) => s.status === 'error')) && (
+                <div className="mt-4 bg-warm-white rounded-lg p-4">
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${
+                        pipelineSteps.some((s) => s.status === 'error') ? 'bg-red-500' : 'bg-gold'
+                      }`}
+                      style={{ width: `${Math.max(5, (pipelineSteps.filter((s) => s.status === 'done').length / pipelineSteps.length) * 100)}%` }}
+                    />
+                  </div>
+                  {/* Step list */}
+                  <div className="space-y-2">
+                    {pipelineSteps.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2.5 text-xs">
+                        <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
+                          {s.status === 'done' && <span className="text-green-600 text-sm">&#10003;</span>}
+                          {s.status === 'running' && (
+                            <span className="w-3 h-3 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+                          )}
+                          {s.status === 'error' && <span className="text-red-500 text-sm">&#10007;</span>}
+                          {s.status === 'pending' && <span className="w-2 h-2 bg-gray-300 rounded-full" />}
+                        </span>
+                        <span className={
+                          s.status === 'done' ? 'text-green-700 font-medium' :
+                          s.status === 'running' ? 'text-gold font-medium' :
+                          s.status === 'error' ? 'text-red-600 font-medium' :
+                          'text-text-muted'
+                        }>
+                          {s.step}
+                        </span>
+                        {s.detail && <span className="text-red-500 ml-1">— {s.detail}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All steps done — show success */}
+              {pipelineSteps.length > 0 && !pipelineRunning && pipelineSteps.every((s) => s.status === 'done') && !pipelineResult && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-green-700 font-medium">
+                  <span>&#10003;</span> Pipeline completed successfully
+                </div>
+              )}
 
               {/* Pipeline result */}
               {pipelineResult && (

@@ -537,15 +537,19 @@ export default function MarketingStudioPage() {
                         <span className="text-[10px] text-text-muted uppercase">{draft.contentType}</span>
                         {draft.model && <span className="text-[10px] text-text-muted">by {draft.model}</span>}
                       </div>
-                      <h3 className="text-sm font-medium text-text-dark truncate">{draft.topic}</h3>
-                      {draft.headline && <p className="text-xs text-text-muted mt-0.5 truncate">{draft.headline}</p>}
+                      <h3 className="text-sm font-medium text-text-dark">{draft.topic}</h3>
+                      {draft.headline && (
+                        <p className="text-xs font-medium text-gold mt-1">{draft.headline}</p>
+                      )}
                       {draft.caption && (
-                        <p className="text-xs text-text-muted mt-1 line-clamp-2">{draft.caption.slice(0, 200)}</p>
+                        <div className="mt-2 bg-white/80 rounded-lg p-3 border border-black/5">
+                          <p className="text-xs text-text-dark whitespace-pre-line leading-relaxed">{draft.caption.slice(0, 500)}{draft.caption.length > 500 ? '...' : ''}</p>
+                        </div>
                       )}
                       {draft.imageUrl && (
                         <div className="mt-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={draft.imageUrl} alt="" className="h-20 rounded-md object-cover" />
+                          <img src={draft.imageUrl} alt="" className="h-24 rounded-md object-cover border border-border" />
                         </div>
                       )}
                     </div>

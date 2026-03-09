@@ -18,9 +18,9 @@ export async function GET() {
   let recentActivity: Record<string, unknown>[] = [];
   try {
     const result = await query(
-      `SELECT id, agent, action, decision, result, created_at
+      `SELECT id, agent, action, reasoning AS decision, data AS result, timestamp AS created_at
        FROM al_decision_log
-       ORDER BY created_at DESC
+       ORDER BY timestamp DESC
        LIMIT 15`,
     );
     recentActivity = result.rows;

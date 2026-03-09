@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         switch (action) {
           case 'orchestrate': {
             const mem = await loadAgentMemory('orchestrator');
-            const history = await loadChatHistory('orchestrator', 3);
+            const history = await loadChatHistory('orchestrator', 2);
 
             send({ type: 'step', step: 'Calling AI Engine' });
 
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
             }
 
             const mem = await loadAgentMemory('researcher');
-            const history = await loadChatHistory('researcher', 3);
+            const history = await loadChatHistory('researcher', 2);
 
             send({ type: 'step', step: 'Researching topic' });
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
             }
 
             const mem = await loadAgentMemory('copywriter');
-            const history = await loadChatHistory('copywriter', 3);
+            const history = await loadChatHistory('copywriter', 2);
             const ct = contentType || 'post';
 
             send({ type: 'step', step: 'Writing copy' });
@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
             }
 
             const mem = await loadAgentMemory('designer');
-            const history = await loadChatHistory('designer', 3);
+            const history = await loadChatHistory('designer', 2);
 
             send({ type: 'step', step: 'Preparing design brief' });
 
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
 
           case 'analyze': {
             const mem = await loadAgentMemory('analyst');
-            const history = await loadChatHistory('analyst', 3);
+            const history = await loadChatHistory('analyst', 2);
 
             send({ type: 'step', step: 'Analyzing performance' });
 

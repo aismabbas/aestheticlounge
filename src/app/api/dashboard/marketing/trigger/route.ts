@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: {"type":"step","step":"Loading agent memory"}\n\n`));
 
         const mem = await loadAgentMemory('orchestrator');
-        const history = await loadChatHistory('orchestrator', 3);
+        const history = await loadChatHistory('orchestrator', 2);
 
         controller.enqueue(encoder.encode(`data: {"type":"step","step":"Running AI pipeline"}\n\n`));
 

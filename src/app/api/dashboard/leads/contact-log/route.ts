@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { ulid } from '@/lib/ulid';
 import { checkAuth } from '@/lib/api-auth';
 
 export async function POST(req: NextRequest) {
@@ -53,9 +54,9 @@ export async function POST(req: NextRequest) {
       // First contact — record response time
       await query(
         `INSERT INTO al_lead_response_times
-          (lead_id, staff_id, lead_created_at, first_response_at, response_seconds, channel)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [lead_id, user.staffId, leadCreatedAt.toISOString(), now.toISOString(), responseSeconds, channel],
+          (id, lead_id, staff_id, lead_created_at, first_response_at, response_seconds, channel, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [ulid(), lead_id, user.staffId, leadCreatedAt.toISOString(), now.toISOString(), responseSeconds, channel],
       );
     }
 
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('[dashboard/leads/contact-log] error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

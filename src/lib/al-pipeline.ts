@@ -140,9 +140,9 @@ export async function saveChatMessage(
   content: string,
 ): Promise<void> {
   const sessionId = SESSION_KEYS[agent];
-  // message column is JSONB — pass object directly, driver handles serialization
+  // message column is JSONB — use ::jsonb cast for reliable type handling
   await query(
-    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2)`,
+    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2::jsonb)`,
     [sessionId, JSON.stringify({ role, content: content.slice(0, 10000) })],
   );
 }
@@ -173,7 +173,7 @@ export async function saveDraft(draft: PipelineDraft): Promise<string> {
     `INSERT INTO al_pipeline_drafts
      (id, stage, topic, content_type, caption, headline, design_approach,
       image_url, image_urls, template_params, reel_scenes, voiceover_text, model, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::jsonb, $12, $13, $14, $15)
      ON CONFLICT (id) DO UPDATE SET
        stage = EXCLUDED.stage,
        caption = COALESCE(EXCLUDED.caption, al_pipeline_drafts.caption),

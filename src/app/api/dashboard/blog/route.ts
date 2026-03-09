@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         content,
         author || 'Aesthetic Lounge Team',
         category || 'Skincare',
-        JSON.stringify(tags || []),
+        tags || [],
         featured_image || null,
         published || false,
         published_at || null,

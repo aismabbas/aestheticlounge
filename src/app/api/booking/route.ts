@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // Validate date and time format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    const timeRegex = /^\d{2}:\d{2}$/;
+    const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
     if (!dateRegex.test(body.date)) {
       return NextResponse.json(
         { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
     if (!timeRegex.test(body.time)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid time format. Use HH:MM' },
+        { success: false, error: 'Invalid time format. Use HH:MM (00:00-23:59)' },
         { status: 400 },
       );
     }

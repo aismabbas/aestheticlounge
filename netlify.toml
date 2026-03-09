@@ -2,5 +2,15 @@
   command = "npm run build"
   publish = ".next"
 
+[functions]
+  external_node_modules = ["@neondatabase/serverless"]
+
+# Increase timeout for AI pipeline routes (Claude API calls need > 10s)
+[functions."api/al/*"]
+  timeout = 60
+
+[functions."api/dashboard/marketing/*"]
+  timeout = 60
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"

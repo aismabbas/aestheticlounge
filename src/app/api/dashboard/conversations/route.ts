@@ -23,15 +23,14 @@ export async function GET(req: NextRequest) {
       );
 
       const name = messages.rows.length > 0 ? messages.rows[0].name : null;
-      const unread = messages.rows.filter((m: { read: boolean }) => !m.read).length;
       const lastMsg = messages.rows.length > 0 ? messages.rows[messages.rows.length - 1] : null;
 
       return NextResponse.json({
         threads: [{
           phone,
           name,
-          lastMessage: lastMsg?.content || lastMsg?.message || null,
-          unread,
+          lastMessage: lastMsg?.content || null,
+          unread: 0,
           messages: messages.rows,
         }],
       });
@@ -42,7 +41,7 @@ export async function GET(req: NextRequest) {
       `SELECT
          c.phone,
          l.name,
-         COUNT(*) FILTER (WHERE c.read = false) AS unread,
+         0 AS unread,
          MAX(c.created_at) AS last_message_at
        FROM al_conversations c
        LEFT JOIN al_leads l ON c.lead_id = l.id

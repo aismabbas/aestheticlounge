@@ -21,11 +21,30 @@ interface BookingPayload {
 
 export async function POST(req: NextRequest) {
   try {
-    const body: BookingPayload = await req.json();
+    let body: BookingPayload;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON body' },
+        { status: 400 },
+      );
+    }
 
     if (!body.name || !body.phone || !body.treatment || !body.date || !body.time) {
       return NextResponse.json(
         { success: false, error: 'name, phone, treatment, date, and time are required' },
+        { status: 400 },
+      );
+    }
+
+    // Reject past dates
+    const bookingDate = new Date(body.date + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (bookingDate < today) {
+      return NextResponse.json(
+        { success: false, error: 'Booking date cannot be in the past' },
         { status: 400 },
       );
     }

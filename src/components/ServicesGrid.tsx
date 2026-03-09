@@ -13,15 +13,15 @@ interface Service {
 const defaultServices: Service[] = [
   { icon: "\uD83D\uDC89", name: "Dermal Fillers", count: "8 treatments", slug: "dermal-fillers", featured: true, tall: true },
   { icon: "\u2728", name: "Botox & Anti-Wrinkle", count: "6 treatments", slug: "botox", wide: true },
-  { icon: "\uD83D\uDD2C", name: "Laser Treatments", count: "12 treatments", slug: "laser-treatments" },
-  { icon: "\uD83D\uDC8E", name: "Skin Rejuvenation", count: "10 treatments", slug: "skin-rejuvenation" },
+  { icon: "\uD83D\uDD2C", name: "Laser Hair Removal", count: "12 treatments", slug: "laser-hair-removal" },
+  { icon: "\uD83D\uDC8E", name: "Skin Booster", count: "10 treatments", slug: "skin-booster" },
   { icon: "\uD83E\uDDF4", name: "Chemical Peels", count: "5 treatments", slug: "chemical-peels" },
-  { icon: "\uD83D\uDC86", name: "HydraFacial", count: "3 treatments", slug: "hydrafacial", featured: true, wide: true },
-  { icon: "\uD83E\uDEA1", name: "Thread Lifts", count: "4 treatments", slug: "thread-lifts" },
-  { icon: "\uD83E\uDDB7", name: "Dental Aesthetics", count: "6 treatments", slug: "dental-aesthetics" },
-  { icon: "\uD83D\uDC87", name: "Hair Restoration", count: "5 treatments", slug: "hair-restoration" },
-  { icon: "\uD83C\uDFCB\uFE0F", name: "Body Contouring", count: "7 treatments", slug: "body-contouring" },
-  { icon: "\uD83C\uDF1F", name: "PRP Therapy", count: "4 treatments", slug: "prp-therapy" },
+  { icon: "\uD83D\uDC86", name: "HydraFacial", count: "3 treatments", slug: "keravive-hydrafacial", featured: true, wide: true },
+  { icon: "\uD83E\uDEA1", name: "Thread Lift", count: "4 treatments", slug: "thread-lift" },
+  { icon: "\uD83E\uDDB0", name: "Hair PRP", count: "5 treatments", slug: "hair-prp" },
+  { icon: "\uD83D\uDC87", name: "Hair Transplant", count: "3 treatments", slug: "hair-transplant" },
+  { icon: "\uD83C\uDFCB\uFE0F", name: "Body Contouring", count: "7 treatments", slug: "double-chin-treatment" },
+  { icon: "\uD83C\uDF1F", name: "PRP Facial", count: "4 treatments", slug: "prp-facial" },
 ];
 
 interface ServicesGridProps {

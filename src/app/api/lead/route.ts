@@ -23,7 +23,15 @@ interface LeadPayload {
 
 export async function POST(req: NextRequest) {
   try {
-    const body: LeadPayload = await req.json();
+    let body: LeadPayload;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON body' },
+        { status: 400 },
+      );
+    }
 
     if (!body.name || !body.phone) {
       return NextResponse.json(

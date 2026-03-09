@@ -67,7 +67,7 @@ export const metadata: Metadata = {
       "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "Aesthetic Lounge — Premium Medical Aesthetics",
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     title: "Aesthetic Lounge — Premium Medical Aesthetics in Lahore",
     description:
       "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
-    images: ["/og-image.jpg"],
+    images: ["/logo.png"],
   },
   robots: {
     index: true,

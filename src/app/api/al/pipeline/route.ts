@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         switch (action) {
           case 'orchestrate': {
             const mem = await loadAgentMemory('orchestrator');
-            const history = await loadChatHistory('orchestrator', 2);
+            const history: { role: 'user' | 'assistant'; content: string }[] = []; // skip history for speed
 
             send({ type: 'step', step: 'Calling AI Engine' });
 

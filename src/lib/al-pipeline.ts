@@ -289,6 +289,10 @@ export async function callClaude(opts: {
     { role: 'user' as const, content: userMessage },
   ];
 
+  // 20s timeout to prevent Netlify function hang
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
@@ -303,7 +307,8 @@ export async function callClaude(opts: {
       system: systemPrompt,
       messages,
     }),
-  });
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout));
 
   if (!res.ok) {
     const errText = await res.text();

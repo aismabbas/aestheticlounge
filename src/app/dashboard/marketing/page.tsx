@@ -154,41 +154,11 @@ export default function MarketingStudioPage() {
     }
   }
 
-  // Pipeline trigger with streaming progress
+  // Pipeline trigger with SSE streaming progress
   async function runPipeline() {
     setPipelineRunning(true);
     setPipelineResult(null);
-
-    // Set up progress steps based on action
-    const stepMap: Record<string, string[]> = {
-      orchestrate: ['Connecting to AI Engine', 'Loading agent memory', 'Analyzing trends & history', 'Picking topic & content type', 'Saving decision'],
-      research: ['Connecting to AI Engine', 'Loading researcher memory', 'Researching topic', 'Extracting insights', 'Saving research'],
-      write_content: ['Connecting to AI Engine', 'Loading copywriter memory', 'Writing copy & captions', 'Creating draft', 'Saving to queue'],
-      design: ['Connecting to AI Engine', 'Loading designer memory', 'Generating design brief', 'Creating image prompts', 'Updating draft'],
-      analyze: ['Connecting to AI Engine', 'Loading analyst memory', 'Analyzing performance data', 'Generating recommendations', 'Saving analysis'],
-    };
-    const steps = (stepMap[pipelineAction] || ['Processing...']).map((s) => ({ step: s, status: 'pending' as const }));
-    setPipelineSteps(steps);
-
-    // Animate steps with timed progression
-    let currentStep = 0;
-    const advanceStep = () => {
-      setPipelineSteps((prev) => prev.map((s, i) =>
-        i === currentStep ? { ...s, status: 'running' } :
-        i < currentStep ? { ...s, status: 'done' } : s
-      ));
-    };
-    advanceStep();
-
-    // Progress timer — advance steps at intervals to show activity
-    const stepInterval = setInterval(() => {
-      currentStep++;
-      if (currentStep < steps.length - 1) { // Leave last step for completion
-        advanceStep();
-      } else {
-        clearInterval(stepInterval);
-      }
-    }, 3000);
+    setPipelineSteps([{ step: 'Connecting to pipeline...', status: 'running' }]);
 
     try {
       const body: Record<string, unknown> = { action: pipelineAction };
@@ -200,31 +170,79 @@ export default function MarketingStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      clearInterval(stepInterval);
 
-      const text = await res.text();
-      let data;
-      try { data = JSON.parse(text); } catch { data = { error: `Non-JSON response (${res.status}): ${text.slice(0, 200)}` }; }
+      // Handle non-streaming error responses (401, 400)
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const data = await res.json();
+        if (!data.success && data.error) {
+          setPipelineSteps([{ step: data.error, status: 'error' }]);
+          showFeedback(data.error, 'error');
+          return;
+        }
+      }
 
-      if (data.success) {
-        // Mark all steps done
-        setPipelineSteps((prev) => prev.map((s) => ({ ...s, status: 'done' })));
-        setPipelineResult(data);
-        showFeedback(`Pipeline ${pipelineAction} completed`, 'success');
-        fetchDrafts();
-        fetchStatus();
-      } else {
-        // Mark current step as error
-        setPipelineSteps((prev) => prev.map((s, i) =>
-          s.status === 'running' ? { ...s, status: 'error', detail: data.error } :
-          i === prev.length - 1 && !prev.some((x) => x.status === 'running') ? { ...s, status: 'error', detail: data.error } : s
-        ));
-        showFeedback(data.error || `Pipeline failed (${res.status})`, 'error');
+      // Read SSE stream
+      const reader = res.body?.getReader();
+      if (!reader) {
+        showFeedback('No response stream', 'error');
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+
+            if (event.type === 'ping') continue; // keepalive, ignore
+
+            if (event.type === 'step') {
+              setPipelineSteps((prev) => {
+                const updated = prev.map((s) =>
+                  s.status === 'running' ? { ...s, status: 'done' as const } : s
+                );
+                return [...updated, { step: event.step, status: 'running' as const }];
+              });
+            }
+
+            if (event.type === 'result') {
+              if (event.success) {
+                setPipelineSteps((prev) =>
+                  prev.map((s) => ({ ...s, status: 'done' as const }))
+                );
+                setPipelineResult(event);
+                showFeedback(`Pipeline ${pipelineAction} completed`, 'success');
+                fetchDrafts();
+                fetchStatus();
+              } else {
+                setPipelineSteps((prev) => {
+                  const updated = prev.map((s) =>
+                    s.status === 'running'
+                      ? { ...s, status: 'error' as const, detail: event.error }
+                      : s
+                  );
+                  return updated;
+                });
+                showFeedback(event.error || 'Pipeline failed', 'error');
+              }
+            }
+          } catch { /* ignore parse errors */ }
+        }
       }
     } catch (err) {
-      clearInterval(stepInterval);
       setPipelineSteps((prev) => prev.map((s) =>
-        s.status === 'running' ? { ...s, status: 'error', detail: err instanceof Error ? err.message : 'Request failed' } : s
+        s.status === 'running' ? { ...s, status: 'error' as const, detail: err instanceof Error ? err.message : 'Request failed' } : s
       ));
       showFeedback(`Pipeline request failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
     } finally {

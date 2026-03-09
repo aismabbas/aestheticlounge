@@ -140,8 +140,9 @@ export async function saveChatMessage(
   content: string,
 ): Promise<void> {
   const sessionId = SESSION_KEYS[agent];
+  // message column is JSONB — pass object directly, pg driver handles serialization
   await query(
-    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2)`,
+    `INSERT INTO n8n_chat_histories (session_id, message) VALUES ($1, $2::jsonb)`,
     [sessionId, JSON.stringify({ role, content })],
   );
 }

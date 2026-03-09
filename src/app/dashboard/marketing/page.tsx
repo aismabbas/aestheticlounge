@@ -32,6 +32,11 @@ interface Draft {
   caption?: string;
   headline?: string;
   imageUrl?: string;
+  imageUrls?: string[];
+  videoUrl?: string;
+  voiceoverText?: string;
+  reelScenes?: { scene_number?: number; image_prompt?: string; motion_prompt?: string; duration_seconds?: number; image_url?: string; video_url?: string }[];
+  designApproach?: string;
   model?: string;
   createdAt: string;
   updatedAt: string;
@@ -546,10 +551,62 @@ export default function MarketingStudioPage() {
                           <p className="text-xs text-text-dark whitespace-pre-line leading-relaxed">{draft.caption.slice(0, 500)}{draft.caption.length > 500 ? '...' : ''}</p>
                         </div>
                       )}
+                      {/* Media preview — images, carousels, reels */}
                       {draft.imageUrl && (
                         <div className="mt-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={draft.imageUrl} alt="" className="h-24 rounded-md object-cover border border-border" />
+                          <img src={draft.imageUrl} alt={draft.topic} className="max-h-48 rounded-lg object-cover border border-border shadow-sm" />
+                        </div>
+                      )}
+                      {!draft.imageUrl && draft.imageUrls && draft.imageUrls.length > 0 && (
+                        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                          {draft.imageUrls.map((url, idx) => (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img key={idx} src={url} alt={`Slide ${idx + 1}`} className="h-32 rounded-lg object-cover border border-border shadow-sm shrink-0" />
+                          ))}
+                        </div>
+                      )}
+                      {draft.videoUrl && (
+                        <div className="mt-2">
+                          <video
+                            src={draft.videoUrl}
+                            controls
+                            className="max-h-64 rounded-lg border border-border shadow-sm w-full"
+                            preload="metadata"
+                          />
+                        </div>
+                      )}
+                      {draft.reelScenes && draft.reelScenes.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wide">Reel Scenes ({draft.reelScenes.length})</p>
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {draft.reelScenes.map((scene, idx) => (
+                              <div key={idx} className="shrink-0 w-32 rounded-lg border border-border bg-white/60 overflow-hidden">
+                                {scene.image_url ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img src={scene.image_url} alt={`Scene ${idx + 1}`} className="h-24 w-full object-cover" />
+                                ) : scene.video_url ? (
+                                  <video src={scene.video_url} controls className="h-24 w-full object-cover" preload="metadata" />
+                                ) : (
+                                  <div className="h-24 flex items-center justify-center bg-gray-100 text-xs text-text-muted">
+                                    Scene {scene.scene_number || idx + 1}
+                                  </div>
+                                )}
+                                <div className="px-2 py-1.5">
+                                  <p className="text-[10px] text-text-dark font-medium">Scene {scene.scene_number || idx + 1}</p>
+                                  {scene.duration_seconds && (
+                                    <p className="text-[9px] text-text-muted">{scene.duration_seconds}s</p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {draft.voiceoverText && (
+                        <div className="mt-2 bg-blue-50/50 rounded-lg p-2 border border-blue-100">
+                          <p className="text-[10px] font-medium text-blue-700 mb-1">Voiceover Script</p>
+                          <p className="text-xs text-text-dark leading-relaxed">{draft.voiceoverText}</p>
                         </div>
                       )}
                     </div>

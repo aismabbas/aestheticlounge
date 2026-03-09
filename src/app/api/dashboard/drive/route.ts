@@ -8,6 +8,7 @@ import {
   getModelImages,
   getBrandAssets,
   uploadFromUrl,
+  uploadPhoto,
   createDriveFolder,
 } from '@/lib/google-drive';
 
@@ -98,6 +99,17 @@ export async function POST(req: NextRequest) {
         const parentId = DRIVE_FOLDERS[parentFolder as DriveFolderKey] || parentFolder || DRIVE_FOLDERS.root;
         const result = await createDriveFolder(name, parentId);
         return NextResponse.json({ success: true, folder: result });
+      }
+
+      case 'upload': {
+        const { fileName, folder, fileData, mimeType } = body;
+        if (!fileName || !fileData) {
+          return NextResponse.json({ error: 'fileName and fileData (base64) required' }, { status: 400 });
+        }
+        const folderId = DRIVE_FOLDERS[folder as DriveFolderKey] || folder || DRIVE_FOLDERS.brand_assets;
+        const buffer = Buffer.from(fileData, 'base64');
+        const result = await uploadPhoto(folderId, fileName, buffer, mimeType || 'image/png');
+        return NextResponse.json({ success: true, file: result });
       }
 
       default:

@@ -56,7 +56,7 @@ const STUDIO_CARDS: StudioCard[] = [
   { icon: '\uD83D\uDCC5', title: 'Content Calendar', description: 'Upcoming scheduled posts', href: '/dashboard/marketing/calendar' },
   { icon: '\u270E', title: 'Blog', description: 'Blog posts for SEO and engagement', href: '/dashboard/marketing/blog' },
   { icon: '\uD83D\uDC64', title: 'Models', description: 'AI characters, photos, generation', href: '/dashboard/marketing/models' },
-  { icon: '\u2726', title: 'Brand Assets', description: 'Logos, palettes, fonts, templates', href: '#' },
+  { icon: '\u2726', title: 'Brand Assets', description: 'Logos, palettes, fonts, templates', href: '/dashboard/marketing/brand-assets' },
 ];
 
 // ---------------------------------------------------------------------------

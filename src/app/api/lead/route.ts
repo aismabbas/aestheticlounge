@@ -50,16 +50,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Sanitize inputs first, then validate
+    if (body.name) body.name = stripHtml(body.name).slice(0, 200);
+    if (body.phone) body.phone = body.phone.trim().slice(0, 30);
+
     if (!body.name || !body.phone) {
       return NextResponse.json(
         { success: false, error: 'name and phone are required' },
         { status: 400 },
       );
     }
-
-    // Sanitize and validate inputs
-    body.name = stripHtml(body.name).slice(0, 200);
-    body.phone = body.phone.trim().slice(0, 30);
     if (body.email) {
       body.email = body.email.trim().slice(0, 200);
       if (!EMAIL_REGEX.test(body.email)) {

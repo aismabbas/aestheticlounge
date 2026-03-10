@@ -49,17 +49,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Sanitize inputs first, then validate
+    if (body.name) body.name = stripHtml(body.name).slice(0, 200);
+    if (body.phone) body.phone = body.phone.trim().slice(0, 30);
+    if (body.treatment) body.treatment = stripHtml(body.treatment).slice(0, 200);
+
     if (!body.name || !body.phone || !body.treatment || !body.date || !body.time) {
       return NextResponse.json(
         { success: false, error: 'name, phone, treatment, date, and time are required' },
         { status: 400 },
       );
     }
-
-    // Sanitize inputs
-    body.name = stripHtml(body.name).slice(0, 200);
-    body.phone = body.phone.trim().slice(0, 30);
-    body.treatment = stripHtml(body.treatment).slice(0, 200);
     if (body.notes) body.notes = stripHtml(body.notes).slice(0, 2000);
     if (body.email) {
       body.email = body.email.trim().slice(0, 200);
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Reject past dates
+    // Reject past dates (use clinic timezone: Asia/Karachi, UTC+5)
     const bookingDate = new Date(body.date + 'T00:00:00');
     if (isNaN(bookingDate.getTime())) {
       return NextResponse.json(
@@ -95,8 +95,9 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get today's date in Lahore timezone
+    const lahoreNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' }));
+    const today = new Date(lahoreNow.getFullYear(), lahoreNow.getMonth(), lahoreNow.getDate());
     if (bookingDate < today) {
       return NextResponse.json(
         { success: false, error: 'Booking date cannot be in the past' },

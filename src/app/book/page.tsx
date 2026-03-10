@@ -263,6 +263,24 @@ export default function BookPage() {
           </Suspense>
         </div>
 
+        {/* Google Calendar Booking */}
+        <div className="mt-8 rounded-2xl border border-gold-pale bg-white p-6 text-center shadow-sm">
+          <p className="font-serif text-lg text-text-dark">
+            Book via Google Calendar
+          </p>
+          <p className="mt-1 text-sm text-text-muted">
+            See real-time availability and pick a slot instantly
+          </p>
+          <a
+            href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0zm6cRH5zH4dK55BKpwspj1Mi9s_4OTJ2iF5ktbu-JqnHMVuAnObNr_ZrDbkc45Ku86m9vS3d5"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-block rounded-full bg-gold px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-gold-dark"
+          >
+            View Available Slots
+          </a>
+        </div>
+
         {/* Alternative */}
         <div className="mt-8 text-center">
           <p className="text-sm text-text-muted">

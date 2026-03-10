@@ -4,6 +4,7 @@ import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
 import { getNextAssignee, assignLead } from '@/lib/lead-assignment';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { sendGA4Event } from '@/lib/ga4';
 
 interface LeadPayload {
   name: string;
@@ -124,6 +125,17 @@ export async function POST(req: NextRequest) {
         content_name: body.treatment || 'general_inquiry',
       },
     }).catch((err) => console.error('[lead] CAPI error:', err));
+
+    // Fire GA4 server-side event
+    sendGA4Event(body.fbp || leadId, [
+      {
+        name: 'generate_lead',
+        params: {
+          treatment: body.treatment || 'general_inquiry',
+          source: 'website',
+        },
+      },
+    ]).catch((err) => console.error('[lead] GA4 error:', err));
 
     return NextResponse.json({ success: true, leadId });
   } catch (err) {

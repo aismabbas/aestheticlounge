@@ -4,6 +4,7 @@ import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 import { createCalendarEvent } from '@/lib/google-calendar';
+import { sendGA4Event } from '@/lib/ga4';
 
 interface BookingPayload {
   name: string;
@@ -205,6 +206,20 @@ export async function POST(req: NextRequest) {
         content_name: body.treatment,
       },
     }).catch((err) => console.error('[booking] CAPI error:', err));
+
+    // Fire GA4 server-side event
+    const ga4ClientId = body.fbp || appointmentId; // use fbp cookie as client_id, or fallback
+    sendGA4Event(ga4ClientId, [
+      {
+        name: 'appointment_booked',
+        params: {
+          treatment: body.treatment,
+          appointment_date: body.date,
+          appointment_time: body.time,
+          source: 'website',
+        },
+      },
+    ]).catch((err) => console.error('[booking] GA4 error:', err));
 
     return NextResponse.json({ success: true, appointmentId });
   } catch (err) {

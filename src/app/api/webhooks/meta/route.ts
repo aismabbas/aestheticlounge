@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
@@ -83,12 +84,40 @@ interface MetaLeadData {
 }
 
 export async function POST(req: NextRequest) {
-  // Respond 200 immediately — Meta requires fast acknowledgement
-  // Process asynchronously via fire-and-forget
+  // 1. Verify X-Hub-Signature-256
+  const appSecret = process.env.META_APP_SECRET;
+  if (!appSecret) {
+    console.error('[meta-webhook] META_APP_SECRET not configured');
+    return new NextResponse('Server not configured', { status: 500 });
+  }
+
+  const signature = req.headers.get('x-hub-signature-256');
+  if (!signature) {
+    console.warn('[meta-webhook] Missing X-Hub-Signature-256 header');
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
+  const rawBody = await req.text();
+  const expectedSig =
+    'sha256=' +
+    createHmac('sha256', appSecret).update(rawBody).digest('hex');
+
+  const sigBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSig);
+
+  if (
+    sigBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(sigBuffer, expectedBuffer)
+  ) {
+    console.warn('[meta-webhook] Signature mismatch — rejecting request');
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
+  // 2. Parse verified body
   let payload: MetaWebhookPayload;
 
   try {
-    payload = await req.json();
+    payload = JSON.parse(rawBody);
   } catch {
     console.error('[meta-webhook] Invalid JSON body');
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });

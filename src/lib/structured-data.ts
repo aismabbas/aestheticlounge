@@ -6,8 +6,8 @@ const BUSINESS_INFO = {
   name: 'Aesthetic Lounge',
   alternateName: 'Aesthetic Lounge Official',
   url: BASE_URL,
-  logo: `${BASE_URL}/logo.png`,
-  image: `${BASE_URL}/logo.png`,
+  logo: 'https://aesthetic-lounge-dev.netlify.app/logo.png',
+  image: 'https://aesthetic-lounge-dev.netlify.app/logo.png',
   description:
     'Premium medical aesthetics clinic offering 80+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.',
   telephone: '+92-327-6620000',

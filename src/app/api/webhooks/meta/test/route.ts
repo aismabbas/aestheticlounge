@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       },
     }).catch((err) => console.error('[meta-webhook-test] CAPI error:', err));
 
-    console.log(`[meta-webhook-test] Created test lead ${leadId} (${body.name})`);
+    console.info(`[meta-webhook-test] Created test lead ${leadId}`);
 
     return NextResponse.json({ success: true, leadId });
   } catch (err) {

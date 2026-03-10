@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       [userId],
     );
 
-    console.log(`[data-deletion] Processed deletion for Meta user ${userId}, code: ${confirmationCode}`);
+    console.info(`[data-deletion] Processed deletion for Meta user ${userId}`);
 
     // Return the response format Meta expects
     const statusUrl = `https://aestheticloungeofficial.com/data-deletion?code=${confirmationCode}`;

@@ -100,8 +100,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Dev mode: OTP is stored in DB but not sent — log it for dev access
-    console.log(`[auth/login] DEV OTP for ${staff.email}: ${code}`);
+    // Dev mode: OTP is stored in DB but not sent — log for dev access only
+    if (process.env.NODE_ENV !== 'production') {
+      console.info(`[auth/login] DEV OTP for ${staff.email}: ${code}`);
+    }
 
     return NextResponse.json({
       success: true,

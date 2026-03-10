@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (mode === 'subscribe' && token === verifyToken) {
-    console.log('[meta-webhook] Verification successful');
+    console.info('[meta-webhook] Verification successful');
     // Meta expects the raw challenge value as plain text
     return new NextResponse(challenge, {
       status: 200,
@@ -151,7 +151,7 @@ async function processOneLead(event: MetaLeadValue, accessToken: string): Promis
   }
 
   const leadData: MetaLeadData = await res.json();
-  console.log(`[meta-webhook] Fetched lead ${event.leadgen_id}:`, JSON.stringify(leadData));
+  console.info(`[meta-webhook] Fetched lead ${event.leadgen_id}`);
 
   // 2. Extract form fields
   const fields = extractFields(leadData.field_data || []);
@@ -191,14 +191,14 @@ async function processOneLead(event: MetaLeadValue, accessToken: string): Promis
     ],
   );
 
-  console.log(`[meta-webhook] Inserted lead ${leadId} (${name})`);
+  console.info(`[meta-webhook] Inserted lead ${leadId}`);
 
   // 3b. Auto-assign to call center staff (round-robin)
   try {
     const staffId = await getNextAssignee();
     if (staffId) {
       await assignLead(leadId, staffId);
-      console.log(`[meta-webhook] Assigned lead ${leadId} to staff ${staffId}`);
+      console.info(`[meta-webhook] Assigned lead ${leadId} to staff ${staffId}`);
     }
   } catch (err) {
     console.error('[meta-webhook] auto-assign error:', err);

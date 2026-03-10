@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (mode === 'subscribe' && token === verifyToken) {
-    console.log('[inbox-webhook] Verification successful');
+    console.info('[inbox-webhook] Verification successful');
     return new NextResponse(challenge, {
       status: 200,
       headers: { 'Content-Type': 'text/plain' },

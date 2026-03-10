@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-
-interface Service {
-  id: string;
-  name: string;
-  category: string;
-  duration_min: number;
-  price_pkr: number;
-  price_display: string;
-}
+import { categories } from '@/data/services';
 
 interface Staff {
   id: string;
@@ -23,7 +15,6 @@ interface Staff {
 export default function NewAppointmentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -43,24 +34,13 @@ export default function NewAppointmentPage() {
   });
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/dashboard/services').then((r) => r.json()),
-      fetch('/api/dashboard/staff').then((r) => r.json()),
-    ]).then(([svcs, stf]) => {
-      setServices(Array.isArray(svcs) ? svcs : svcs.services || []);
-      setStaff((Array.isArray(stf) ? stf : stf.staff || []).filter((s: Staff) => s.active && s.role === 'doctor'));
-    });
+    fetch('/api/dashboard/staff')
+      .then((r) => r.json())
+      .then((stf) => {
+        setStaff((Array.isArray(stf) ? stf : stf.staff || []).filter((s: Staff) => s.active && s.role === 'doctor'));
+      })
+      .catch(() => {});
   }, []);
-
-  const handleTreatmentChange = (treatmentName: string) => {
-    const svc = services.find((s) => s.name === treatmentName);
-    setForm((prev) => ({
-      ...prev,
-      treatment: treatmentName,
-      duration_min: svc?.duration_min || 30,
-      price: svc?.price_pkr || 0,
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,17 +65,6 @@ export default function NewAppointmentPage() {
       setSubmitting(false);
     }
   };
-
-  // Group services by category
-  const servicesByCategory = services.reduce(
-    (acc, svc) => {
-      const cat = svc.category || 'Other';
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(svc);
-      return acc;
-    },
-    {} as Record<string, Service[]>,
-  );
 
   return (
     <div className="max-w-2xl">
@@ -153,15 +122,15 @@ export default function NewAppointmentPage() {
           <select
             required
             value={form.treatment}
-            onChange={(e) => handleTreatmentChange(e.target.value)}
+            onChange={(e) => setForm({ ...form, treatment: e.target.value })}
             className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:border-gold bg-white"
           >
             <option value="">Select treatment...</option>
-            {Object.entries(servicesByCategory).map(([cat, svcs]) => (
-              <optgroup key={cat} label={cat}>
-                {svcs.map((svc) => (
-                  <option key={svc.id} value={svc.name}>
-                    {svc.name} ({svc.duration_min}min - {svc.price_display || `PKR ${svc.price_pkr}`})
+            {categories.map((cat) => (
+              <optgroup key={cat.slug} label={cat.name}>
+                {cat.treatments.map((t) => (
+                  <option key={t.slug} value={t.name}>
+                    {t.name} — {t.priceDisplay}
                   </option>
                 ))}
               </optgroup>

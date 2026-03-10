@@ -92,6 +92,7 @@ export default function MarketingStudioPage() {
   const [draftFilter, setDraftFilter] = useState<string>('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
 
   // Pipeline trigger state
   const [showPipeline, setShowPipeline] = useState(false);
@@ -146,9 +147,23 @@ export default function MarketingStudioPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showFeedback(`${action.replace(/_/g, ' ')} completed`, 'success');
-        fetchDrafts();
-        fetchStatus();
+        // Capture generated images for preview selection
+        if (action === 'generate_image' && data.images?.length) {
+          setGeneratedImages((prev) => ({ ...prev, [draftId]: data.images }));
+          showFeedback(`${data.images.length} image(s) generated — pick one to approve`, 'success');
+        } else {
+          showFeedback(`${action.replace(/_/g, ' ')} completed`, 'success');
+          // Clear generated images if design was approved
+          if (action === 'approve_design') {
+            setGeneratedImages((prev) => {
+              const next = { ...prev };
+              delete next[draftId];
+              return next;
+            });
+          }
+          fetchDrafts();
+          fetchStatus();
+        }
       } else {
         showFeedback(data.error || 'Action failed', 'error');
       }
@@ -603,6 +618,36 @@ export default function MarketingStudioPage() {
                           </div>
                         </div>
                       )}
+                      {/* Generated image previews — pick one to approve */}
+                      {generatedImages[draft.id]?.length > 0 && draft.stage === 'pending_design' && (
+                        <div className="mt-3 bg-blue-50/50 rounded-lg p-3 border border-blue-200">
+                          <p className="text-[10px] font-medium text-blue-700 mb-2 uppercase tracking-wide">
+                            Select an image to approve
+                          </p>
+                          <div className="flex gap-3 overflow-x-auto pb-1">
+                            {generatedImages[draft.id].map((url, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleDraftAction(draft.id, 'approve_design', { imageUrl: url })}
+                                disabled={!!actionLoading}
+                                className="group shrink-0 rounded-lg overflow-hidden border-2 border-transparent hover:border-green-500 transition-all disabled:opacity-50 relative"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={url}
+                                  alt={`Option ${idx + 1}`}
+                                  className="h-48 w-auto rounded-lg object-cover"
+                                />
+                                <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/20 transition-colors flex items-center justify-center">
+                                  <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-green-600 px-3 py-1.5 rounded-full shadow transition-opacity">
+                                    Use This
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {draft.voiceoverText && (
                         <div className="mt-2 bg-blue-50/50 rounded-lg p-2 border border-blue-100">
                           <p className="text-[10px] font-medium text-blue-700 mb-1">Voiceover Script</p>
@@ -638,15 +683,17 @@ export default function MarketingStudioPage() {
                             disabled={!!actionLoading}
                             className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
                           >
-                            {isLoading('generate_image') ? '...' : 'Generate Image'}
+                            {isLoading('generate_image') ? '...' : generatedImages[draft.id]?.length ? 'Regenerate' : 'Generate Image'}
                           </button>
-                          <button
-                            onClick={() => handleDraftAction(draft.id, 'approve_design')}
-                            disabled={!!actionLoading}
-                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
-                          >
-                            {isLoading('approve_design') ? '...' : 'Approve Design'}
-                          </button>
+                          {!generatedImages[draft.id]?.length && (
+                            <button
+                              onClick={() => handleDraftAction(draft.id, 'approve_design')}
+                              disabled={!!actionLoading}
+                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                            >
+                              {isLoading('approve_design') ? '...' : 'Approve Design'}
+                            </button>
+                          )}
                         </>
                       )}
                       {draft.stage === 'pending_publish' && (

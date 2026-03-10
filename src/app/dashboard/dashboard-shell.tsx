@@ -10,9 +10,6 @@ import { hasAnyPermission, NAV_PERMISSIONS, ROLE_LABELS, type Role } from '@/lib
 
 const MARKETING_SUB_ITEMS = [
   { label: 'Studio',     href: '/dashboard/marketing' },
-  { label: 'Posts',       href: '/dashboard/marketing/posts' },
-  { label: 'Reels',      href: '/dashboard/marketing/reels' },
-  { label: 'Carousels',  href: '/dashboard/marketing/carousels' },
   { label: 'Videos',     href: '/dashboard/marketing/videos' },
   { label: 'Models',     href: '/dashboard/marketing/models' },
   { label: 'Calendar',   href: '/dashboard/marketing/calendar' },

@@ -46,16 +46,14 @@ const MODEL_DETAILS: Record<
 // With    ?detail=true  -> returns enriched models with Drive images
 
 export async function GET(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const detail = req.nextUrl.searchParams.get('detail') === 'true';
 
-  // Legacy: simple model list (no auth needed for internal pipeline use)
   if (!detail) {
     return NextResponse.json(MODELS);
   }
-
-  // Detail mode requires auth
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     // Fetch model sub-folders from Drive

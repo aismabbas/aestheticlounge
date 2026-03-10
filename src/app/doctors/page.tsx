@@ -27,12 +27,10 @@ export default function DoctorsPage() {
           {doctors.map((doc, i) => (
             <article
               key={doc.slug}
-              className={`grid gap-8 lg:grid-cols-3 items-start ${
-                i % 2 === 1 ? "lg:direction-rtl" : ""
-              }`}
+              className="grid gap-8 lg:grid-cols-3 items-start"
             >
               {/* Photo placeholder */}
-              <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-warm-white border border-gold-pale flex items-center justify-center">
+              <div className={`aspect-[3/4] overflow-hidden rounded-2xl bg-warm-white border border-gold-pale flex items-center justify-center ${i % 2 === 1 ? "lg:order-last" : ""}`}>
                 <div className="text-center text-text-muted">
                   <div className="text-6xl mb-3">
                     {doc.slug === "dr-zulfiqar" ? "👨‍⚕️" : "👩‍⚕️"}

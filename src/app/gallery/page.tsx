@@ -4,22 +4,22 @@ import { useState } from "react";
 import { categories } from "@/data/services";
 
 const galleryItems = [
-  { id: 1, category: "dermal-fillers", treatment: "Lip Fillers", label: "Lip Enhancement", slug: "lip-fillers", folder: "before-after" },
-  { id: 2, category: "dermal-fillers", treatment: "Cheek Fillers", label: "Cheek Contouring", slug: "cheek-fillers", folder: "gallery" },
-  { id: 3, category: "dermal-fillers", treatment: "Jawline Contouring", label: "Jawline Definition", slug: "jawline-contouring", folder: "gallery" },
-  { id: 4, category: "botox-anti-wrinkle", treatment: "Forehead Lines", label: "Forehead Smoothing", slug: "botox-forehead", folder: "before-after" },
-  { id: 5, category: "botox-anti-wrinkle", treatment: "Crow's Feet", label: "Eye Area Rejuvenation", slug: "crows-feet", folder: "gallery" },
-  { id: 6, category: "skin-rejuvenation", treatment: "HIFU Face Lift", label: "Non-Surgical Lift", slug: "hifu-facelift", folder: "gallery" },
-  { id: 7, category: "skin-rejuvenation", treatment: "Carbon Laser Facial", label: "Skin Glow", slug: "carbon-laser", folder: "gallery" },
-  { id: 8, category: "skin-rejuvenation", treatment: "Microneedling", label: "Texture Improvement", slug: "microneedling", folder: "gallery" },
-  { id: 9, category: "skin-rejuvenation", treatment: "Exosome Therapy", label: "Skin Regeneration", slug: "exosomes", folder: "before-after" },
-  { id: 10, category: "chemical-peels", treatment: "TCA Peel", label: "Pigmentation Correction", slug: "tca-peel", folder: "gallery" },
-  { id: 11, category: "chemical-peels", treatment: "Pigmentation", label: "Laser Pigmentation", slug: "pigmentation", folder: "before-after" },
-  { id: 12, category: "thread-lifts", treatment: "PDO Thread Lift", label: "Face Lift", slug: "pdo-thread-lift", folder: "gallery" },
-  { id: 13, category: "hydrafacial", treatment: "Deluxe HydraFacial", label: "Deep Hydration", slug: "hydrafacial", folder: "before-after" },
-  { id: 14, category: "hair-restoration", treatment: "PRP Hair Treatment", label: "Hair Regrowth", slug: "prp-hair", folder: "gallery" },
+  { id: 1, category: "face-lift-rejuvenation", treatment: "Lip Fillers", label: "Lip Enhancement", slug: "lip-fillers", folder: "before-after" },
+  { id: 2, category: "face-lift-rejuvenation", treatment: "Cheek Fillers", label: "Cheek Contouring", slug: "cheek-fillers", folder: "gallery" },
+  { id: 3, category: "face-lift-rejuvenation", treatment: "Jawline Contouring", label: "Jawline Definition", slug: "jawline-contouring", folder: "gallery" },
+  { id: 4, category: "face-lift-rejuvenation", treatment: "Forehead Lines", label: "Forehead Smoothing", slug: "botox-forehead", folder: "before-after" },
+  { id: 5, category: "face-lift-rejuvenation", treatment: "Crow's Feet", label: "Eye Area Rejuvenation", slug: "crows-feet", folder: "gallery" },
+  { id: 6, category: "non-surgical-treatments", treatment: "HIFU Face Lift", label: "Non-Surgical Lift", slug: "hifu-facelift", folder: "gallery" },
+  { id: 7, category: "laser-treatments", treatment: "Carbon Laser Facial", label: "Skin Glow", slug: "carbon-laser", folder: "gallery" },
+  { id: 8, category: "skin-treatments", treatment: "Microneedling", label: "Texture Improvement", slug: "microneedling", folder: "gallery" },
+  { id: 9, category: "skin-treatments", treatment: "Exosome Therapy", label: "Skin Regeneration", slug: "exosomes", folder: "before-after" },
+  { id: 10, category: "skin-treatments", treatment: "TCA Peel", label: "Pigmentation Correction", slug: "tca-peel", folder: "gallery" },
+  { id: 11, category: "skin-treatments", treatment: "Pigmentation", label: "Laser Pigmentation", slug: "pigmentation", folder: "before-after" },
+  { id: 12, category: "non-surgical-treatments", treatment: "PDO Thread Lift", label: "Face Lift", slug: "pdo-thread-lift", folder: "gallery" },
+  { id: 13, category: "medicated-facials", treatment: "Deluxe HydraFacial", label: "Deep Hydration", slug: "hydrafacial", folder: "before-after" },
+  { id: 14, category: "hair-treatments", treatment: "PRP Hair Treatment", label: "Hair Regrowth", slug: "prp-hair", folder: "gallery" },
   { id: 15, category: "body-contouring", treatment: "CoolSculpting", label: "Body Sculpting", slug: "coolsculpting", folder: "gallery" },
-  { id: 16, category: "chemical-peels", treatment: "Acne Scarring", label: "Acne Scar Treatment", slug: "acne-scarring", folder: "before-after" },
+  { id: 16, category: "skin-treatments", treatment: "Acne Scarring", label: "Acne Scar Treatment", slug: "acne-scarring", folder: "before-after" },
 ];
 
 export default function GalleryPage() {

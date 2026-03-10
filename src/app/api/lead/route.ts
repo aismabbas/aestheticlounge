@@ -21,6 +21,13 @@ interface LeadPayload {
   fbc?: string;
 }
 
+// Strip HTML tags to prevent stored XSS
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, '').trim();
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(req: NextRequest) {
   try {
     let body: LeadPayload;
@@ -39,6 +46,21 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+
+    // Sanitize and validate inputs
+    body.name = stripHtml(body.name).slice(0, 200);
+    body.phone = body.phone.trim().slice(0, 30);
+    if (body.email) {
+      body.email = body.email.trim().slice(0, 200);
+      if (!EMAIL_REGEX.test(body.email)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid email format' },
+          { status: 400 },
+        );
+      }
+    }
+    if (body.message) body.message = stripHtml(body.message).slice(0, 2000);
+    if (body.treatment) body.treatment = stripHtml(body.treatment).slice(0, 200);
 
     const leadId = ulid();
 

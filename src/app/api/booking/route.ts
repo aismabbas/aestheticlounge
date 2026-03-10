@@ -19,6 +19,14 @@ interface BookingPayload {
   fbc?: string;
 }
 
+// Strip HTML tags to prevent stored XSS
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, '').trim();
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_BOOKING_DAYS_AHEAD = 180; // 6 months
+
 export async function POST(req: NextRequest) {
   try {
     let body: BookingPayload;
@@ -36,6 +44,21 @@ export async function POST(req: NextRequest) {
         { success: false, error: 'name, phone, treatment, date, and time are required' },
         { status: 400 },
       );
+    }
+
+    // Sanitize inputs
+    body.name = stripHtml(body.name).slice(0, 200);
+    body.phone = body.phone.trim().slice(0, 30);
+    body.treatment = stripHtml(body.treatment).slice(0, 200);
+    if (body.notes) body.notes = stripHtml(body.notes).slice(0, 2000);
+    if (body.email) {
+      body.email = body.email.trim().slice(0, 200);
+      if (!EMAIL_REGEX.test(body.email)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid email format' },
+          { status: 400 },
+        );
+      }
     }
 
     // Validate date and time format
@@ -67,6 +90,14 @@ export async function POST(req: NextRequest) {
     if (bookingDate < today) {
       return NextResponse.json(
         { success: false, error: 'Booking date cannot be in the past' },
+        { status: 400 },
+      );
+    }
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + MAX_BOOKING_DAYS_AHEAD);
+    if (bookingDate > maxDate) {
+      return NextResponse.json(
+        { success: false, error: `Booking date cannot be more than ${MAX_BOOKING_DAYS_AHEAD} days in the future` },
         { status: 400 },
       );
     }

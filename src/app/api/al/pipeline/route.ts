@@ -57,45 +57,109 @@ export async function POST(req: NextRequest) {
 
         switch (action) {
           case 'orchestrate': {
-            const mem = await loadAgentMemory('orchestrator');
-            const history = await loadChatHistory('orchestrator', 2);
+            // Step 1: Orchestrator picks topic
+            const orchMem = await loadAgentMemory('orchestrator');
+            const orchHistory = await loadChatHistory('orchestrator', 2);
 
-            send({ type: 'step', step: 'Calling AI Engine' });
+            send({ type: 'step', step: 'Picking best topic' });
 
             const userMsg = topic
               ? `Create a new ${contentType || 'post'} about: ${topic}`
               : `Pick the best topic for today's Instagram content. Consider seasonal relevance, treatment rotation, and recent performance. Output JSON with: { "next_action": "research"|"write_content", "topic": "...", "content_type": "post"|"carousel"|"reel", "reasoning": "..." }`;
 
-            const response = await callClaude({
+            const orchResponse = await callClaude({
               agent: 'orchestrator',
               userMessage: userMsg,
-              systemPrompt: buildSystemPrompt(mem),
-              chatHistory: history,
+              systemPrompt: buildSystemPrompt(orchMem),
+              chatHistory: orchHistory,
               temperature: 0.2,
             });
 
-            send({ type: 'step', step: 'Saving decision' });
-
-            const parsed = parseJSON<{
+            const orchParsed = parseJSON<{
               next_action: string;
               topic: string;
               content_type: string;
               reasoning: string;
-            }>(response.text);
+            }>(orchResponse.text);
 
             await logDecision(
               'orchestrator',
               'orchestrate',
-              parsed?.reasoning || response.text.slice(0, 200),
-              JSON.stringify(parsed),
+              orchParsed?.reasoning || orchResponse.text.slice(0, 200),
+              JSON.stringify(orchParsed),
             );
+
+            const chosenTopic = orchParsed?.topic || topic || 'Instagram content';
+            const chosenType = orchParsed?.content_type || contentType || 'post';
+
+            // Step 2: Researcher gathers insights
+            send({ type: 'step', step: `Researching: ${chosenTopic.slice(0, 60)}` });
+
+            const resMem = await loadAgentMemory('researcher');
+            const resResponse = await callClaude({
+              agent: 'researcher',
+              userMessage: `Research this topic for an Instagram campaign: ${chosenTopic}\n\nGather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.\n\nOutput JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel" }`,
+              systemPrompt: buildSystemPrompt(resMem),
+              maxTokens: 4096,
+            });
+
+            const resParsed = parseJSON(resResponse.text);
+            await logDecision('researcher', 'research', `Researched: ${chosenTopic}`, JSON.stringify(resParsed));
+
+            // Step 3: Copywriter creates draft
+            send({ type: 'step', step: 'Writing copy' });
+
+            const copyMem = await loadAgentMemory('copywriter');
+            const copyResponse = await callClaude({
+              agent: 'copywriter',
+              userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}\n\nRESEARCH CONTEXT:\n${JSON.stringify(resParsed)}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${chosenType}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel),\n  "voiceover_text": "..." (if reel)\n}`,
+              systemPrompt: buildSystemPrompt(copyMem),
+              temperature: 0.5,
+            });
+
+            send({ type: 'step', step: 'Creating draft' });
+
+            const copyParsed = parseJSON<{
+              headline?: string;
+              instagram_caption?: string;
+              content_type?: string;
+              suggested_character?: string;
+              voiceover_text?: string;
+            }>(copyResponse.text);
+
+            const draftId = await generateDraftId();
+            await saveDraft({
+              id: draftId,
+              stage: 'pending_copy',
+              topic: chosenTopic,
+              contentType: copyParsed?.content_type || chosenType,
+              caption: copyParsed?.instagram_caption,
+              headline: copyParsed?.headline,
+              model: copyParsed?.suggested_character,
+              voiceoverText: copyParsed?.voiceover_text,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+
+            await logDecision('copywriter', 'write_content', `Draft created: ${chosenTopic}`, draftId);
 
             send({
               type: 'result',
               success: true,
               action: 'orchestrate',
-              result: parsed || { raw: response.text },
-              tokens: { input: response.inputTokens, output: response.outputTokens },
+              draftId,
+              result: {
+                topic: chosenTopic,
+                content_type: chosenType,
+                headline: copyParsed?.headline,
+                caption_preview: copyParsed?.instagram_caption?.slice(0, 200),
+                model: copyParsed?.suggested_character,
+                research: resParsed,
+              },
+              tokens: {
+                input: orchResponse.inputTokens + resResponse.inputTokens + copyResponse.inputTokens,
+                output: orchResponse.outputTokens + resResponse.outputTokens + copyResponse.outputTokens,
+              },
             });
             break;
           }

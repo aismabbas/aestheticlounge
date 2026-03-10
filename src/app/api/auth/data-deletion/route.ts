@@ -26,26 +26,31 @@ function parseSignedRequest(signedRequest: string): { user_id: string } | null {
   const [encodedSig, payload] = signedRequest.split('.');
   if (!encodedSig || !payload) return null;
 
-  // Decode signature
-  const sig = Buffer.from(encodedSig.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  try {
+    // Decode signature
+    const sig = Buffer.from(encodedSig.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
 
-  // Verify signature
-  const expectedSig = crypto
-    .createHmac('sha256', APP_SECRET)
-    .update(payload)
-    .digest();
+    // Verify signature
+    const expectedSig = crypto
+      .createHmac('sha256', APP_SECRET)
+      .update(payload)
+      .digest();
 
-  if (!crypto.timingSafeEqual(sig, expectedSig)) {
-    console.error('[data-deletion] Invalid signature');
+    if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(sig, expectedSig)) {
+      console.error('[data-deletion] Invalid signature');
+      return null;
+    }
+
+    // Decode payload
+    const decoded = JSON.parse(
+      Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'),
+    );
+
+    return decoded;
+  } catch {
+    console.error('[data-deletion] Failed to parse signed_request');
     return null;
   }
-
-  // Decode payload
-  const decoded = JSON.parse(
-    Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'),
-  );
-
-  return decoded;
 }
 
 export async function POST(req: NextRequest) {

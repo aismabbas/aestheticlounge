@@ -763,10 +763,16 @@ Write revised copy. Keep the same format. Output JSON:
                 voiceover_text?: string;
               }>(response.text);
 
+              // Enforce headline max 60 chars
+              let revisedHeadline = revised?.headline || draft.headline;
+              if (revisedHeadline && revisedHeadline.length > 60) {
+                revisedHeadline = revisedHeadline.slice(0, 57) + '...';
+              }
+
               if (revised) {
                 await saveDraft({
                   ...draft,
-                  headline: revised.headline || draft.headline,
+                  headline: revisedHeadline,
                   caption: revised.instagram_caption || draft.caption,
                   model: revised.suggested_character || draft.model,
                   voiceoverText: revised.voiceover_text || draft.voiceoverText,
@@ -781,7 +787,7 @@ Write revised copy. Keep the same format. Output JSON:
                 context: 'copy',
                 draftId: draftId3,
                 copy: {
-                  headline: revised?.headline || draft.headline,
+                  headline: revisedHeadline,
                   caption: revised?.instagram_caption || draft.caption,
                   character: revised?.suggested_character || draft.model,
                   voiceover: revised?.voiceover_text || draft.voiceoverText,

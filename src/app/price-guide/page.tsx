@@ -3,7 +3,7 @@ import Link from "next/link";
 import { categories } from "@/data/services";
 
 export const metadata: Metadata = {
-  title: "Price Guide | Aesthetic Lounge — DHA Phase 7, Lahore",
+  title: "Price Guide | Aesthetic Lounge — DHA Phase 8, Lahore",
   description:
     "Transparent pricing for all 80+ treatments at Aesthetic Lounge. View our complete price guide grouped by category — dermal fillers, Botox, laser, HydraFacial, and more.",
 };

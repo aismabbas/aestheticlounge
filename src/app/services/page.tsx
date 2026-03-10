@@ -3,8 +3,8 @@ import Link from "next/link";
 import { categories, treatmentCount } from "@/data/services";
 
 export const metadata: Metadata = {
-  title: "Our Services | Aesthetic Lounge — DHA Phase 7, Lahore",
-  description: `Explore ${treatmentCount}+ medical aesthetics treatments across ${categories.length} categories — from dermal fillers and Botox to laser treatments and body contouring. Aesthetic Lounge, DHA Phase 7, Lahore.`,
+  title: "Our Services | Aesthetic Lounge — DHA Phase 8, Lahore",
+  description: `Explore ${treatmentCount}+ medical aesthetics treatments across ${categories.length} categories — from dermal fillers and Botox to laser treatments and body contouring. Aesthetic Lounge, DHA Phase 8, Lahore.`,
 };
 
 export default function ServicesPage() {

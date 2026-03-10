@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { doctors } from "@/data/doctors";
 
 export const metadata: Metadata = {
-  title: "Our Doctors | Aesthetic Lounge — DHA Phase 7, Lahore",
+  title: "Our Doctors | Aesthetic Lounge — DHA Phase 8, Lahore",
   description:
     "Meet the experienced medical professionals behind Aesthetic Lounge. Our team of dermatologists, aesthetic surgeons, and cosmetic dentists are committed to delivering safe, beautiful results.",
 };

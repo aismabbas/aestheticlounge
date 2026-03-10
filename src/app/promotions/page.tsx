@@ -3,7 +3,7 @@ import Link from "next/link";
 import LiveAds from "./live-ads";
 
 export const metadata: Metadata = {
-  title: "Promotions & Special Offers | Aesthetic Lounge — DHA Phase 7, Lahore",
+  title: "Promotions & Special Offers | Aesthetic Lounge — DHA Phase 8, Lahore",
   description:
     "Exclusive deals on HydraFacial, laser hair removal, Botox, PRP, and more at Aesthetic Lounge, Lahore. Limited-time packages at unbeatable prices.",
 };

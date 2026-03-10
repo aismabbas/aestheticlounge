@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "About Us | Aesthetic Lounge — DHA Phase 7, Lahore",
+  title: "About Us | Aesthetic Lounge — DHA Phase 8, Lahore",
   description:
-    "Learn about Aesthetic Lounge — Lahore's premier medical aesthetics clinic in DHA Phase 7. Founded by Dr. Huma Abbas, we combine science, artistry, and luxury for transformative results.",
+    "Learn about Aesthetic Lounge — Lahore's premier medical aesthetics clinic in DHA Phase 8. Founded by Dr. Huma Abbas, we combine science, artistry, and luxury for transformative results.",
 };
 
 const values = [
@@ -39,7 +39,7 @@ const timeline = [
     year: "2018",
     title: "The Beginning",
     description:
-      "Dr. Huma Abbas opens Aesthetic Lounge in DHA Phase 7, Lahore with a vision to bring world-class aesthetic medicine to Pakistan.",
+      "Dr. Huma Abbas opens Aesthetic Lounge in DHA Phase 8, Lahore with a vision to bring world-class aesthetic medicine to Pakistan.",
   },
   {
     year: "2019",
@@ -94,7 +94,7 @@ export default function AboutPage() {
             available in international capitals.
           </p>
           <p>
-            Nestled in the heart of DHA Phase 7, our clinic combines clinical
+            Nestled in the heart of DHA Phase 8, our clinic combines clinical
             precision with a warm, luxurious environment where patients feel
             comfortable and cared for. Every treatment room is equipped with the
             latest medical technology, and every member of our team is trained to

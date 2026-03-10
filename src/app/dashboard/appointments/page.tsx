@@ -17,6 +17,7 @@ interface Appointment {
   status: string;
   price: number;
   notes: string;
+  calendar_event_id: string | null;
 }
 
 type ViewMode = 'day' | 'week' | 'month';
@@ -105,12 +106,30 @@ export default function AppointmentsPage() {
           <h1 className="font-serif text-2xl font-semibold text-text-dark">Appointments</h1>
           <p className="text-sm text-text-muted mt-1">{displayDate}</p>
         </div>
-        <Link
-          href="/dashboard/appointments/new"
-          className="px-5 py-2.5 bg-gold text-white text-sm font-medium rounded-lg hover:bg-gold-dark transition-colors"
-        >
-          + New Appointment
-        </Link>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0zm6cRH5zH4dK55BKpwspj1Mi9s_4OTJ2iF5ktbu-JqnHMVuAnObNr_ZrDbkc45Ku86m9vS3d5"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2.5 border border-gold text-gold text-sm font-medium rounded-lg hover:bg-gold hover:text-white transition-colors"
+          >
+            Google Booking Page
+          </a>
+          <a
+            href={`https://calendar.google.com/calendar/embed?src=${encodeURIComponent('aa65335da7b2748caac0f24d1c9d48e2914f5490807998d8e3253c9ee6755522@group.calendar.google.com')}&ctz=Asia/Karachi`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2.5 border border-border text-text-light text-sm font-medium rounded-lg hover:bg-warm-white transition-colors"
+          >
+            View Calendar
+          </a>
+          <Link
+            href="/dashboard/appointments/new"
+            className="px-5 py-2.5 bg-gold text-white text-sm font-medium rounded-lg hover:bg-gold-dark transition-colors"
+          >
+            + New Appointment
+          </Link>
+        </div>
       </div>
 
       {/* Controls */}
@@ -250,6 +269,13 @@ export default function AppointmentsPage() {
                 <option value="no_show">No Show</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+
+              {/* Calendar sync indicator */}
+              {apt.calendar_event_id && (
+                <span className="text-xs text-green-600 shrink-0" title="Synced to Google Calendar">
+                  📅
+                </span>
+              )}
 
               {/* Price */}
               {apt.price > 0 && (

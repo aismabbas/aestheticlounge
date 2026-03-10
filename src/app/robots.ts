@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
+        disallow: ['/dashboard', '/api'],
       },
     ],
     sitemap: 'https://aestheticloungeofficial.com/sitemap.xml',

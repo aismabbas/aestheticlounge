@@ -55,8 +55,13 @@ function parseSignedRequest(signedRequest: string): { user_id: string } | null {
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const signedRequest = formData.get('signed_request') as string;
+    let signedRequest: string | null = null;
+    try {
+      const formData = await req.formData();
+      signedRequest = formData.get('signed_request') as string;
+    } catch {
+      return NextResponse.json({ error: 'Missing signed_request' }, { status: 400 });
+    }
 
     if (!signedRequest) {
       return NextResponse.json({ error: 'Missing signed_request' }, { status: 400 });

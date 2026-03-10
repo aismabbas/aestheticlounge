@@ -35,9 +35,9 @@ npm run dev                  # http://localhost:3000
 - `/dashboard/appointments` — Calendar management
 - `/dashboard/marketing` — Marketing Studio (AI content pipeline)
 - `/dashboard/marketing/brand-assets` — Google Drive asset manager
-- `/dashboard/inbox` — Unified inbox (IG comments, WhatsApp)
+- `/dashboard/conversations` — Unified inbox (IG comments, WhatsApp)
 - `/dashboard/analytics` — Revenue, leads, GA4 data
-- `/dashboard/campaigns` — Meta ad campaign management
+- `/dashboard/ads` — Meta ad campaign management
 - `/dashboard/settings` — Staff management, RBAC
 
 ### API Routes

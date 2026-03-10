@@ -8,6 +8,20 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/privacy-policy',
+        destination: '/privacy',
+        permanent: true,
+      },
+      {
+        source: '/services/hydrafacial',
+        destination: '/services/keravive-hydrafacial',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

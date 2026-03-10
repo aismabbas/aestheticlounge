@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import PipelineWizard from './pipeline-wizard';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -42,28 +43,6 @@ interface Draft {
   updatedAt: string;
 }
 
-interface StudioCard {
-  icon: string;
-  title: string;
-  description: string;
-  href: string;
-}
-
-// ---------------------------------------------------------------------------
-// Cards
-// ---------------------------------------------------------------------------
-
-const STUDIO_CARDS: StudioCard[] = [
-  { icon: '\uD83C\uDFAC', title: 'Reels', description: 'AI-generated short videos for Instagram', href: '/dashboard/marketing/reels' },
-  { icon: '\uD83D\uDDBC', title: 'Carousels', description: 'Multi-slide posts with branded templates', href: '/dashboard/marketing/carousels' },
-  { icon: '\uD83D\uDCF9', title: 'Video Ads', description: 'Longer format video for paid campaigns', href: '/dashboard/marketing/videos' },
-  { icon: '\u25C8', title: 'Ad Campaigns', description: 'Manage active ad campaigns', href: '/dashboard/ads' },
-  { icon: '\uD83D\uDCC5', title: 'Content Calendar', description: 'Upcoming scheduled posts', href: '/dashboard/marketing/calendar' },
-  { icon: '\u270E', title: 'Blog', description: 'Blog posts for SEO and engagement', href: '/dashboard/marketing/blog' },
-  { icon: '\uD83D\uDC64', title: 'Models', description: 'AI characters, photos, generation', href: '/dashboard/marketing/models' },
-  { icon: '\u2726', title: 'Brand Assets', description: 'Logos, palettes, fonts, templates', href: '/dashboard/marketing/brand-assets' },
-];
-
 // ---------------------------------------------------------------------------
 // Stage labels & colors
 // ---------------------------------------------------------------------------
@@ -75,6 +54,14 @@ const STAGE_CONFIG: Record<string, { label: string; color: string; bg: string }>
   published: { label: 'Published', color: 'text-gray-600', bg: 'bg-gray-50 border-gray-200' },
   rejected: { label: 'Rejected', color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
 };
+
+// Utility links (non-content-creation pages that are still useful)
+const UTILITY_LINKS = [
+  { icon: '\u25C8', title: 'Ad Campaigns', description: 'Manage active ad campaigns', href: '/dashboard/ads' },
+  { icon: '\uD83D\uDCC5', title: 'Content Calendar', description: 'Upcoming scheduled posts', href: '/dashboard/marketing/calendar' },
+  { icon: '\uD83D\uDC64', title: 'Models', description: 'AI characters & photos', href: '/dashboard/marketing/models' },
+  { icon: '\u2726', title: 'Brand Assets', description: 'Logos, palettes, templates', href: '/dashboard/marketing/brand-assets' },
+];
 
 // ---------------------------------------------------------------------------
 // Component
@@ -94,14 +81,9 @@ export default function MarketingStudioPage() {
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
 
-  // Pipeline trigger state
-  const [showPipeline, setShowPipeline] = useState(false);
-  const [pipelineTopic, setPipelineTopic] = useState('');
-  const [pipelineContentType, setPipelineContentType] = useState('post');
-  const [pipelineAction, setPipelineAction] = useState('orchestrate');
-  const [pipelineRunning, setPipelineRunning] = useState(false);
-  const [pipelineResult, setPipelineResult] = useState<Record<string, unknown> | null>(null);
-  const [pipelineSteps, setPipelineSteps] = useState<{ step: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string }[]>([]);
+  // Wizard state
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardEntry, setWizardEntry] = useState<'auto' | 'research'>('auto');
 
   const showFeedback = (text: string, type: 'success' | 'error') => {
     setFeedbackMsg({ text, type });
@@ -136,7 +118,7 @@ export default function MarketingStudioPage() {
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
   useEffect(() => { fetchDrafts(); }, [fetchDrafts]);
 
-  // Draft actions
+  // Draft actions (for the queue below)
   async function handleDraftAction(draftId: string, action: string, params?: Record<string, unknown>) {
     setActionLoading(`${draftId}:${action}`);
     try {
@@ -147,13 +129,11 @@ export default function MarketingStudioPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Capture generated images for preview selection
         if (action === 'generate_image' && data.images?.length) {
           setGeneratedImages((prev) => ({ ...prev, [draftId]: data.images }));
           showFeedback(`${data.images.length} image(s) generated — pick one to approve`, 'success');
         } else {
           showFeedback(`${action.replace(/_/g, ' ')} completed`, 'success');
-          // Clear generated images if design was approved
           if (action === 'approve_design') {
             setGeneratedImages((prev) => {
               const next = { ...prev };
@@ -174,101 +154,10 @@ export default function MarketingStudioPage() {
     }
   }
 
-  // Pipeline trigger with SSE streaming progress
-  async function runPipeline() {
-    setPipelineRunning(true);
-    setPipelineResult(null);
-    setPipelineSteps([{ step: 'Connecting to pipeline...', status: 'running' }]);
-
-    try {
-      const body: Record<string, unknown> = { action: pipelineAction };
-      if (pipelineTopic) body.topic = pipelineTopic;
-      if (pipelineContentType) body.contentType = pipelineContentType;
-
-      const res = await fetch('/api/al/pipeline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      // Handle non-streaming error responses (401, 400)
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const data = await res.json();
-        if (!data.success && data.error) {
-          setPipelineSteps([{ step: data.error, status: 'error' }]);
-          showFeedback(data.error, 'error');
-          return;
-        }
-      }
-
-      // Read SSE stream
-      const reader = res.body?.getReader();
-      if (!reader) {
-        showFeedback('No response stream', 'error');
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-
-            if (event.type === 'ping') continue; // keepalive, ignore
-
-            if (event.type === 'step') {
-              setPipelineSteps((prev) => {
-                const updated = prev.map((s) =>
-                  s.status === 'running' ? { ...s, status: 'done' as const } : s
-                );
-                return [...updated, { step: event.step, status: 'running' as const }];
-              });
-            }
-
-            if (event.type === 'result') {
-              if (event.success) {
-                setPipelineSteps((prev) =>
-                  prev.map((s) => ({ ...s, status: 'done' as const }))
-                );
-                setPipelineResult(event);
-                showFeedback(`Pipeline ${pipelineAction} completed`, 'success');
-                fetchDrafts();
-                fetchStatus();
-              } else {
-                setPipelineSteps((prev) => {
-                  const updated = prev.map((s) =>
-                    s.status === 'running'
-                      ? { ...s, status: 'error' as const, detail: event.error }
-                      : s
-                  );
-                  return updated;
-                });
-                showFeedback(event.error || 'Pipeline failed', 'error');
-              }
-            }
-          } catch { /* ignore parse errors */ }
-        }
-      }
-    } catch (err) {
-      setPipelineSteps((prev) => prev.map((s) =>
-        s.status === 'running' ? { ...s, status: 'error' as const, detail: err instanceof Error ? err.message : 'Request failed' } : s
-      ));
-      showFeedback(`Pipeline request failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
-    } finally {
-      setPipelineRunning(false);
-    }
-  }
+  const openWizard = (entry: 'auto' | 'research') => {
+    setWizardEntry(entry);
+    setWizardOpen(true);
+  };
 
   const totalDrafts = Object.values(status.draftCounts).reduce((a, b) => a + b, 0);
   const pendingDrafts = (status.draftCounts.pending_copy || 0) +
@@ -277,11 +166,22 @@ export default function MarketingStudioPage() {
 
   return (
     <div>
+      {/* Wizard overlay */}
+      <PipelineWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        entryPoint={wizardEntry}
+        onComplete={() => {
+          fetchDrafts();
+          fetchStatus();
+        }}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-text-dark">Marketing Studio</h1>
-          <p className="text-sm text-text-muted mt-1">AI-powered content pipeline — create, review, and publish</p>
+          <p className="text-sm text-text-muted mt-1">Create posts, carousels, and reels — all in one place</p>
         </div>
         {pendingDrafts > 0 && (
           <span className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">
@@ -347,163 +247,43 @@ export default function MarketingStudioPage() {
         </div>
       )}
 
-      {/* Quick Actions + Pipeline Trigger */}
+      {/* Create Content — two big entry-point buttons */}
       {status.ready && (
-        <div className="bg-white rounded-xl border border-border p-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-text-dark">Quick Actions</h2>
-            <button
-              onClick={() => setShowPipeline(!showPipeline)}
-              className="text-xs text-gold hover:text-gold-dark font-medium"
-            >
-              {showPipeline ? 'Hide Pipeline' : 'Advanced Pipeline'}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Auto-Create Content', action: 'orchestrate', icon: '\u2728' },
-              { label: 'Research Topic', action: 'research', icon: '\uD83D\uDD0D' },
-              { label: 'Write Copy', action: 'write_content', icon: '\uD83D\uDCDD' },
-              { label: 'Analyze Performance', action: 'analyze', icon: '\uD83D\uDCC8' },
-            ].map((qa) => (
-              <button
-                key={qa.action}
-                onClick={() => {
-                  if (qa.action === 'orchestrate' || qa.action === 'analyze') {
-                    setPipelineAction(qa.action);
-                    runPipeline();
-                  } else {
-                    setPipelineAction(qa.action);
-                    setShowPipeline(true);
-                  }
-                }}
-                disabled={pipelineRunning}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-warm-white hover:bg-gold-pale text-text-dark hover:text-gold border border-border-light disabled:opacity-50"
-              >
-                <span className="mr-1.5">{qa.icon}</span>
-                {qa.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Advanced pipeline panel */}
-          {showPipeline && (
-            <div className="mt-4 pt-4 border-t border-border-light">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1">Action</label>
-                  <select
-                    value={pipelineAction}
-                    onChange={(e) => setPipelineAction(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white"
-                  >
-                    <option value="orchestrate">Orchestrate (auto-pick topic)</option>
-                    <option value="research">Research topic</option>
-                    <option value="write_content">Write copy</option>
-                    <option value="design">Design visuals</option>
-                    <option value="analyze">Analyze performance</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1">Topic</label>
-                  <input
-                    type="text"
-                    value={pipelineTopic}
-                    onChange={(e) => setPipelineTopic(e.target.value)}
-                    placeholder="e.g. Hydrafacial summer campaign"
-                    className="w-full px-3 py-2 text-sm border border-border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1">Content Type</label>
-                  <select
-                    value={pipelineContentType}
-                    onChange={(e) => setPipelineContentType(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white"
-                  >
-                    <option value="post">Post</option>
-                    <option value="carousel">Carousel</option>
-                    <option value="reel">Reel</option>
-                  </select>
-                </div>
-              </div>
-              <button
-                onClick={runPipeline}
-                disabled={pipelineRunning || (['research', 'write_content', 'design'].includes(pipelineAction) && !pipelineTopic)}
-                className="px-5 py-2 bg-gold text-white text-sm font-medium rounded-lg hover:bg-gold-dark transition-colors disabled:opacity-50"
-              >
-                {pipelineRunning ? 'Running...' : 'Run Pipeline'}
-              </button>
-
-              {/* Pipeline progress */}
-              {pipelineSteps.length > 0 && (pipelineRunning || pipelineSteps.some((s) => s.status === 'error')) && (
-                <div className="mt-4 bg-warm-white rounded-lg p-4">
-                  {/* Progress bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ease-out ${
-                        pipelineSteps.some((s) => s.status === 'error') ? 'bg-red-500' : 'bg-gold'
-                      }`}
-                      style={{ width: `${Math.max(5, (pipelineSteps.filter((s) => s.status === 'done').length / pipelineSteps.length) * 100)}%` }}
-                    />
-                  </div>
-                  {/* Step list */}
-                  <div className="space-y-2">
-                    {pipelineSteps.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2.5 text-xs">
-                        <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
-                          {s.status === 'done' && <span className="text-green-600 text-sm">&#10003;</span>}
-                          {s.status === 'running' && (
-                            <span className="w-3 h-3 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-                          )}
-                          {s.status === 'error' && <span className="text-red-500 text-sm">&#10007;</span>}
-                          {s.status === 'pending' && <span className="w-2 h-2 bg-gray-300 rounded-full" />}
-                        </span>
-                        <span className={
-                          s.status === 'done' ? 'text-green-700 font-medium' :
-                          s.status === 'running' ? 'text-gold font-medium' :
-                          s.status === 'error' ? 'text-red-600 font-medium' :
-                          'text-text-muted'
-                        }>
-                          {s.step}
-                        </span>
-                        {s.detail && <span className="text-red-500 ml-1">— {s.detail}</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* All steps done — show success */}
-              {pipelineSteps.length > 0 && !pipelineRunning && pipelineSteps.every((s) => s.status === 'done') && !pipelineResult && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-green-700 font-medium">
-                  <span>&#10003;</span> Pipeline completed successfully
-                </div>
-              )}
-
-              {/* Pipeline result */}
-              {pipelineResult && (
-                <div className="mt-3 bg-warm-white rounded-lg p-4 text-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-text-dark">Result</span>
-                    {pipelineResult.tokens != null && (
-                      <span className="text-text-muted">
-                        {String((pipelineResult.tokens as Record<string, number>).input)} in / {String((pipelineResult.tokens as Record<string, number>).output)} out tokens
-                      </span>
-                    )}
-                  </div>
-                  <pre className="whitespace-pre-wrap text-text-muted overflow-auto max-h-60">
-                    {JSON.stringify(pipelineResult.result, null, 2)}
-                  </pre>
-                  {pipelineResult.draftId != null && (
-                    <p className="mt-2 text-sm font-medium text-green-700">
-                      Draft created: {String(pipelineResult.draftId)}
-                    </p>
-                  )}
-                </div>
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <button
+            onClick={() => openWizard('auto')}
+            className="group text-left bg-white rounded-xl border-2 border-border hover:border-gold p-6 transition-all hover:shadow-md"
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gold/10 text-2xl group-hover:bg-gold/20 transition-colors mb-4">
+              <span className="gold-shimmer-text">{'\u2728'}</span>
             </div>
-          )}
+            <h3 className="font-serif text-lg font-semibold text-text-dark mb-1">Auto-Create Content</h3>
+            <p className="text-xs text-text-muted leading-relaxed">
+              AI researches trending topics, writes copy, generates images, and prepares a publish-ready post. Pick a topic and watch it happen.
+            </p>
+            <div className="flex gap-2 mt-3">
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gold/10 text-gold">Posts</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gold/10 text-gold">Carousels</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gold/10 text-gold">Reels</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => openWizard('research')}
+            className="group text-left bg-white rounded-xl border-2 border-border hover:border-gold p-6 transition-all hover:shadow-md"
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-2xl group-hover:bg-blue-100 transition-colors mb-4">
+              {'\uD83D\uDD0D'}
+            </div>
+            <h3 className="font-serif text-lg font-semibold text-text-dark mb-1">Research & Create</h3>
+            <p className="text-xs text-text-muted leading-relaxed">
+              Chat with AI to explore ideas. Describe what you want, get research-backed suggestions, then run the full pipeline on your chosen topic.
+            </p>
+            <div className="flex gap-2 mt-3">
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Chat with AI</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Custom topics</span>
+            </div>
+          </button>
         </div>
       )}
 
@@ -538,7 +318,7 @@ export default function MarketingStudioPage() {
         {drafts.length === 0 ? (
           <div className="text-center py-8 text-text-muted">
             <p className="text-sm">No drafts {draftFilter !== 'all' ? `in "${STAGE_CONFIG[draftFilter]?.label || draftFilter}"` : 'yet'}</p>
-            <p className="text-xs mt-1">Use Quick Actions above to generate content</p>
+            <p className="text-xs mt-1">Use the buttons above to create content</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -566,7 +346,7 @@ export default function MarketingStudioPage() {
                           <p className="text-xs text-text-dark whitespace-pre-line leading-relaxed">{draft.caption.slice(0, 500)}{draft.caption.length > 500 ? '...' : ''}</p>
                         </div>
                       )}
-                      {/* Media preview — images, carousels, reels */}
+                      {/* Media preview */}
                       {draft.imageUrl && (
                         <div className="mt-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -583,12 +363,7 @@ export default function MarketingStudioPage() {
                       )}
                       {draft.videoUrl && (
                         <div className="mt-2">
-                          <video
-                            src={draft.videoUrl}
-                            controls
-                            className="max-h-64 rounded-lg border border-border shadow-sm w-full"
-                            preload="metadata"
-                          />
+                          <video src={draft.videoUrl} controls className="max-h-64 rounded-lg border border-border shadow-sm w-full" preload="metadata" />
                         </div>
                       )}
                       {draft.reelScenes && draft.reelScenes.length > 0 && (
@@ -618,7 +393,7 @@ export default function MarketingStudioPage() {
                           </div>
                         </div>
                       )}
-                      {/* Generated image previews — pick one to approve */}
+                      {/* Generated image previews */}
                       {generatedImages[draft.id]?.length > 0 && draft.stage === 'pending_design' && (
                         <div className="mt-3 bg-blue-50/50 rounded-lg p-3 border border-blue-200">
                           <p className="text-[10px] font-medium text-blue-700 mb-2 uppercase tracking-wide">
@@ -633,11 +408,7 @@ export default function MarketingStudioPage() {
                                 className="group shrink-0 rounded-lg overflow-hidden border-2 border-transparent hover:border-green-500 transition-all disabled:opacity-50 relative"
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={url}
-                                  alt={`Option ${idx + 1}`}
-                                  className="h-48 w-auto rounded-lg object-cover"
-                                />
+                                <img src={url} alt={`Option ${idx + 1}`} className="h-48 w-auto rounded-lg object-cover" />
                                 <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/20 transition-colors flex items-center justify-center">
                                   <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-green-600 px-3 py-1.5 rounded-full shadow transition-opacity">
                                     Use This
@@ -729,19 +500,23 @@ export default function MarketingStudioPage() {
         )}
       </div>
 
-      {/* Studio cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {STUDIO_CARDS.map((card) => (
+      {/* Utility links (compact row) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {UTILITY_LINKS.map((link) => (
           <Link
-            key={card.title}
-            href={card.href}
-            className="group bg-white rounded-xl border border-border hover:border-gold/30 p-5 transition-all hover:shadow-sm"
+            key={link.title}
+            href={link.href}
+            className="group bg-white rounded-xl border border-border hover:border-gold/30 p-4 transition-all hover:shadow-sm"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-warm-white text-xl group-hover:bg-gold-pale transition-colors mb-3">
-              {card.icon}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-warm-white text-lg group-hover:bg-gold-pale transition-colors shrink-0">
+                {link.icon}
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs font-semibold text-text-dark">{link.title}</h3>
+                <p className="text-[10px] text-text-muted truncate">{link.description}</p>
+              </div>
             </div>
-            <h3 className="text-sm font-semibold text-text-dark mb-1">{card.title}</h3>
-            <p className="text-xs text-text-muted leading-relaxed">{card.description}</p>
           </Link>
         ))}
       </div>

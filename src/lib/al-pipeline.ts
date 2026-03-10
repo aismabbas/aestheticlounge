@@ -157,10 +157,21 @@ export async function logDecision(
   decision: string,
   result?: string,
 ): Promise<void> {
+  // data column is jsonb — ensure value is valid JSON or null
+  let jsonData: string | null = null;
+  if (result) {
+    try {
+      JSON.parse(result); // validate it's already JSON
+      jsonData = result;
+    } catch {
+      // Wrap plain strings as JSON string value
+      jsonData = JSON.stringify({ value: result });
+    }
+  }
   await query(
     `INSERT INTO al_decision_log (agent, action, reasoning, data, timestamp)
-     VALUES ($1, $2, $3, $4, NOW())`,
-    [agent, action, decision, result || null],
+     VALUES ($1, $2, $3, $4::jsonb, NOW())`,
+    [agent, action, decision, jsonData],
   );
 }
 
@@ -534,4 +545,148 @@ export type PipelineAction =
 
 export async function generateDraftId(): Promise<string> {
   return `draft_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ---------------------------------------------------------------------------
+// QA Validation — checks content against AL brand rules
+// ---------------------------------------------------------------------------
+
+export interface QACheck {
+  name: string;
+  passed: boolean;
+  detail: string;
+}
+
+export interface QAResult {
+  passed: boolean;
+  checks: QACheck[];
+}
+
+export function qaValidate(draft: PipelineDraft, imageUrls?: string[]): QAResult {
+  const checks: QACheck[] = [];
+  const caption = draft.caption || '';
+  const headline = draft.headline || '';
+
+  // Caption length (150-300 words)
+  const wordCount = caption.split(/\s+/).filter(Boolean).length;
+  checks.push({
+    name: 'Caption length',
+    passed: wordCount >= 100 && wordCount <= 400,
+    detail: `${wordCount} words (target: 150-300)`,
+  });
+
+  // Hook first line
+  const firstLine = caption.split('\n')[0] || '';
+  checks.push({
+    name: 'Hook first line',
+    passed: firstLine.length >= 10 && firstLine.length <= 150,
+    detail: firstLine.length >= 10 ? 'Hook present' : 'First line too short — needs a hook',
+  });
+
+  // CTA present
+  const ctaPatterns = /book|consult|dm|message|call|visit|click|link|schedule|appointment/i;
+  checks.push({
+    name: 'CTA present',
+    passed: ctaPatterns.test(caption),
+    detail: ctaPatterns.test(caption) ? 'CTA found' : 'No call-to-action detected',
+  });
+
+  // Medical disclaimer
+  const disclaimerPattern = /individual results may vary|results vary|consult.*medical|consult.*professional/i;
+  checks.push({
+    name: 'Medical disclaimer',
+    passed: disclaimerPattern.test(caption),
+    detail: disclaimerPattern.test(caption) ? 'Disclaimer present' : 'Missing: "Individual results may vary..."',
+  });
+
+  // No prices mentioned
+  const pricePattern = /\$\d|PKR\s*\d|Rs\.?\s*\d|\d+\s*PKR/i;
+  checks.push({
+    name: 'No prices',
+    passed: !pricePattern.test(caption),
+    detail: pricePattern.test(caption) ? 'Price found — remove from caption' : 'No prices mentioned',
+  });
+
+  // No competitor names
+  const competitorPattern = /cosmo|derma\s*life|skin\s*logics|glow\s*up\s*clinic/i;
+  checks.push({
+    name: 'No competitors',
+    passed: !competitorPattern.test(caption),
+    detail: !competitorPattern.test(caption) ? 'No competitor names' : 'Competitor name detected',
+  });
+
+  // Headline length
+  checks.push({
+    name: 'Headline length',
+    passed: headline.length > 0 && headline.length <= 60,
+    detail: headline.length === 0 ? 'No headline' : `${headline.length} chars (max 60)`,
+  });
+
+  // Content-type specific checks
+  if (draft.contentType === 'carousel') {
+    const slideCount = draft.imageUrls?.length || 0;
+    checks.push({
+      name: 'Carousel slides',
+      passed: slideCount >= 4,
+      detail: `${slideCount} slides (min 4)`,
+    });
+  }
+
+  if (draft.contentType === 'reel') {
+    const sceneCount = draft.reelScenes?.length || 0;
+    checks.push({
+      name: 'Reel scenes',
+      passed: sceneCount >= 3,
+      detail: `${sceneCount} scenes (min 3)`,
+    });
+    checks.push({
+      name: 'Voiceover present',
+      passed: !!draft.voiceoverText,
+      detail: draft.voiceoverText ? 'Voiceover script present' : 'Missing voiceover text',
+    });
+  }
+
+  // Image check
+  if (imageUrls && imageUrls.length > 0) {
+    checks.push({
+      name: 'Images available',
+      passed: true,
+      detail: `${imageUrls.length} image(s) ready`,
+    });
+  }
+
+  return {
+    passed: checks.every((c) => c.passed),
+    checks,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Facebook Publishing — direct Graph API
+// ---------------------------------------------------------------------------
+
+const FB_API = 'https://graph.facebook.com/v21.0';
+
+export async function publishToFacebook(opts: {
+  imageUrl: string;
+  caption: string;
+}): Promise<{ id: string }> {
+  const pageId = '470913939437743';
+  const accessToken = process.env.META_ACCESS_TOKEN;
+  if (!accessToken) {
+    throw new Error('META_ACCESS_TOKEN not configured');
+  }
+
+  const res = await fetch(
+    `${FB_API}/${pageId}/photos?url=${encodeURIComponent(opts.imageUrl)}&message=${encodeURIComponent(opts.caption)}&access_token=${accessToken}`,
+    { method: 'POST' },
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Facebook publish error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  return { id: data.id || data.post_id };
 }

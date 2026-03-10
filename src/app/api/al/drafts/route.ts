@@ -6,11 +6,13 @@ import {
   updateDraftStage,
   logDecision,
   publishToInstagram,
+  publishToFacebook,
   generateImage,
   loadAgentMemory,
   buildSystemPrompt,
   callClaude,
   parseJSON,
+  saveDraft as saveDraftFn,
 } from '@/lib/al-pipeline';
 
 /**
@@ -91,8 +93,7 @@ export async function POST(req: NextRequest) {
       case 'approve_design': {
         const imageUrl = body.params?.imageUrl;
         if (imageUrl) {
-          const { saveDraft } = await import('@/lib/al-pipeline');
-          await saveDraft({
+          await saveDraftFn({
             ...draft,
             imageUrl,
             stage: 'pending_publish',
@@ -137,11 +138,75 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, published: result });
       }
 
+      // Publish to Instagram + optionally Facebook
+      case 'publish_all': {
+        if (!draft.imageUrl && !draft.imageUrls?.length) {
+          return NextResponse.json({ error: 'No image to publish' }, { status: 400 });
+        }
+
+        const caption = draft.caption || draft.headline || draft.topic;
+        const results: Record<string, unknown> = {};
+
+        // Always publish to Instagram
+        let publishType: 'photo' | 'carousel' | 'reel' = 'photo';
+        if (draft.contentType === 'carousel' && draft.imageUrls?.length) {
+          publishType = 'carousel';
+        } else if (draft.contentType === 'reel') {
+          publishType = 'reel';
+        }
+
+        const igResult = await publishToInstagram({
+          type: publishType,
+          imageUrl: draft.imageUrl,
+          imageUrls: draft.imageUrls,
+          caption,
+        });
+        results.instagram = igResult;
+
+        // Optionally publish to Facebook
+        if (body.params?.facebook && draft.imageUrl) {
+          try {
+            const fbResult = await publishToFacebook({
+              imageUrl: draft.imageUrl,
+              caption,
+            });
+            results.facebook = fbResult;
+          } catch (fbErr) {
+            results.facebookError = fbErr instanceof Error ? fbErr.message : 'Facebook publish failed';
+          }
+        }
+
+        await updateDraftStage(draftId, 'published');
+        await logDecision(
+          'publisher',
+          'publish_all',
+          `Published ${publishType}: ${draft.topic}`,
+          JSON.stringify(results),
+        );
+
+        return NextResponse.json({ success: true, published: results });
+      }
+
       // Reject draft
       case 'reject': {
         await updateDraftStage(draftId, 'rejected');
         await logDecision('publisher', 'reject', `Rejected: ${draft.topic}`, body.params?.reason || '');
         return NextResponse.json({ success: true, stage: 'rejected' });
+      }
+
+      // Revise — update draft fields directly
+      case 'revise': {
+        const updates = body.params || {};
+        await saveDraftFn({
+          ...draft,
+          headline: updates.headline || draft.headline,
+          caption: updates.caption || draft.caption,
+          imageUrl: updates.imageUrl || draft.imageUrl,
+          model: updates.character || draft.model,
+          voiceoverText: updates.voiceover || draft.voiceoverText,
+          updatedAt: new Date().toISOString(),
+        });
+        return NextResponse.json({ success: true });
       }
 
       default:

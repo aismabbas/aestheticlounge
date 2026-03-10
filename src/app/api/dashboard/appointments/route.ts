@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
 import { checkAuth } from '@/lib/api-auth';
+import { createCalendarEvent } from '@/lib/google-calendar';
 
 export async function GET(req: NextRequest) {
   const user = await checkAuth();
@@ -95,6 +96,26 @@ export async function POST(req: NextRequest) {
         [treatment, phone],
       );
     }
+
+    // Sync to Google Calendar (fire-and-forget)
+    createCalendarEvent({
+      id: appointmentId,
+      name,
+      phone,
+      treatment,
+      doctor,
+      date,
+      time,
+      duration_min: duration_min || 30,
+      notes,
+    }).then(async (eventId) => {
+      if (eventId) {
+        await query(
+          `UPDATE al_appointments SET calendar_event_id = $1 WHERE id = $2`,
+          [eventId, appointmentId],
+        );
+      }
+    }).catch((err) => console.error('[dashboard/appointments] Calendar sync error:', err));
 
     return NextResponse.json({ appointment: result.rows[0] }, { status: 201 });
   } catch (err) {

@@ -3,6 +3,7 @@ import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { createCalendarEvent } from '@/lib/google-calendar';
 
 interface BookingPayload {
   name: string;
@@ -163,6 +164,24 @@ export async function POST(req: NextRequest) {
         body.notes || null,
       ],
     );
+
+    // Sync to Google Calendar (fire-and-forget)
+    createCalendarEvent({
+      id: appointmentId,
+      name: body.name,
+      phone: body.phone,
+      email: body.email,
+      treatment: body.treatment,
+      date: body.date,
+      time: body.time,
+    }).then(async (eventId) => {
+      if (eventId) {
+        await query(
+          `UPDATE al_appointments SET calendar_event_id = $1 WHERE id = $2`,
+          [eventId, appointmentId],
+        );
+      }
+    }).catch((err) => console.error('[booking] Calendar sync error:', err));
 
     // Fire Meta CAPI Schedule event
     const eventSourceUrl = req.headers.get('referer') || 'https://aestheticloungeofficial.com';

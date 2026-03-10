@@ -105,6 +105,7 @@ NEXTAUTH_URL=              # Site URL for NextAuth
 GOOGLE_SA_CLIENT_EMAIL=    # Google service account
 GOOGLE_SA_PRIVATE_KEY=     # Google service account key
 GOOGLE_SA_PROJECT_ID=      # Google Cloud project
+GOOGLE_CALENDAR_ID=        # Google Calendar ID for appointment sync
 ```
 
 ## Brand

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { allTreatments } from '@/data/services';
 import { getPublishedPosts } from '@/data/blog-posts';
+import { landingPages } from '@/data/landing-pages';
 
 export const dynamic = 'force-static';
 
@@ -16,6 +17,11 @@ const STATIC_PAGES = [
   '/contact',
   '/book',
   '/blog',
+  '/promotions',
+  '/social',
+  '/privacy',
+  '/terms',
+  '/feedback',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -42,5 +48,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...treatmentEntries, ...blogEntries];
+  const lpEntries: MetadataRoute.Sitemap = landingPages.map((lp) => ({
+    url: `${BASE_URL}/lp/${lp.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticEntries, ...treatmentEntries, ...blogEntries, ...lpEntries];
 }

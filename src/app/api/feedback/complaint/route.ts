@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -18,6 +19,11 @@ async function checkAuth() {
 
 // POST — public, no auth required
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req.headers);
+  if (isRateLimited(`complaint:${ip}`, 10 * 60_000, 3)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const { complaint, category, client_name, client_phone } = body;

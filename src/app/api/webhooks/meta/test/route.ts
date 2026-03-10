@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkAuth } from '@/lib/api-auth';
 import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
 
 /* ------------------------------------------------------------------ */
 /*  POST — Simulate a Meta lead form submission for testing            */
+/*  Requires staff auth to prevent abuse                               */
 /* ------------------------------------------------------------------ */
 
 interface TestLeadPayload {
@@ -19,6 +21,8 @@ interface TestLeadPayload {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body: TestLeadPayload = await req.json();
 

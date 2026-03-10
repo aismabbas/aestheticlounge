@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     description:
       'Expert insights on skincare, treatments, and beauty from Aesthetic Lounge Lahore.',
     type: 'website',
+    images: ['https://aesthetic-lounge-dev.netlify.app/logo.png'],
   },
 };
 

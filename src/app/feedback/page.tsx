@@ -129,10 +129,11 @@ export default function FeedbackPage() {
         >
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="fb-name" className="block text-sm font-medium text-text-dark mb-2">
               Your Name
             </label>
             <input
+              id="fb-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -143,10 +144,11 @@ export default function FeedbackPage() {
 
           {/* Treatment */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="fb-treatment" className="block text-sm font-medium text-text-dark mb-2">
               Treatment Received
             </label>
             <select
+              id="fb-treatment"
               value={treatment}
               onChange={(e) => setTreatment(e.target.value)}
               className="w-full rounded-lg border border-border bg-warm-white px-4 py-3 text-sm text-text-dark focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/30 transition-colors appearance-none"
@@ -202,10 +204,12 @@ export default function FeedbackPage() {
 
           {/* Feedback */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="fb-experience" className="block text-sm font-medium text-text-dark mb-2">
               How was your experience? <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="fb-experience"
+              aria-required="true"
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={4}
@@ -247,11 +251,12 @@ export default function FeedbackPage() {
 
           {/* Improvements */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="fb-improvements" className="block text-sm font-medium text-text-dark mb-2">
               What could we improve?{' '}
               <span className="text-text-muted font-normal">(optional)</span>
             </label>
             <textarea
+              id="fb-improvements"
               value={improvements}
               onChange={(e) => setImprovements(e.target.value)}
               rows={3}

@@ -121,11 +121,16 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${inter.variable} ${cormorant.variable} font-sans antialiased`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:text-sm">
+          Skip to content
+        </a>
         <MetaPixel />
         <GoogleAnalytics />
         <TrackingProvider>
           <PublicHeader />
-          {children}
+          <main id="main-content">
+            {children}
+          </main>
           <PublicFooter />
         </TrackingProvider>
         <CookieConsent />

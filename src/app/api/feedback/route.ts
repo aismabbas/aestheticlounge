@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
+import { ulid } from '@/lib/ulid';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -42,11 +43,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const id = ulid();
     const result = await query(
-      `INSERT INTO al_feedback (client_name, treatment, rating, feedback, would_recommend, improvements)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO al_feedback (id, client_name, treatment, rating, feedback, would_recommend, improvements)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id`,
       [
+        id,
         client_name || null,
         treatment || null,
         rating,

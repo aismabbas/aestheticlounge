@@ -65,27 +65,25 @@ export async function PATCH(
 
     const appointment = result.rows[0];
 
-    // Sync calendar event (fire-and-forget)
-    if (appointment.calendar_event_id) {
-      if (body.status === 'cancelled') {
-        deleteCalendarEvent(appointment.calendar_event_id).catch((err) =>
-          console.error('[appointments] Calendar delete error:', err),
-        );
-      } else if (body.date || body.time || body.doctor || body.status || body.duration_min || body.notes) {
-        updateCalendarEvent(appointment.calendar_event_id, appointment).catch((err) =>
-          console.error('[appointments] Calendar update error:', err),
-        );
-      }
-    } else if (!appointment.calendar_event_id && body.status !== 'cancelled') {
-      // No calendar event yet — create one
-      createCalendarEvent(appointment).then(async (eventId) => {
-        if (eventId) {
+    // Sync calendar event (awaited — Netlify kills background tasks after response)
+    try {
+      if (appointment.calendar_event_id) {
+        if (body.status === 'cancelled') {
+          await deleteCalendarEvent(appointment.calendar_event_id);
+        } else if (body.date || body.time || body.doctor || body.status || body.duration_min || body.notes) {
+          await updateCalendarEvent(appointment.calendar_event_id, appointment);
+        }
+      } else if (body.status !== 'cancelled') {
+        const calEventId = await createCalendarEvent(appointment);
+        if (calEventId) {
           await query(
             `UPDATE al_appointments SET calendar_event_id = $1 WHERE id = $2`,
-            [eventId, appointment.id],
+            [calEventId, appointment.id],
           );
         }
-      }).catch((err) => console.error('[appointments] Calendar create error:', err));
+      }
+    } catch (err) {
+      console.error('[appointments] Calendar sync error:', err);
     }
 
     // When status changes to 'completed', update lead and client records

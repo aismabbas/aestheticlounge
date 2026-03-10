@@ -97,25 +97,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Sync to Google Calendar (fire-and-forget)
-    createCalendarEvent({
-      id: appointmentId,
-      name,
-      phone,
-      treatment,
-      doctor,
-      date,
-      time,
-      duration_min: duration_min || 30,
-      notes,
-    }).then(async (eventId) => {
-      if (eventId) {
+    // Sync to Google Calendar (awaited — Netlify kills background tasks after response)
+    try {
+      const calEventId = await createCalendarEvent({
+        id: appointmentId,
+        name,
+        phone,
+        treatment,
+        doctor,
+        date,
+        time,
+        duration_min: duration_min || 30,
+        notes,
+      });
+      if (calEventId) {
         await query(
           `UPDATE al_appointments SET calendar_event_id = $1 WHERE id = $2`,
-          [eventId, appointmentId],
+          [calEventId, appointmentId],
         );
       }
-    }).catch((err) => console.error('[dashboard/appointments] Calendar sync error:', err));
+    } catch (err) {
+      console.error('[dashboard/appointments] Calendar sync error:', err);
+    }
 
     return NextResponse.json({ appointment: result.rows[0] }, { status: 201 });
   } catch (err) {

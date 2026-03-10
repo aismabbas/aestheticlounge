@@ -165,23 +165,26 @@ export async function POST(req: NextRequest) {
       ],
     );
 
-    // Sync to Google Calendar (fire-and-forget)
-    createCalendarEvent({
-      id: appointmentId,
-      name: body.name,
-      phone: body.phone,
-      email: body.email,
-      treatment: body.treatment,
-      date: body.date,
-      time: body.time,
-    }).then(async (eventId) => {
-      if (eventId) {
+    // Sync to Google Calendar (awaited — Netlify kills background tasks after response)
+    try {
+      const calEventId = await createCalendarEvent({
+        id: appointmentId,
+        name: body.name,
+        phone: body.phone,
+        email: body.email,
+        treatment: body.treatment,
+        date: body.date,
+        time: body.time,
+      });
+      if (calEventId) {
         await query(
           `UPDATE al_appointments SET calendar_event_id = $1 WHERE id = $2`,
-          [eventId, appointmentId],
+          [calEventId, appointmentId],
         );
       }
-    }).catch((err) => console.error('[booking] Calendar sync error:', err));
+    } catch (err) {
+      console.error('[booking] Calendar sync error:', err);
+    }
 
     // Fire Meta CAPI Schedule event
     const eventSourceUrl = req.headers.get('referer') || 'https://aestheticloungeofficial.com';

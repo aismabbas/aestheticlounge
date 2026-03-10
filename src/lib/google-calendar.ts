@@ -11,7 +11,7 @@
 
 import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
 
-const CALENDAR_ID = () => process.env.GOOGLE_CALENDAR_ID || 'primary';
+const CALENDAR_ID = () => process.env.GCAL_ID || process.env.GOOGLE_CALENDAR_ID || 'primary';
 const TIMEZONE = 'Asia/Karachi'; // Lahore clinic timezone
 
 // ── Auth ──────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ async function getAccessToken(): Promise<string | null> {
 // ── Helpers ───────────────────────────────────────────────────────
 
 export function isCalendarConfigured(): boolean {
-  return isGoogleConfigured() && !!process.env.GOOGLE_CALENDAR_ID;
+  return isGoogleConfigured() && !!(process.env.GCAL_ID || process.env.GOOGLE_CALENDAR_ID);
 }
 
 interface AppointmentData {

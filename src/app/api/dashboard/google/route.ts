@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkAuth } from '@/lib/api-auth';
 import {
   getConfigStatus,
   getLocationInfo,
@@ -8,6 +9,9 @@ import {
 } from '@/lib/google-business';
 
 export async function GET(req: NextRequest) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const status = getConfigStatus();
   if (!status.configured) {
     return NextResponse.json({ configured: false, missing: status.missing });
@@ -66,6 +70,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const status = getConfigStatus();
   if (!status.configured) {
     return NextResponse.json({ error: 'GBP not configured' }, { status: 400 });

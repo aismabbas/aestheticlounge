@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkAuth } from '@/lib/api-auth';
 import { getConfigStatus, listPosts, createPost } from '@/lib/google-business';
 
 export async function GET() {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const status = getConfigStatus();
   if (!status.configured) {
     return NextResponse.json({ configured: false, missing: status.missing });
@@ -17,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const status = getConfigStatus();
   if (!status.configured) {
     return NextResponse.json({ error: 'GBP not configured' }, { status: 400 });

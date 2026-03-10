@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkAuth } from '@/lib/api-auth';
 import {
   isGSCConfigured,
   getSearchPerformance,
@@ -13,6 +14,8 @@ import {
  * Returns search performance, daily data, top queries, top pages, sitemaps.
  */
 export async function GET(req: NextRequest) {
+  const user = await checkAuth();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!isGSCConfigured()) {
     return NextResponse.json({
       configured: false,

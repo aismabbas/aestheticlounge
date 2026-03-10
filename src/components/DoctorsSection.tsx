@@ -4,21 +4,18 @@ const doctors = [
     title: "Aesthetic Physician",
     bio: "Expert aesthetic physician specializing in advanced non-surgical treatments, facial rejuvenation, and personalized skincare solutions.",
     placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
-    socials: ["in", "ig"],
   },
   {
     name: "Dr. Zulfiqar",
     title: "Plastic Surgeon",
     bio: "Skilled plastic surgeon with expertise in facial contouring, body sculpting, and reconstructive aesthetic procedures.",
     placeholder: "\uD83D\uDC68\u200D\u2695\uFE0F",
-    socials: ["in", "ig"],
   },
   {
     name: "Dr. Zonera",
     title: "Dermatologist",
     bio: "Experienced dermatologist specializing in advanced skin treatments, laser therapies, and clinical skincare for all skin types.",
     placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
-    socials: ["in", "ig"],
   },
 ];
 
@@ -62,15 +59,15 @@ export default function DoctorsSection() {
                 </div>
                 <p className="text-sm leading-[1.7] text-text-light">{doc.bio}</p>
                 <div className="mt-4 flex gap-2">
-                  {doc.socials.map((s) => (
-                    <a
-                      key={s}
-                      href="#"
-                      className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border border-border text-sm transition-all hover:border-gold hover:bg-gold/5"
-                    >
-                      {s}
-                    </a>
-                  ))}
+                  <a
+                    href="https://instagram.com/aestheticloungeofficial/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${doc.name} on Instagram`}
+                    className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border border-border text-sm transition-all hover:border-gold hover:bg-gold/5"
+                  >
+                    ig
+                  </a>
                 </div>
               </div>
             </div>

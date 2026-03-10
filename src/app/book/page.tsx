@@ -114,6 +114,7 @@ function BookingForm() {
           id="book-date"
           name="date"
           required
+          min={new Date().toISOString().split('T')[0]}
           className="mt-1 w-full rounded-lg border border-gold-pale px-4 py-3 text-sm text-text-dark focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold"
         />
       </div>

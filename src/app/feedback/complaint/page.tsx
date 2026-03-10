@@ -122,10 +122,11 @@ export default function ComplaintPage() {
         >
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="complaint-category" className="block text-sm font-medium text-text-dark mb-2">
               Category <span className="text-red-500">*</span>
             </label>
             <select
+              id="complaint-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full rounded-lg border border-border bg-[#F8F7F4] px-4 py-3 text-sm text-text-dark focus:border-[#4A4A4A] focus:outline-none focus:ring-1 focus:ring-[#4A4A4A]/20 transition-colors appearance-none"
@@ -141,10 +142,11 @@ export default function ComplaintPage() {
 
           {/* Complaint */}
           <div>
-            <label className="block text-sm font-medium text-text-dark mb-2">
+            <label htmlFor="complaint-text" className="block text-sm font-medium text-text-dark mb-2">
               Describe your concern <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="complaint-text"
               value={complaint}
               onChange={(e) => setComplaint(e.target.value)}
               rows={5}
@@ -179,10 +181,11 @@ export default function ComplaintPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                <label htmlFor="complaint-name" className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                   Name
                 </label>
                 <input
+                  id="complaint-name"
                   type="text"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
@@ -191,10 +194,11 @@ export default function ComplaintPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                <label htmlFor="complaint-phone" className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                   Phone
                 </label>
                 <input
+                  id="complaint-phone"
                   type="tel"
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}

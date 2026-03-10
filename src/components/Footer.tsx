@@ -16,12 +16,12 @@ const quickLinks = [
 ];
 
 const topServices = [
-  "Dermal Fillers",
-  "Botox & Anti-Wrinkle",
-  "Laser Treatments",
-  "HydraFacial",
-  "Chemical Peels",
-  "Hair Restoration",
+  { label: "Dermal Fillers", href: "/services/dermal-fillers" },
+  { label: "Botox & Anti-Wrinkle", href: "/services/botox" },
+  { label: "Laser Hair Removal", href: "/services/laser-hair-removal" },
+  { label: "HydraFacial", href: "/services/keravive-hydrafacial" },
+  { label: "Chemical Peels", href: "/services/chemical-peels" },
+  { label: "Hair PRP", href: "/services/hair-prp" },
 ];
 
 const contactInfo = [
@@ -96,9 +96,9 @@ export default function Footer() {
             <h4 className="mb-6 font-serif text-[17px] font-semibold text-white">Top Services</h4>
             <ul className="space-y-3">
               {topServices.map((svc) => (
-                <li key={svc}>
-                  <a href="#" className="text-sm transition-colors hover:text-gold-light">
-                    {svc}
+                <li key={svc.label}>
+                  <a href={svc.href} className="text-sm transition-colors hover:text-gold-light">
+                    {svc.label}
                   </a>
                 </li>
               ))}

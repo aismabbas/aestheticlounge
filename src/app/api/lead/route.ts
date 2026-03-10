@@ -3,6 +3,7 @@ import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
 import { getNextAssignee, assignLead } from '@/lib/lead-assignment';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 interface LeadPayload {
   name: string;
@@ -29,6 +30,15 @@ function stripHtml(str: string): string {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 leads per IP per 5 minutes
+  const ip = getClientIp(req.headers);
+  if (isRateLimited(`lead:${ip}`, 5 * 60_000, 10)) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      { status: 429 },
+    );
+  }
+
   try {
     let body: LeadPayload;
     try {

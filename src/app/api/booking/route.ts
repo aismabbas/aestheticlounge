@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendCAPIEvent } from '@/lib/capi';
 import { ulid } from '@/lib/ulid';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 interface BookingPayload {
   name: string;
@@ -28,6 +29,15 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_BOOKING_DAYS_AHEAD = 180; // 6 months
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 bookings per IP per 10 minutes
+  const ip = getClientIp(req.headers);
+  if (isRateLimited(`booking:${ip}`, 10 * 60_000, 5)) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      { status: 429 },
+    );
+  }
+
   try {
     let body: BookingPayload;
     try {

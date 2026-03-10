@@ -19,7 +19,7 @@ const TABS: { label: string; value: FilterTab }[] = [
   { label: "All", value: "ALL" },
   { label: "Photos", value: "IMAGE" },
   { label: "Videos", value: "VIDEO" },
-  { label: "Reels", value: "CAROUSEL_ALBUM" },
+  { label: "Carousels", value: "CAROUSEL_ALBUM" },
 ];
 
 /* ---------- Icons ---------- */

@@ -47,16 +47,26 @@ export default function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden items-center gap-10 md:flex">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="nav-link text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
-            >
-              {link.label}
-            </a>
-          ))}
+        <nav aria-label="Main navigation" className="hidden items-center gap-10 md:flex">
+          {navLinks.map((link) =>
+            link.href.startsWith('/#') ? (
+              <a
+                key={link.href}
+                href={link.href}
+                className="nav-link text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="nav-link text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Book CTA */}
@@ -93,17 +103,28 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {mobileOpen && (
-        <nav className="absolute top-full left-0 right-0 flex flex-col gap-5 border-b border-border bg-white/98 px-8 py-6 backdrop-blur-xl md:hidden">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </a>
-          ))}
+        <nav aria-label="Mobile navigation" className="absolute top-full left-0 right-0 flex flex-col gap-5 border-b border-border bg-white/98 px-8 py-6 backdrop-blur-xl md:hidden">
+          {navLinks.map((link) =>
+            link.href.startsWith('/#') ? (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-[13px] font-medium uppercase tracking-[0.06em] text-text-light transition-colors hover:text-gold"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
+            )
+          )}
           <a
             href="/#book"
             className="gold-shimmer-bg mt-2 inline-block rounded-md px-7 py-3 text-center text-[13px] font-semibold uppercase tracking-[0.04em] text-white"

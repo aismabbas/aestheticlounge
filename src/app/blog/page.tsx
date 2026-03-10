@@ -47,7 +47,7 @@ export default function BlogPage() {
           {BLOG_CATEGORIES.map((cat) => (
             <span
               key={cat}
-              className="rounded-full bg-gold-pale px-4 py-1.5 text-xs font-medium text-text-dark cursor-pointer hover:bg-gold hover:text-white transition-colors"
+              className="rounded-full bg-gold-pale px-4 py-1.5 text-xs font-medium text-text-dark"
             >
               {cat}
             </span>

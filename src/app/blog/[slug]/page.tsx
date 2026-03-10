@@ -168,8 +168,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               Facebook
             </a>
             <button
-              onClick={undefined}
-              data-share-url={shareUrl}
+              onClick={() => {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                  const btn = document.querySelector('.copy-link-btn');
+                  if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000); }
+                });
+              }}
               className="copy-link-btn flex items-center gap-2 px-4 py-2 rounded-full border border-border text-text-dark text-sm hover:bg-warm-white transition-colors"
             >
               Copy Link

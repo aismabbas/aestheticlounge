@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       actionsExecuted: result.actionsExecuted,
       actionsFlagged: result.actionsFlagged,
       monthlySpent: result.monthlySpent,
+      syncError: result.syncError,
       budgetChange: {
         before: result.budgetBeforeCents,
         after: result.budgetAfterCents,

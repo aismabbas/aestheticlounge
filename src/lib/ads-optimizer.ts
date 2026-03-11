@@ -42,6 +42,7 @@ export interface OptimizerRun {
   budgetBeforeCents: number;
   budgetAfterCents: number;
   monthlySpent: number;
+  syncError: string | null;
   report: OptimizerAction[];
 }
 
@@ -383,16 +384,19 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
     [runId, startedAt, triggerSource],
   );
 
-  // Step 1: Sync latest data from Meta (non-fatal — continue even if sync fails)
+  // Step 1: Sync latest data from Meta
+  let syncError: string | null = null;
   try {
-    await syncFromMeta(query);
+    const syncResult = await syncFromMeta(query);
+    console.log(`[optimizer] Synced: ${syncResult.campaigns} campaigns, ${syncResult.adSets} ad sets, ${syncResult.ads} ads`);
   } catch (err) {
-    console.error('[optimizer] syncFromMeta failed (continuing):', err);
+    syncError = err instanceof Error ? err.message : String(err);
+    console.error('[optimizer] syncFromMeta FAILED:', syncError);
   }
   try {
     await syncPerformance(query);
   } catch (err) {
-    console.error('[optimizer] syncPerformance failed (continuing):', err);
+    console.error('[optimizer] syncPerformance failed:', err instanceof Error ? err.message : err);
   }
 
   // Step 2: Get budget snapshot
@@ -407,7 +411,7 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
   firstOfMonth.setDate(1);
   const { rows: monthlyRows } = await query(
     `SELECT COALESCE(SUM(spend), 0) AS total
-     FROM al_ad_performance WHERE meta_ad_id IS NULL AND date >= $1`,
+     FROM al_ad_performance WHERE date >= $1`,
     [firstOfMonth.toISOString().split('T')[0]],
   );
   const monthlySpent = parseFloat(monthlyRows[0]?.total as string) || 0;
@@ -564,6 +568,7 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
     budgetBeforeCents,
     budgetAfterCents,
     monthlySpent,
+    syncError,
     report: allActions,
   };
 }

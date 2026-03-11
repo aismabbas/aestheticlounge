@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import crypto from 'crypto';
 import { hasPermission, hasAnyPermission, type Permission, type Role } from './rbac';
 import { authOptions } from './next-auth';
 
@@ -33,13 +34,26 @@ export async function getSession(): Promise<StaffSession | null> {
     };
   }
 
-  // Fallback to legacy OTP cookie
+  // Fallback to legacy OTP cookie (HMAC-signed)
   const cookieStore = await cookies();
   const raw = cookieStore.get(COOKIE_NAME)?.value;
   if (!raw) return null;
 
   try {
-    const session: StaffSession = JSON.parse(raw);
+    // Verify HMAC signature
+    const parts = raw.split('.');
+    if (parts.length !== 2) return null;
+
+    const [b64, sig] = parts;
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret) return null;
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(b64).digest('base64url');
+    if (sig.length !== expectedSig.length) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) return null;
+
+    const json = Buffer.from(b64, 'base64url').toString();
+    const session: StaffSession = JSON.parse(json);
     if (!session.staffId || !session.exp) return null;
     if (Date.now() > session.exp) return null;
     return session;

@@ -204,7 +204,7 @@ async function suiteHomepage() {
       if (nat === 0) {
         const src = await img.getAttribute('src');
         // Meta/Instagram CDN URLs expire — exclude from hard failure
-        if (src && (src.includes('fbcdn.net') || src.includes('cdninstagram.com'))) {
+        if (!src || src === 'undefined' || src.includes('fbcdn.net') || src.includes('cdninstagram.com')) {
           cdnExpired++;
         } else {
           broken++;

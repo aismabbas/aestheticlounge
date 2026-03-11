@@ -33,7 +33,9 @@ export async function PATCH(req: NextRequest) {
     const booleanKeys = ['optimizer_enabled', 'auto_execute_tier1', 'auto_execute_tier2'];
 
     for (const [key, value] of Object.entries(updates)) {
-      if (!allowedKeys.includes(key)) continue;
+      if (!allowedKeys.includes(key)) {
+        return NextResponse.json({ error: `Invalid config key: ${key}` }, { status: 400 });
+      }
       if (numericKeys.includes(key) && (isNaN(Number(value)) || Number(value) < 0)) {
         return NextResponse.json({ error: `Invalid numeric value for ${key}` }, { status: 400 });
       }

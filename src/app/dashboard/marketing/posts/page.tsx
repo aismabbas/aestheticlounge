@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 
 // ---------------------------------------------------------------------------
@@ -20,14 +20,6 @@ interface Draft {
   updatedAt: string;
 }
 
-interface PipelineResult {
-  success: boolean;
-  action: string;
-  draftId?: string;
-  result?: Record<string, unknown>;
-  tokens?: { input: number; output: number };
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -43,7 +35,13 @@ export default function PostsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [topic, setTopic] = useState('');
   const [creating, setCreating] = useState(false);
-  const [createResult, setCreateResult] = useState<PipelineResult | null>(null);
+  const [createResult, setCreateResult] = useState<{ draftId?: string; result?: Record<string, unknown> } | null>(null);
+
+  // Image upload
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showFeedback = (text: string, type: 'success' | 'error') => {
     setFeedback({ text, type });
@@ -57,7 +55,6 @@ export default function PostsPage() {
         fetch('/api/al/drafts?stage=').then((r) => r.json()).catch(() => ({ drafts: [] })),
       ]);
       setReady(statusRes?.ready === true);
-      // Filter to post-type drafts
       const allDrafts: Draft[] = draftsRes?.drafts ?? [];
       setDrafts(allDrafts.filter((d) => d.contentType === 'post' || !d.contentType));
     } catch { /* silent */ } finally {
@@ -67,13 +64,82 @@ export default function PostsPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  async function createPost(auto: boolean) {
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showFeedback('Please select an image file', 'error');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showFeedback('Image must be under 10MB', 'error');
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  async function uploadImageToDrive(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
+    );
+
+    const res = await fetch('/api/dashboard/drive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'upload',
+        fileName: `post-${Date.now()}-${file.name}`,
+        fileData: base64,
+        mimeType: file.type,
+        folder: 'brand_assets',
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Upload failed');
+
+    // Use direct Google Drive image URL for Instagram publishing
+    return `https://lh3.googleusercontent.com/d/${data.file.fileId}=w1080`;
+  }
+
+  async function createPost() {
+    if (!topic) return;
     setCreating(true);
     setCreateResult(null);
+
     try {
-      const body: Record<string, unknown> = auto
-        ? { action: 'orchestrate' }
-        : { action: 'write_content', topic, contentType: 'post' };
+      let imageUrl: string | undefined;
+
+      // Upload image first if provided
+      if (imageFile) {
+        setUploading(true);
+        try {
+          imageUrl = await uploadImageToDrive(imageFile);
+        } catch (err) {
+          showFeedback(`Image upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+          return;
+        } finally {
+          setUploading(false);
+        }
+      }
+
+      // Call pipeline to generate copy
+      const body: Record<string, unknown> = {
+        action: 'write_content',
+        topic,
+        contentType: 'post',
+        ...(imageUrl && { params: { imageUrl } }),
+      };
 
       const res = await fetch('/api/al/pipeline', {
         method: 'POST',
@@ -83,7 +149,12 @@ export default function PostsPage() {
       const data = await res.json();
       if (data.success) {
         setCreateResult(data);
-        showFeedback(data.draftId ? `Draft created: ${data.draftId}` : 'Pipeline completed', 'success');
+        const msg = imageUrl
+          ? `Post draft ready to publish (image attached)`
+          : `Draft created — add an image next`;
+        showFeedback(data.draftId ? msg : 'Pipeline completed', 'success');
+        clearImage();
+        setTopic('');
         fetchData();
       } else {
         showFeedback(data.error || 'Failed', 'error');
@@ -138,21 +209,12 @@ export default function PostsPage() {
         </div>
         <div className="flex gap-2">
           {ready && (
-            <>
-              <button
-                onClick={() => createPost(true)}
-                disabled={creating}
-                className="px-4 py-2.5 bg-warm-white hover:bg-gold-pale text-text-dark text-sm font-medium rounded-lg border border-border-light transition-colors disabled:opacity-50"
-              >
-                {creating ? 'Working...' : 'Auto-Create Post'}
-              </button>
-              <button
-                onClick={() => setShowCreate(!showCreate)}
-                className="px-5 py-2.5 bg-gold hover:bg-gold/90 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                + New Post
-              </button>
-            </>
+            <button
+              onClick={() => setShowCreate(!showCreate)}
+              className="px-5 py-2.5 bg-gold hover:bg-gold/90 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              + New Post
+            </button>
           )}
           {!ready && !loading && (
             <span className="px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
@@ -173,13 +235,12 @@ export default function PostsPage() {
 
       {/* Pipeline steps */}
       <div className="bg-white rounded-xl border border-border p-6 mb-6">
-        <h2 className="text-sm font-semibold text-text-dark mb-4">Post Pipeline</h2>
+        <h2 className="text-sm font-semibold text-text-dark mb-4">How It Works</h2>
         <div className="flex items-start gap-2 overflow-x-auto pb-2">
           {[
-            { label: 'Topic', icon: '\uD83D\uDCA1', desc: 'Choose topic or let AI pick' },
-            { label: 'Copy', icon: '\u270D\uFE0F', desc: 'AI writes caption + hashtags' },
-            { label: 'Design', icon: '\uD83C\uDFA8', desc: 'Generate image with AI' },
-            { label: 'Review', icon: '\uD83D\uDC41', desc: 'Approve before publishing' },
+            { label: 'Upload', icon: '\uD83D\uDCF7', desc: 'Upload your image' },
+            { label: 'Describe', icon: '\u270D\uFE0F', desc: 'Tell AI what to write' },
+            { label: 'Review', icon: '\uD83D\uDC41', desc: 'Approve the caption' },
             { label: 'Publish', icon: '\uD83D\uDE80', desc: 'Post to Instagram' },
           ].map((step, i, arr) => (
             <div key={step.label} className="flex items-start">
@@ -206,28 +267,64 @@ export default function PostsPage() {
       {showCreate && (
         <div className="bg-white rounded-xl border border-border p-6 mb-6">
           <h2 className="text-sm font-semibold text-text-dark mb-4">Create New Post</h2>
+
+          {/* Image upload */}
           <div className="mb-4">
-            <label className="block text-xs font-medium text-text-muted mb-1.5">Topic</label>
+            <label className="block text-xs font-medium text-text-muted mb-1.5">Image</label>
+            {imagePreview ? (
+              <div className="relative inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imagePreview} alt="Preview" className="h-48 rounded-lg object-cover border border-border" />
+                <button
+                  onClick={clearImage}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center hover:bg-black/80"
+                >
+                  X
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-gold hover:bg-gold-pale/30 transition-colors"
+              >
+                <span className="text-3xl block mb-2">{'\uD83D\uDCF7'}</span>
+                <span className="text-sm text-text-muted">Click to upload image</span>
+                <span className="text-[10px] text-text-muted block mt-1">JPG, PNG, WebP up to 10MB</span>
+              </button>
+            )}
             <input
-              type="text"
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </div>
+
+          {/* Topic/prompt */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-text-muted mb-1.5">What should AI write about?</label>
+            <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g. Hydrafacial glow package, Laser hair removal summer prep"
-              className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+              placeholder="e.g. Hydrafacial glow results, laser hair removal summer prep, Botox for a youthful look..."
+              rows={3}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
             />
             <p className="text-[10px] text-text-muted mt-1">
-              The copywriter agent will research this topic and write an Instagram caption with proper disclaimers, hashtags, and CTA.
+              AI will write an Instagram caption in Aesthetic Lounge&apos;s brand voice with proper disclaimers, hashtags, and CTA.
             </p>
           </div>
+
           <div className="flex gap-2">
             <button
-              onClick={() => createPost(false)}
+              onClick={createPost}
               disabled={creating || !topic}
               className="px-5 py-2 bg-gold hover:bg-gold/90 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
-              {creating ? 'Writing...' : 'Generate Copy'}
+              {uploading ? 'Uploading image...' : creating ? 'Writing caption...' : imageFile ? 'Upload & Generate Caption' : 'Generate Caption'}
             </button>
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-text-muted hover:text-text-dark text-sm">
+            <button onClick={() => { setShowCreate(false); clearImage(); }} className="px-4 py-2 text-text-muted hover:text-text-dark text-sm">
               Cancel
             </button>
           </div>
@@ -329,7 +426,7 @@ export default function PostsPage() {
           <p className="text-lg font-medium text-text-dark">No post drafts yet</p>
           <p className="text-sm text-text-muted mt-2 max-w-md mx-auto">
             {ready
-              ? 'Auto-create a post or pick a topic. The AI pipeline handles research, copy, design, and publishing.'
+              ? 'Upload an image and describe what you want — AI writes the caption in Aesthetic Lounge\'s brand voice.'
               : 'Set ANTHROPIC_API_KEY and FAL_KEY to enable the AI pipeline.'}
           </p>
         </div>

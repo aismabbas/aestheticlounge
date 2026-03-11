@@ -294,9 +294,9 @@ export default function MarketingStudioPage() {
         </div>
       )}
 
-      {/* Manual Upload — Posts, Reels, Carousels */}
+      {/* Manual Upload — Posts & Carousels */}
       <div className="mb-6">
-        <h2 className="text-sm font-semibold text-text-dark mb-3">Manual Upload</h2>
+        <h2 className="text-sm font-semibold text-text-dark mb-3">Create Content</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             href="/dashboard/marketing/posts"
@@ -307,21 +307,18 @@ export default function MarketingStudioPage() {
             <p className="text-xs text-text-muted mt-1">Upload your image, AI writes the caption</p>
           </Link>
           <Link
-            href="/dashboard/marketing/reels"
-            className="group bg-white rounded-xl border border-border hover:border-gold p-5 transition-all hover:shadow-sm"
-          >
-            <div className="text-2xl mb-2">{'\uD83C\uDFAC'}</div>
-            <h3 className="text-sm font-semibold text-text-dark group-hover:text-gold transition-colors">Reel</h3>
-            <p className="text-xs text-text-muted mt-1">Upload your video, AI writes the script & captions</p>
-          </Link>
-          <Link
             href="/dashboard/marketing/carousels"
             className="group bg-white rounded-xl border border-border hover:border-gold p-5 transition-all hover:shadow-sm"
           >
             <div className="text-2xl mb-2">{'\uD83D\uDCDA'}</div>
             <h3 className="text-sm font-semibold text-text-dark group-hover:text-gold transition-colors">Carousel</h3>
-            <p className="text-xs text-text-muted mt-1">Upload slides, AI writes the copy for each</p>
+            <p className="text-xs text-text-muted mt-1">Upload slides, AI writes the caption</p>
           </Link>
+          <div className="bg-white rounded-xl border border-border p-5 opacity-50">
+            <div className="text-2xl mb-2">{'\uD83C\uDFAC'}</div>
+            <h3 className="text-sm font-semibold text-text-dark">Reel</h3>
+            <p className="text-xs text-text-muted mt-1">Coming soon</p>
+          </div>
         </div>
       </div>
 

@@ -252,16 +252,23 @@ CAROUSEL RULES:
               voiceover_text?: string;
             }>(response.text);
 
+            // If user provided image(s), skip design stage → go straight to pending_publish
+            const userImageUrl = params?.imageUrl as string | undefined;
+            const userImageUrls = params?.imageUrls as string[] | undefined;
+            const hasUserImages = !!(userImageUrl || (userImageUrls && userImageUrls.length > 0));
+
             const draftId = await generateDraftId();
             await saveDraft({
               id: draftId,
-              stage: 'pending_copy',
+              stage: hasUserImages ? 'pending_publish' : 'pending_copy',
               topic,
               contentType: parsed?.content_type || ct,
               caption: parsed?.instagram_caption,
               headline: parsed?.headline,
               model: parsed?.suggested_character,
               voiceoverText: parsed?.voiceover_text,
+              ...(userImageUrl && { imageUrl: userImageUrl }),
+              ...(userImageUrls && { imageUrls: userImageUrls, imageUrl: userImageUrls[0] }),
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             });

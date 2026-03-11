@@ -1,43 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { MODELS } from '@/lib/marketing-config';
+import { MODEL_PROMPTS } from '@/lib/brand-context';
 import {
   DRIVE_FOLDERS,
   listFiles,
   isGoogleDriveConfigured,
 } from '@/lib/google-drive';
-
-// ---------------------------------------------------------------------------
-// Model prompt profiles (matches CHARACTER-BIBLE.md)
-// ---------------------------------------------------------------------------
-
-const MODEL_PROMPTS: Record<
-  string,
-  { appearance: string; wardrobe: string; modesty?: string }
-> = {
-  Ayesha: {
-    appearance:
-      'Pakistani woman, 30 years old, fair wheat-to-light complexion, oval face, high cheekbones, warm brown eyes, full lips, long dark brown hair, slim graceful build with defined collarbones, luminous dewy skin',
-    wardrobe: 'wearing elegant white/cream/gold tones matching luxury clinic brand',
-    modesty:
-      'Face, neck, hands, and collarbones visible. No exposed legs or cleavage.',
-  },
-  Meher: {
-    appearance:
-      'Pakistani Kashmiri woman, 28 years old, fair porcelain skin, captivating hazel-green eyes, full pouty lips with berry lip tint, long wavy dark brown hair with golden highlights, curvy hourglass build with full bust and cinched waist, dewy glowing skin',
-    wardrobe: 'wearing burgundy/cream/gold luxury fabrics, wrap dress or satin',
-  },
-  Noor: {
-    appearance:
-      'Pakistani Punjabi woman, 25 years old, warm caramel brown skin, almond-shaped dark brown eyes with winged eyeliner, defined cheekbones, strong jawline, jet-black hair in sleek high ponytail, tall 5\'10" athletic toned build with long legs and defined arms, smooth glowing skin',
-    wardrobe: 'wearing white/cream fitted athletic-luxe pieces',
-  },
-  Usman: {
-    appearance:
-      'Pakistani man, 32-38 years old, warm medium-brown skin, short neat dark hair with mild thinning at crown, well-groomed beard, sharp defined features, calm confident expression',
-    wardrobe: 'wearing crisp collared shirt, professional groomed look',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Prompt builder (base)

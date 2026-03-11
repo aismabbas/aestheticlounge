@@ -104,6 +104,18 @@ function PostCard({ post }: { post: Post }) {
         alt={post.caption?.slice(0, 80) || "Instagram post"}
         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
         loading="lazy"
+        onError={(e) => {
+          const target = e.currentTarget;
+          target.style.display = 'none';
+          const parent = target.closest('.aspect-square');
+          if (parent) {
+            parent.classList.add('flex', 'items-center', 'justify-center', 'bg-gradient-to-br', 'from-gold/10', 'to-warm-white');
+            const fallback = document.createElement('div');
+            fallback.className = 'flex flex-col items-center gap-2 text-gold/40';
+            fallback.innerHTML = '<svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span class="text-[10px]">View on Instagram</span>';
+            parent.appendChild(fallback);
+          }
+        }}
       />
 
       {/* Video play icon */}

@@ -15,6 +15,128 @@ import {
   qaValidate,
 } from '@/lib/al-pipeline';
 import { getModelImages, searchFiles, DRIVE_FOLDERS, getThumbnailUrl } from '@/lib/google-drive';
+import {
+  brandContextBlock,
+  characterBibleBlock,
+  characterDescription,
+  CHARACTER_MATCHING,
+  CONTENT_CATEGORIES,
+  SEASONAL_CALENDAR,
+  TOP_TREATMENTS,
+  treatmentBaselinesBlock,
+  imagePromptCraftBlock,
+  storyDirectorSystemPrompt,
+} from '@/lib/brand-context';
+
+// ---------------------------------------------------------------------------
+// Rich prompt blocks — injected into agent user messages
+// ---------------------------------------------------------------------------
+
+const RESEARCHER_CONTEXT = `
+${brandContextBlock()}
+
+== CONTENT DIVERSITY (rotate across these 10 categories) ==
+${CONTENT_CATEGORIES.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+== TOP TREATMENTS BY PERFORMANCE ==
+${TOP_TREATMENTS.map((t) => `- ${t.name}: CPL PKR ${t.cpl} (${t.note})`).join('\n')}
+- Avoid standalone: Hair PRP (high CPL), Facial (saturated market)
+
+== SEASONAL CALENDAR (Pakistan) ==
+${Object.entries(SEASONAL_CALENDAR).map(([k, v]) => `- ${k}: months ${v.months.join(',')}, themes: ${v.themes.join(', ')}`).join('\n')}
+`;
+
+const COPYWRITER_POST_RULES = `
+== COPY RULES (SINGLE POST) ==
+- Hook first line: question, stat, or bold claim
+- 150-300 words, educational + aspirational tone
+- Mention "Aesthetic Lounge" and "Dr. Huma Abbas" naturally
+- End with CTA: "Book your free consultation — DM us or visit aestheticloungeofficial.com"
+- WhatsApp: +92 327 6620000
+- Include medical disclaimer: "Individual results may vary. Consult with our medical professionals."
+- NEVER mention prices
+`;
+
+const COPYWRITER_CAROUSEL_RULES = `
+== CAROUSEL RULES ==
+- Structure: Hook slide → 3-5 educational slides → CTA slide (5-7 total)
+- Include "scene_descriptions" array with visual description for EACH slide
+- Slide 1: Hook — bold question or surprising fact
+- Slides 2-5: Educational content — myths, steps, comparisons, facts
+- Last slide: CTA — "Book your free consultation" + mention Dr. Huma Abbas
+- Mention "Aesthetic Lounge" on first and last slides
+- CTA in CAPTION ONLY — WhatsApp +92 327 6620000 — NEVER "Link in bio"
+- NEVER put CTA text ON images — images are visual only, no text overlay
+- Caption ends with: "Book now — DM us or visit aestheticloungeofficial.com"
+`;
+
+const COPYWRITER_REEL_RULES = `
+== REEL RULES ==
+- 4-6 scenes, 25-45 seconds total
+- Include "scene_descriptions" array — one per scene with visual + action description
+- Include "voiceover_text" — 30-60 words per scene, educational, conversational
+- Story arc: HOOK (tension) → DEEPEN (pain) → PIVOT (solution) → PAYOFF (result) → CLOSE (brand CTA)
+- End voiceover: "Book your free consultation at Aesthetic Lounge"
+- Character must wear the SAME outfit in every scene
+`;
+
+function copywriterCharacterBlock(characterName: string): string {
+  const desc = characterDescription(characterName);
+  if (!desc) return '';
+  return `\n== SELECTED CHARACTER ==\n${desc}\n`;
+}
+
+const DESIGNER_CONTEXT = `
+${brandContextBlock()}
+
+== CHARACTER BIBLE ==
+${characterBibleBlock()}
+
+== CHARACTER-TREATMENT MATCHING ==
+${Object.entries(CHARACTER_MATCHING).map(([cat, char]) => `- ${cat}: ${char}`).join('\n')}
+
+${imagePromptCraftBlock()}
+
+== BACKGROUND DIVERSITY (rotate across scenes/posts) ==
+- Luxury clinic interior (cream walls, gold-framed mirrors, soft diffused lighting)
+- Treatment room (clean, professional, medical equipment subtle)
+- DHA Phase 7 street / boulevard (modern, upscale Pakistani neighborhood)
+- Luxury home vanity / bathroom (marble, warm lighting)
+- Garden terrace with fairy lights (evening, warm glow)
+- Modern upscale cafe (natural light, contemporary Pakistani interior)
+- ALWAYS: Pakistani/Lahore context — NEVER Western settings
+
+== REEL MODEL AESTHETIC ==
+- Confident, poised, natural expression (never over-posed)
+- Fitted but modest clothing matching character bible
+- Flawless skin texture — the "after treatment" glow
+- Same outfit every scene for character consistency
+
+== CAROUSEL CTA RULE ==
+- NEVER put CTA buttons or "Book Now" text on carousel images
+- Images are visual/educational only — the platform handles CTA buttons
+- Last slide can show brand logo + clinic name, but NO clickable CTA text
+
+== MUSIC STYLE GUIDE (for reels) ==
+- Piano: emotional, personal stories, before/after reveals
+- Acoustic guitar: warm, educational, approachable content
+- Lo-fi beats: modern, young audience, trendy hooks
+- Orchestral: dramatic reveals, premium positioning
+- Ambient: calm, spa treatments, relaxation content
+- Jazz: sophisticated, evening events, luxury positioning
+`;
+
+const ANALYST_CONTEXT = `
+${treatmentBaselinesBlock()}
+
+== PERFORMANCE THRESHOLDS ==
+- CPL > PKR 2.50 = underperformer → pause or refresh creative
+- CPL < PKR 1.50 = top performer → increase budget
+- CTR < 0.80% = weak creative → needs new hook/visual
+- CTR > 2.00% = strong creative → scale
+- Frequency > 3.0 = audience fatigue → refresh creative
+- Target CPL: < PKR 2.00 (best achieved: PKR 1.23)
+`;
 
 /**
  * POST /api/al/pipeline
@@ -103,7 +225,12 @@ export async function POST(req: NextRequest) {
             const resMem = await loadAgentMemory('researcher');
             const resResponse = await callClaude({
               agent: 'researcher',
-              userMessage: `Research this topic for an Instagram campaign: ${chosenTopic}\n\nGather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.\n\nOutput JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel" }`,
+              userMessage: `Research this topic for an Instagram campaign: ${chosenTopic}
+${RESEARCHER_CONTEXT}
+Gather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.
+Consider which content category fits best and which character matches the treatment.
+
+Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel", "content_category": "..." }`,
               systemPrompt: buildSystemPrompt(resMem),
               maxTokens: 4096,
             });
@@ -114,10 +241,27 @@ export async function POST(req: NextRequest) {
             // Step 3: Copywriter creates draft
             send({ type: 'step', step: 'Writing copy' });
 
+            const orchCharacter = (resParsed as Record<string, unknown>)?.recommended_character as string || '';
             const copyMem = await loadAgentMemory('copywriter');
+            const typeRules = chosenType === 'carousel' ? COPYWRITER_CAROUSEL_RULES : chosenType === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
             const copyResponse = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}\n\nRESEARCH CONTEXT:\n${JSON.stringify(resParsed)}${chosenType === 'carousel' ? `\n\nCAROUSEL RULES:\n- This is for Aesthetic Lounge, premium medical aesthetics clinic by Dr. Huma Abbas, DHA Phase 7, Lahore.\n- Structure: Hook slide → 3-5 educational slides → CTA slide\n- Include "scene_descriptions" array with text for EACH slide (5-7 total)\n- Mention "Aesthetic Lounge" on first and last slides, "Dr. Huma Abbas" on last slide\n- CTA in CAPTION ONLY — "Book Your Free Consultation" + WhatsApp +92 327 6660004 — NEVER "Link in bio"\n- NEVER put CTA text ON images — images are visual only, no text overlay\n- Caption ends with: "Book now — DM us or visit aestheticloungeofficial.com"` : ''}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${chosenType}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel — text for EACH slide),\n  "voiceover_text": "..." (if reel)\n}`,
+              userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}
+
+RESEARCH CONTEXT:
+${JSON.stringify(resParsed)}
+${copywriterCharacterBlock(orchCharacter)}
+${typeRules}
+
+Output JSON:
+{
+  "headline": "short punchy headline (max 60 chars)",
+  "instagram_caption": "150-300 words, hook first line, end with CTA, include medical disclaimer",
+  "content_type": "${chosenType}",
+  "suggested_character": "ayesha|meher|noor|usman",
+  "scene_descriptions": [...] (if reel/carousel — visual description for EACH slide/scene),
+  "voiceover_text": "..." (if reel — 30-60 words per scene)
+}`,
               systemPrompt: buildSystemPrompt(copyMem),
               temperature: 0.5,
             });
@@ -182,7 +326,12 @@ export async function POST(req: NextRequest) {
 
             const response = await callClaude({
               agent: 'researcher',
-              userMessage: `Research this topic for an Instagram campaign: ${topic}\n\nGather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.\n\nOutput JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel" }`,
+              userMessage: `Research this topic for an Instagram campaign: ${topic}
+${RESEARCHER_CONTEXT}
+Gather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.
+Consider which content category (from the 10 above) fits best and which character matches the treatment.
+
+Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel", "content_category": "..." }`,
               systemPrompt: buildSystemPrompt(mem),
               chatHistory: history,
               maxTokens: 4096,
@@ -217,25 +366,24 @@ export async function POST(req: NextRequest) {
             send({ type: 'step', step: 'Writing copy' });
 
             const researchContext = params?.research ? `\n\nRESEARCH CONTEXT:\n${JSON.stringify(params.research)}` : '';
-
-            const carouselInstructions = ct === 'carousel' ? `
-
-CAROUSEL RULES:
-- This is an EDUCATIONAL carousel for Aesthetic Lounge, a premium medical aesthetics clinic by Dr. Huma Abbas in DHA Phase 7, Lahore.
-- Structure: Hook slide (attention-grabbing question/stat) → 3-5 educational info slides → CTA slide
-- Each slide should have a short title and 1-2 key points
-- Include "scene_descriptions" array with text for EACH slide (5-7 slides total)
-- Slide 1: Hook — bold question or surprising fact
-- Slides 2-5: Educational content — myths, steps, comparisons, facts
-- Last slide: CTA — "Book your free consultation today" + "DM us or tap the link to book" + mention Dr. Huma Abbas
-- BRANDING: Mention "Aesthetic Lounge" on first and last slide. Mention "Dr. Huma Abbas" on last slide.
-- CTA in CAPTION ONLY — "Book Your Free Consultation" + WhatsApp +92 327 6660004 — NEVER "Link in bio"
-- NEVER put "Book Now" or any CTA text ON the images — images are visual only, no text overlay
-- Caption should reference what they'll learn by swiping, end with "Book now — DM us or visit aestheticloungeofficial.com"` : '';
+            const wcCharacter = (params?.character as string) || '';
+            const wcTypeRules = ct === 'carousel' ? COPYWRITER_CAROUSEL_RULES : ct === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
 
             const response = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${ct} copy for: ${topic}${researchContext}${carouselInstructions}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel — text for EACH slide),\n  "voiceover_text": "..." (if reel)\n}`,
+              userMessage: `Write Instagram ${ct} copy for: ${topic}${researchContext}
+${copywriterCharacterBlock(wcCharacter)}
+${wcTypeRules}
+
+Output JSON:
+{
+  "headline": "short punchy headline (max 60 chars)",
+  "instagram_caption": "150-300 words, hook first line, end with CTA, include medical disclaimer",
+  "content_type": "${ct}",
+  "suggested_character": "ayesha|meher|noor|usman",
+  "scene_descriptions": [...] (if reel/carousel — visual description for EACH slide/scene),
+  "voiceover_text": "..." (if reel — 30-60 words per scene)
+}`,
               systemPrompt: buildSystemPrompt(mem),
               chatHistory: history,
               temperature: 0.5,
@@ -314,7 +462,26 @@ CAROUSEL RULES:
 
             const response = await callClaude({
               agent: 'designer',
-              userMessage: `${designBrief}\n\nDesign this content. Choose approach and generate image prompts.\n\nOutput JSON:\n{\n  "approach": "ai_image"|"carousel"|"reel",\n  "template": "lifestyle|treatment|carousel_hook|reel|...",\n  "character": "ayesha|meher|noor|usman",\n  "image_prompt": "detailed fal.ai prompt...",\n  "image_prompts": ["..."] (for carousel slides),\n  "reel_scenes": [{"scene_number": 1, "image_prompt": "...", "motion_prompt": "...", "duration_seconds": 7}],\n  "dimensions": "1080x1350|1080x1080|1080x1920",\n  "headline": "...",\n  "body": "..."\n}`,
+              userMessage: `${designBrief}
+
+${DESIGNER_CONTEXT}
+
+Design this content. Choose approach and generate image prompts.
+Use the CHARACTER BIBLE above for full character descriptions in every prompt.
+Rotate backgrounds across scenes — never repeat the same setting consecutively.
+
+Output JSON:
+{
+  "approach": "ai_image"|"carousel"|"reel",
+  "template": "lifestyle|treatment|carousel_hook|reel|...",
+  "character": "ayesha|meher|noor|usman",
+  "image_prompt": "detailed fal.ai prompt with full character description, setting, technical specs...",
+  "image_prompts": ["..."] (for carousel slides — each with full character description),
+  "reel_scenes": [{"scene_number": 1, "image_prompt": "...", "motion_prompt": "...", "duration_seconds": 7}],
+  "dimensions": "1080x1350|1080x1080|1080x1920",
+  "headline": "...",
+  "body": "..."
+}`,
               systemPrompt: buildSystemPrompt(mem),
               chatHistory: history,
               temperature: 0.3,
@@ -348,7 +515,17 @@ CAROUSEL RULES:
 
             const response = await callClaude({
               agent: 'analyst',
-              userMessage: `Analyze recent AL Instagram ad performance. Based on your knowledge of our benchmarks (target CPL < 2.00 PKR, best 1.23 PKR), provide:\n\n1. Overall performance summary\n2. Top performing creatives and why\n3. Underperformers to pause\n4. Budget recommendations\n5. Next content suggestions based on data\n\nOutput JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [...], "budget_recommendations": [...], "next_content": [...] }`,
+              userMessage: `Analyze recent AL Instagram ad performance.
+${ANALYST_CONTEXT}
+
+Based on the thresholds above, provide:
+1. Overall performance summary
+2. Top performing creatives and why
+3. Underperformers to pause (CPL > 2.50 or CTR < 0.80%)
+4. Budget recommendations (scale winners, pause losers)
+5. Next content suggestions based on data
+
+Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [...], "budget_recommendations": [...], "next_content": [...] }`,
               systemPrompt: buildSystemPrompt(mem),
               chatHistory: history,
               temperature: 0.2,
@@ -385,13 +562,14 @@ CAROUSEL RULES:
             const orchResponse = await callClaude({
               agent: 'orchestrator',
               userMessage: `Today is ${new Date().toISOString().split('T')[0]}. Research the most trending and seasonally relevant topics for Aesthetic Lounge Instagram content RIGHT NOW.
-
+${RESEARCHER_CONTEXT}
 Consider:
-- Current season/holidays in Pakistan (Ramadan, Eid, summer, winter, wedding season, etc.)
+- Current season/holidays in Pakistan (use SEASONAL CALENDAR above)
 - Instagram engagement trends for medical aesthetics
-- Treatment seasonality (e.g., laser in winter, hydration in summer)
+- Treatment seasonality and CPL data (use TOP TREATMENTS above)
 - What competitors are posting
 - Recent best-performing content types
+- Rotate across the 10 CONTENT DIVERSITY categories
 
 IMPORTANT: Include a MIX of content types — at least 1 "post", at least 1 "carousel", and optionally a "reel". Do NOT only suggest carousels or only reels. Single posts are our bread and butter.
 
@@ -404,7 +582,8 @@ Output JSON with 4-5 topic suggestions:
       "content_type": "post|carousel|reel",
       "treatment_category": "face|body|hair|skin|general",
       "engagement_estimate": "high|medium",
-      "character": "ayesha|meher|noor|usman"
+      "character": "ayesha|meher|noor|usman",
+      "content_category": "which of the 10 diversity categories"
     }
   ]
 }`,
@@ -477,8 +656,9 @@ Output JSON with 4-5 topic suggestions:
             const response = await callClaude({
               agent: 'researcher',
               userMessage: `The user wants to create content about: "${message}"
-
+${RESEARCHER_CONTEXT}
 Research this topic and suggest 3-5 specific content ideas.
+Use the treatment performance data, seasonal calendar, and content categories above to inform your suggestions.
 
 IMPORTANT: Keep your response concise. Each topic reasoning should be 1-2 sentences max.
 IMPORTANT: Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter — don't only suggest carousels or reels.
@@ -556,7 +736,9 @@ Output JSON (no markdown wrapping):
             // Quick research first
             const resResponse = await callClaude({
               agent: 'researcher',
-              userMessage: `Quick research for Instagram ${ct} about: ${topic}\n\nOutput JSON: { "key_facts": [...], "hooks": [...], "recommended_character": "ayesha|meher|noor|usman", "audience_insight": "..." }`,
+              userMessage: `Quick research for Instagram ${ct} about: ${topic}
+${RESEARCHER_CONTEXT}
+Output JSON: { "key_facts": [...], "hooks": [...], "recommended_character": "ayesha|meher|noor|usman", "audience_insight": "...", "content_category": "..." }`,
               systemPrompt: buildSystemPrompt(resMem),
               temperature: 0.2,
               maxTokens: 1024,
@@ -565,10 +747,26 @@ Output JSON (no markdown wrapping):
             totalOutput += resResponse.outputTokens;
             const research = parseJSON(resResponse.text);
 
-            const carouselBlock = ct === 'carousel' ? `\n\nCAROUSEL RULES:\n- Structure: Hook slide → 3-5 educational info slides → CTA slide\n- Include "scene_descriptions" array with text for EACH slide (5-7 slides total)\n- Slide 1: Hook — bold question or surprising fact\n- Slides 2-5: Educational content — myths, steps, comparisons, facts\n- Last slide: CTA with "Book Free Consultation"\n- Each scene_description should describe the visual for that slide` : '';
+            const rpCharacter = (research as Record<string, unknown>)?.recommended_character as string || (params?.character as string) || '';
+            const rpTypeRules = ct === 'carousel' ? COPYWRITER_CAROUSEL_RULES : ct === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
             const copyResponse = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${ct} copy for: ${topic}\n\nRESEARCH:\n${JSON.stringify(research)}${carouselBlock}\n\nOutput JSON:\n{\n  "headline": "short punchy headline (max 60 chars)",\n  "instagram_caption": "150-300 words, hook first line, CTA last line, include medical disclaimer: Individual results may vary...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if carousel — one per slide, 5-7 total),\n  "voiceover_text": "..." (if reel)\n}`,
+              userMessage: `Write Instagram ${ct} copy for: ${topic}
+
+RESEARCH:
+${JSON.stringify(research)}
+${copywriterCharacterBlock(rpCharacter)}
+${rpTypeRules}
+
+Output JSON:
+{
+  "headline": "short punchy headline (max 60 chars)",
+  "instagram_caption": "150-300 words, hook first line, CTA last line, include medical disclaimer",
+  "content_type": "${ct}",
+  "suggested_character": "ayesha|meher|noor|usman",
+  "scene_descriptions": [...] (if carousel/reel — visual description for EACH slide/scene),
+  "voiceover_text": "..." (if reel — 30-60 words per scene)
+}`,
               systemPrompt: buildSystemPrompt(copyMem),
               temperature: 0.5,
             });
@@ -624,13 +822,62 @@ Output JSON (no markdown wrapping):
               // Google Drive not configured — continue without brand assets
             }
 
+            // --- STEP 2.5: StoryDirector (reels only) ---
+            let storyDirectorResult: Record<string, unknown> | null = null;
+            if (ct === 'reel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
+              send({ type: 'step', step: 'Story directing reel scenes...' });
+
+              const sdResponse = await callClaude({
+                agent: 'designer', // shares designer chat history
+                userMessage: `Transform these copywriter scene descriptions into production-ready cinematic prompts.
+
+CHARACTER: ${characterName}
+${characterDescription(characterName)}
+
+SCENE DESCRIPTIONS FROM COPYWRITER:
+${copy.scene_descriptions.map((s, i) => `Scene ${i + 1}: ${s}`).join('\n')}
+
+VOICEOVER:
+${copy.voiceover_text || 'N/A'}
+
+Apply the story arc (HOOK → DEEPEN → PIVOT → PAYOFF → CLOSE).
+Generate full fal.ai image prompts with complete character description in EVERY scene.
+Generate Kling v3 Pro motion prompts for each scene.
+Pick a music style that matches the mood.`,
+                systemPrompt: storyDirectorSystemPrompt(),
+                model: 'claude-sonnet-4-6', // Premium model for creative direction
+                temperature: 0.7,
+                maxTokens: 4096,
+              });
+              totalInput += sdResponse.inputTokens;
+              totalOutput += sdResponse.outputTokens;
+
+              storyDirectorResult = parseJSON(sdResponse.text);
+              await logDecision('designer', 'story_direct', `StoryDirector: ${topic}`, JSON.stringify(storyDirectorResult));
+            }
+
             // --- STEP 3: Generate AI Images ---
             send({ type: 'step', step: 'Generating design...' });
 
             const designerMem = await loadAgentMemory('designer');
+
+            // For reels with StoryDirector output, use those prompts directly
+            const sdScenes = storyDirectorResult?.scenes as Array<{ image_prompt: string; motion_prompt: string; duration_seconds: number }> | undefined;
+
             const designResponse = await callClaude({
               agent: 'designer',
-              userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: ${ct}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\nOutput ONLY the enhanced prompt string. Include character description, brand aesthetics (luxury medical spa, gold/cream palette), camera/lighting specs, and "No text overlay" directive.`,
+              userMessage: `Create an image generation prompt for:
+Topic: ${topic}
+Content type: ${ct}
+Headline: ${copy?.headline || topic}
+Character: ${characterName}
+
+${DESIGNER_CONTEXT}
+
+Use the full character description from the CHARACTER BIBLE above.
+${ct === 'carousel' ? 'Rotate backgrounds across slides — each slide should have a different setting.' : ''}
+
+Output ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
               systemPrompt: buildSystemPrompt(designerMem),
               temperature: 0.3,
               maxTokens: 500,
@@ -643,7 +890,24 @@ Output JSON (no markdown wrapping):
             const dims = ct === 'reel' ? { w: 1080, h: 1920 } : ct === 'carousel' ? { w: 1080, h: 1080 } : { w: 1080, h: 1350 };
             let aiImages: string[] = [];
 
-            if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
+            if (ct === 'reel' && sdScenes && sdScenes.length >= 2) {
+              // Reel with StoryDirector — generate one image per scene using SD prompts
+              send({ type: 'step', step: `Generating ${sdScenes.length} reel scenes...` });
+              for (const [idx, scene] of sdScenes.entries()) {
+                try {
+                  const sceneImages = await generateImage({
+                    prompt: scene.image_prompt,
+                    width: dims.w,
+                    height: dims.h,
+                    numImages: 1,
+                  });
+                  aiImages.push(...sceneImages);
+                  send({ type: 'step', step: `Scene ${idx + 1}/${sdScenes.length} done` });
+                } catch (imgErr) {
+                  console.error(`[run_pipeline] Reel scene ${idx + 1} error:`, imgErr);
+                }
+              }
+            } else if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
               // Generate one image per carousel slide
               send({ type: 'step', step: `Generating ${copy.scene_descriptions.length} carousel slides...` });
               for (const [idx, sceneDesc] of copy.scene_descriptions.entries()) {
@@ -662,7 +926,7 @@ Output JSON (no markdown wrapping):
                 }
               }
             } else {
-              // Single post or reel — generate 2 options
+              // Single post or reel without StoryDirector — generate 2 options
               try {
                 aiImages = await generateImage({
                   prompt: imagePrompt,
@@ -699,6 +963,7 @@ Output JSON (no markdown wrapping):
               },
               brandAssets,
               aiImages,
+              storyDirector: storyDirectorResult || undefined,
               qaResults,
               tokens: { input: totalInput, output: totalOutput },
             });
@@ -896,6 +1161,60 @@ Output ONLY the enhanced image generation prompt string.`,
                 tokens: { input: response.inputTokens, output: response.outputTokens },
               });
             }
+            break;
+          }
+
+          case 'story_direct': {
+            const sdDraftId = params?.draftId;
+            if (!sdDraftId) {
+              send({ type: 'result', success: false, error: 'draftId required for story_direct' });
+              break;
+            }
+
+            const sdDraft = await getDraft(sdDraftId);
+            if (!sdDraft) {
+              send({ type: 'result', success: false, error: 'Draft not found' });
+              break;
+            }
+
+            send({ type: 'step', step: 'Story directing reel scenes...' });
+
+            const sdCharName = sdDraft.model || 'ayesha';
+            const sdResponse = await callClaude({
+              agent: 'designer',
+              userMessage: `Transform these scene descriptions into production-ready cinematic prompts for a reel.
+
+TOPIC: ${sdDraft.topic}
+CHARACTER: ${sdCharName}
+${characterDescription(sdCharName)}
+
+SCENE DESCRIPTIONS:
+${(sdDraft.reelScenes || []).map((s, i) => `Scene ${i + 1}: ${JSON.stringify(s)}`).join('\n') || sdDraft.voiceoverText || 'No scene descriptions available — create 4-5 scenes based on the topic.'}
+
+VOICEOVER:
+${sdDraft.voiceoverText || 'N/A'}
+
+Apply the story arc (HOOK → DEEPEN → PIVOT → PAYOFF → CLOSE).
+Generate full fal.ai image prompts with complete character description in EVERY scene.
+Generate Kling v3 Pro motion prompts for each scene.
+Pick a music style that matches the mood.`,
+              systemPrompt: storyDirectorSystemPrompt(),
+              model: 'claude-sonnet-4-6',
+              temperature: 0.7,
+              maxTokens: 4096,
+            });
+
+            const sdParsed = parseJSON(sdResponse.text);
+            await logDecision('designer', 'story_direct', `StoryDirector: ${sdDraft.topic}`, JSON.stringify(sdParsed));
+
+            send({
+              type: 'result',
+              success: true,
+              action: 'story_direct',
+              draftId: sdDraftId,
+              result: sdParsed || { raw: sdResponse.text },
+              tokens: { input: sdResponse.inputTokens, output: sdResponse.outputTokens },
+            });
             break;
           }
 

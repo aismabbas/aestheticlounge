@@ -88,6 +88,18 @@ export default function Promotions() {
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     unoptimized
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.closest('[class*="aspect-"]');
+                      if (parent) {
+                        (parent as HTMLElement).classList.add('flex', 'items-center', 'justify-center');
+                        const fallback = document.createElement('div');
+                        fallback.className = 'flex flex-col items-center gap-3 text-gold/40';
+                        fallback.innerHTML = '<svg class="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span class="text-xs">Image unavailable</span>';
+                        parent.appendChild(fallback);
+                      }
+                    }}
                   />
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
 

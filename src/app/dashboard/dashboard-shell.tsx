@@ -17,6 +17,7 @@ const MARKETING_SUB_ITEMS = [
   { label: 'Lead Forms', href: '/dashboard/marketing/forms' },
   { label: 'Landing Pages', href: '/dashboard/marketing/landing-pages' },
   { label: 'How It Works', href: '/dashboard/marketing/how-it-works' },
+  { label: 'AI Agents',   href: '/dashboard/marketing/agents' },
 ];
 
 const AI_INSIGHTS_SUB_ITEMS = [

@@ -61,6 +61,7 @@ const UTILITY_LINKS = [
   { icon: '\uD83D\uDCC5', title: 'Content Calendar', description: 'Upcoming scheduled posts', href: '/dashboard/marketing/calendar' },
   { icon: '\uD83D\uDC64', title: 'Models', description: 'AI characters & photos', href: '/dashboard/marketing/models' },
   { icon: '\u2726', title: 'Brand Assets', description: 'Logos, palettes, templates', href: '/dashboard/marketing/brand-assets' },
+  { icon: '\uD83E\uDD16', title: 'AI Agents', description: 'View & edit agent memory', href: '/dashboard/marketing/agents' },
 ];
 
 // ---------------------------------------------------------------------------

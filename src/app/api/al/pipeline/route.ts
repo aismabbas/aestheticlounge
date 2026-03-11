@@ -262,7 +262,7 @@ CAROUSEL RULES:
               id: draftId,
               stage: hasUserImages ? 'pending_publish' : 'pending_copy',
               topic,
-              contentType: parsed?.content_type || ct,
+              contentType: ct,
               caption: parsed?.instagram_caption,
               headline: parsed?.headline,
               model: parsed?.suggested_character,
@@ -393,7 +393,9 @@ Consider:
 - What competitors are posting
 - Recent best-performing content types
 
-Output JSON with 3-5 topic suggestions:
+IMPORTANT: Include a MIX of content types — at least 1 "post", at least 1 "carousel", and optionally a "reel". Do NOT only suggest carousels or only reels. Single posts are our bread and butter.
+
+Output JSON with 4-5 topic suggestions:
 {
   "topics": [
     {
@@ -479,6 +481,7 @@ Output JSON with 3-5 topic suggestions:
 Research this topic and suggest 3-5 specific content ideas.
 
 IMPORTANT: Keep your response concise. Each topic reasoning should be 1-2 sentences max.
+IMPORTANT: Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter — don't only suggest carousels or reels.
 
 Output JSON (no markdown wrapping):
 {
@@ -592,7 +595,7 @@ Output JSON (no markdown wrapping):
               id: draftId,
               stage: 'pending_design',
               topic,
-              contentType: copy?.content_type || ct,
+              contentType: ct,
               caption: copy?.instagram_caption,
               headline,
               model: copy?.suggested_character || (params?.character as string),

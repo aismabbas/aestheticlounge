@@ -555,9 +555,10 @@ Output JSON (no markdown wrapping):
             totalOutput += resResponse.outputTokens;
             const research = parseJSON(resResponse.text);
 
+            const carouselBlock = ct === 'carousel' ? `\n\nCAROUSEL RULES:\n- Structure: Hook slide → 3-5 educational info slides → CTA slide\n- Include "scene_descriptions" array with text for EACH slide (5-7 slides total)\n- Slide 1: Hook — bold question or surprising fact\n- Slides 2-5: Educational content — myths, steps, comparisons, facts\n- Last slide: CTA with "Book Free Consultation"\n- Each scene_description should describe the visual for that slide` : '';
             const copyResponse = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${ct} copy for: ${topic}\n\nRESEARCH:\n${JSON.stringify(research)}\n\nOutput JSON:\n{\n  "headline": "short punchy headline (max 60 chars)",\n  "instagram_caption": "150-300 words, hook first line, CTA last line, include medical disclaimer: Individual results may vary...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "voiceover_text": "..." \n}`,
+              userMessage: `Write Instagram ${ct} copy for: ${topic}\n\nRESEARCH:\n${JSON.stringify(research)}${carouselBlock}\n\nOutput JSON:\n{\n  "headline": "short punchy headline (max 60 chars)",\n  "instagram_caption": "150-300 words, hook first line, CTA last line, include medical disclaimer: Individual results may vary...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if carousel — one per slide, 5-7 total),\n  "voiceover_text": "..." (if reel)\n}`,
               systemPrompt: buildSystemPrompt(copyMem),
               temperature: 0.5,
             });
@@ -569,6 +570,7 @@ Output JSON (no markdown wrapping):
               instagram_caption?: string;
               content_type?: string;
               suggested_character?: string;
+              scene_descriptions?: string[];
               voiceover_text?: string;
             }>(copyResponse.text);
 
@@ -630,15 +632,37 @@ Output JSON (no markdown wrapping):
 
             const dims = ct === 'reel' ? { w: 1080, h: 1920 } : ct === 'carousel' ? { w: 1080, h: 1080 } : { w: 1080, h: 1350 };
             let aiImages: string[] = [];
-            try {
-              aiImages = await generateImage({
-                prompt: imagePrompt,
-                width: dims.w,
-                height: dims.h,
-                numImages: 2,
-              });
-            } catch (imgErr) {
-              console.error('[run_pipeline] Image generation error:', imgErr);
+
+            if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
+              // Generate one image per carousel slide
+              send({ type: 'step', step: `Generating ${copy.scene_descriptions.length} carousel slides...` });
+              for (const [idx, sceneDesc] of copy.scene_descriptions.entries()) {
+                try {
+                  const slidePrompt = `${imagePrompt}\n\nThis is slide ${idx + 1} of ${copy.scene_descriptions.length}: ${sceneDesc}`;
+                  const slideImages = await generateImage({
+                    prompt: slidePrompt,
+                    width: dims.w,
+                    height: dims.h,
+                    numImages: 1,
+                  });
+                  aiImages.push(...slideImages);
+                  send({ type: 'step', step: `Slide ${idx + 1}/${copy.scene_descriptions.length} done` });
+                } catch (imgErr) {
+                  console.error(`[run_pipeline] Carousel slide ${idx + 1} error:`, imgErr);
+                }
+              }
+            } else {
+              // Single post or reel — generate 2 options
+              try {
+                aiImages = await generateImage({
+                  prompt: imagePrompt,
+                  width: dims.w,
+                  height: dims.h,
+                  numImages: 2,
+                });
+              } catch (imgErr) {
+                console.error('[run_pipeline] Image generation error:', imgErr);
+              }
             }
 
             // --- STEP 4: QA Check ---

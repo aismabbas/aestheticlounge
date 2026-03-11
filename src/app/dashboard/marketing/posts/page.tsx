@@ -133,7 +133,7 @@ export default function PostsPage() {
         }
       }
 
-      // Call pipeline to generate copy
+      // Call pipeline to generate copy (SSE stream)
       const body: Record<string, unknown> = {
         action: 'write_content',
         topic,
@@ -146,18 +146,57 @@ export default function PostsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (data.success) {
-        setCreateResult(data);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        showFeedback(errData.error || 'Pipeline error', 'error');
+        return;
+      }
+
+      // Read SSE stream
+      const reader = res.body?.getReader();
+      if (!reader) { showFeedback('No response stream', 'error'); return; }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let result: Record<string, unknown> | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let data;
+          try { data = JSON.parse(line.slice(6)); } catch { continue; }
+          if (data.type === 'ping') continue;
+          if (data.type === 'step') setFeedback({ text: data.step, type: 'success' });
+          if (data.type === 'result') result = data;
+        }
+      }
+
+      // Process remaining buffer
+      if (buffer.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(buffer.slice(6));
+          if (data.type === 'result') result = data;
+        } catch { /* incomplete */ }
+      }
+
+      if (result && (result as Record<string, unknown>).success) {
+        setCreateResult(result as { draftId?: string; result?: Record<string, unknown> });
         const msg = imageUrl
           ? `Post draft ready to publish (image attached)`
           : `Draft created — add an image next`;
-        showFeedback(data.draftId ? msg : 'Pipeline completed', 'success');
+        showFeedback((result as Record<string, unknown>).draftId ? msg : 'Pipeline completed', 'success');
         clearImage();
         setTopic('');
         fetchData();
       } else {
-        showFeedback(data.error || 'Failed', 'error');
+        showFeedback((result as Record<string, unknown>)?.error as string || 'Pipeline failed', 'error');
       }
     } catch {
       showFeedback('Request failed', 'error');

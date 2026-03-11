@@ -167,17 +167,55 @@ export default function CarouselsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (data.success) {
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        showFeedback(errData.error || 'Pipeline error', 'error');
+        return;
+      }
+
+      // Read SSE stream
+      const reader = res.body?.getReader();
+      if (!reader) { showFeedback('No response stream', 'error'); return; }
+
+      const decoder = new TextDecoder();
+      let sseBuffer = '';
+      let result: Record<string, unknown> | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let data;
+          try { data = JSON.parse(line.slice(6)); } catch { continue; }
+          if (data.type === 'ping') continue;
+          if (data.type === 'step') setFeedback({ text: data.step, type: 'success' });
+          if (data.type === 'result') result = data;
+        }
+      }
+
+      if (sseBuffer.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(sseBuffer.slice(6));
+          if (data.type === 'result') result = data;
+        } catch { /* incomplete */ }
+      }
+
+      if (result && (result as Record<string, unknown>).success) {
         const msg = imageUrls
           ? `Carousel ready to publish (${imageUrls.length} slides attached)`
           : 'Carousel draft created';
-        showFeedback(data.draftId ? msg : 'Pipeline completed', 'success');
+        showFeedback((result as Record<string, unknown>).draftId ? msg : 'Pipeline completed', 'success');
         clearImages();
         setTopic('');
         fetchData();
       } else {
-        showFeedback(data.error || 'Failed', 'error');
+        showFeedback((result as Record<string, unknown>)?.error as string || 'Pipeline failed', 'error');
       }
     } catch {
       showFeedback('Request failed', 'error');

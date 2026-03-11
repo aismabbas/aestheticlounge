@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { isValidRole } from '@/lib/rbac';
+import { signSession } from '@/lib/api-auth';
 
 const COOKIE_NAME = 'al_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
     };
 
     const response = NextResponse.redirect(`${baseUrl}/dashboard`);
-    response.cookies.set(COOKIE_NAME, JSON.stringify(sessionPayload), {
+    response.cookies.set(COOKIE_NAME, signSession(sessionPayload), {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',

@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { checkAuth } from '@/lib/api-auth';
 
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, '').trim();
 }
 
 // POST — public, no auth required
@@ -60,10 +51,10 @@ export async function POST(req: NextRequest) {
        RETURNING id`,
       [
         id,
-        complaint.trim(),
+        stripHtml(complaint).slice(0, 5000),
         category,
-        client_name?.trim() || null,
-        client_phone?.trim() || null,
+        client_name ? stripHtml(String(client_name)).slice(0, 200) : null,
+        client_phone ? String(client_phone).replace(/[^0-9+\- ()]/g, '').slice(0, 30) : null,
         isAnonymous,
       ],
     );

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import CampaignChat from '@/components/dashboard/ads/CampaignChat';
+import OptimizerPanel from '@/components/dashboard/ads/OptimizerPanel';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -164,6 +166,9 @@ export default function AdsPage() {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string>('');
 
+  // Campaign Chat
+  const [chatOpen, setChatOpen] = useState(false);
+
   // Auto-stop alerts
   const [alerts, setAlerts] = useState<AutoStopAlert[]>([]);
   const [pausingAd, setPausingAd] = useState<string | null>(null);
@@ -251,11 +256,15 @@ export default function AdsPage() {
   async function handlePauseAd(adId: string) {
     setPausingAd(adId);
     try {
-      await fetch(`/api/dashboard/ads/${adId}/status`, {
+      const res = await fetch('/api/dashboard/ads/pause', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'PAUSED' }),
+        body: JSON.stringify({ metaId: adId }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to pause ad');
+      }
       await fetchCampaigns();
       await fetchAlerts();
     } catch {
@@ -266,16 +275,20 @@ export default function AdsPage() {
   }
 
   async function handleToggleAdStatus(adId: string, currentStatus: string) {
-    const newStatus = currentStatus === 'active' ? 'PAUSED' : 'ACTIVE';
+    const action = currentStatus === 'active' ? 'pause' : 'activate';
     try {
-      await fetch(`/api/dashboard/ads/${adId}/status`, {
+      const res = await fetch(`/api/dashboard/ads/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ metaId: adId }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || `Failed to ${action} ad`);
+      }
       await fetchCampaigns();
     } catch {
-      setError(`Failed to ${newStatus === 'PAUSED' ? 'pause' : 'activate'} ad`);
+      setError(`Failed to ${action} ad`);
     }
   }
 
@@ -366,10 +379,17 @@ export default function AdsPage() {
       {/* ================================================================== */}
       {/* Section A: Top Bar                                                  */}
       {/* ================================================================== */}
+      {/* Campaign Chat Overlay */}
+      <CampaignChat
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        onCampaignCreated={fetchCampaigns}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-text-dark">
-            Ad Campaigns
+            Ads Command Center
           </h1>
           <p className="text-sm text-text-muted mt-1">
             Live from Meta
@@ -379,11 +399,17 @@ export default function AdsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard/ads/create"
+          <button
+            onClick={() => setChatOpen(true)}
             className="px-5 py-2.5 bg-gold hover:bg-gold/90 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Create Campaign
+            + New Campaign
+          </button>
+          <Link
+            href="/dashboard/ads/create"
+            className="px-4 py-2.5 bg-warm-white hover:bg-gold-pale text-text-dark text-sm font-medium rounded-lg border border-border-light transition-colors"
+          >
+            Manual
           </Link>
           <button
             onClick={handleSync}
@@ -409,10 +435,18 @@ export default function AdsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {error}
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-red-500 hover:text-red-700 ml-3 font-bold">&times;</button>
         </div>
       )}
+
+      {/* ================================================================== */}
+      {/* Optimizer Panel                                                      */}
+      {/* ================================================================== */}
+      <div className="mb-6">
+        <OptimizerPanel />
+      </div>
 
       {/* ================================================================== */}
       {/* Section B: Summary Cards                                            */}

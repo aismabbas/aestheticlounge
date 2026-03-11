@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description:
       'Expert insights on skincare, treatments, and beauty from Aesthetic Lounge Lahore.',
     type: 'website',
-    images: ['https://aesthetic-lounge-dev.netlify.app/logo.png'],
+    images: ['https://aestheticloungeofficial.com/logo.png'],
   },
 };
 
@@ -22,7 +22,7 @@ export default function BlogPage() {
   const rest = posts.slice(1);
 
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-text-dark pt-32 pb-16 md:pb-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
@@ -168,6 +168,6 @@ export default function BlogPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

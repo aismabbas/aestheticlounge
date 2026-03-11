@@ -304,8 +304,12 @@ export default function ClientProfilePage() {
 
   useEffect(() => {
     fetch(`/api/dashboard/clients/${id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
+        if (!data.client) throw new Error('Client not found');
         setClient(data.client);
         setAppointments(data.appointments || []);
         setPayments(data.payments || []);
@@ -350,6 +354,10 @@ export default function ClientProfilePage() {
           .then((r) => r.json())
           .then((iData) => setIntakeForms(iData.forms || []))
           .catch(() => {});
+      })
+      .catch((err) => {
+        console.error('[clients/id] Fetch error:', err);
+        setLoading(false);
       });
   }, [id]);
 

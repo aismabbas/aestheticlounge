@@ -34,7 +34,9 @@ export default function ServicesPage() {
   });
 
   const fetchServices = async () => {
+    try {
     const res = await fetch('/api/dashboard/services');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     // Handle grouped or flat response
@@ -50,7 +52,11 @@ export default function ServicesPage() {
       }
       setServicesByCategory(grouped);
     }
-    setLoading(false);
+    } catch (err) {
+      console.error('[services] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -69,33 +75,48 @@ export default function ServicesPage() {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    await fetch('/api/dashboard/services', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: editingId, ...editForm }),
-    });
-    setEditingId(null);
+    try {
+      const res = await fetch('/api/dashboard/services', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingId, ...editForm }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setEditingId(null);
+    } catch (err) {
+      console.error('[services] Save error:', err);
+    }
     fetchServices();
   };
 
   const toggleActive = async (svc: Service) => {
-    await fetch('/api/dashboard/services', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: svc.id, active: !svc.active }),
-    });
+    try {
+      const res = await fetch('/api/dashboard/services', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: svc.id, active: !svc.active }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.error('[services] Toggle error:', err);
+    }
     fetchServices();
   };
 
   const addService = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/dashboard/services', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newService),
-    });
-    setShowAdd(false);
-    setNewService({ name: '', category: '', duration_min: 30, price_pkr: 0, price_display: '', description: '' });
+    try {
+      const res = await fetch('/api/dashboard/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newService),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setShowAdd(false);
+      setNewService({ name: '', category: '', duration_min: 30, price_pkr: 0, price_display: '', description: '' });
+    } catch (err) {
+      console.error('[services] Add error:', err);
+    }
     fetchServices();
   };
 

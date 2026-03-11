@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
         // Check response speed from performance data
         const responseCheck = await query(
-          `SELECT response_seconds FROM al_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
+          `SELECT response_seconds FROM al_lead_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
           [lead.id],
         ).catch(() => ({ rows: [] }));
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
 
     // Check response speed
     const responseCheck = await query(
-      `SELECT response_seconds FROM al_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      `SELECT response_seconds FROM al_lead_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
       [lead_id],
     ).catch(() => ({ rows: [] }));
 

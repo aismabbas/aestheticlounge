@@ -55,9 +55,9 @@ const timeline = [
   },
   {
     year: "2022",
-    title: "80+ Treatments",
+    title: "66+ Treatments",
     description:
-      "Reached the milestone of offering over 80 treatments across 11 categories, making Aesthetic Lounge DHA's most comprehensive aesthetics clinic.",
+      "Reached the milestone of offering over 66 treatments across 11 categories, making Aesthetic Lounge DHA's most comprehensive aesthetics clinic.",
   },
   {
     year: "2024",
@@ -69,7 +69,7 @@ const timeline = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
@@ -101,7 +101,7 @@ export default function AboutPage() {
             the highest professional standards.
           </p>
           <p>
-            Today, Aesthetic Lounge offers over 80 treatments across 11
+            Today, Aesthetic Lounge offers over 66 treatments across 11
             specialties — from subtle enhancements like lip fillers and Botox to
             transformative procedures like thread lifts and body contouring. Our
             growing team of board-certified physicians serves hundreds of
@@ -210,6 +210,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

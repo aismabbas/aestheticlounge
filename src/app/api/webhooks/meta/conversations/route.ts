@@ -264,7 +264,7 @@ async function handleIncomingMessage(msg: IncomingMsg): Promise<void> {
   if (dupeCheck.rows.length > 0) return;
 
   // 2. Find or create thread
-  let threadId: string | null = null;
+  let threadId: string;
 
   // Try to find by external contact ID + channel
   const existing = await query(
@@ -289,22 +289,35 @@ async function handleIncomingMessage(msg: IncomingMsg): Promise<void> {
     threadId = existing.rows[0].id;
   } else {
     threadId = ulid();
-    await query(
-      `INSERT INTO al_unified_inbox (
-        id, channel, external_id, contact_name, contact_phone,
-        contact_ig_handle, contact_fb_id, status, unread_count, last_message_at, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'open', 0, $8, $8)`,
-      [
-        threadId,
-        msg.channel,
-        msg.senderId,
-        msg.senderName,
-        msg.senderPhone || null,
-        msg.senderIgHandle || null,
-        msg.senderFbId || (msg.channel === 'messenger' || msg.channel === 'fb_comment' ? msg.senderId : null),
-        msg.timestamp,
-      ],
-    );
+    try {
+      await query(
+        `INSERT INTO al_unified_inbox (
+          id, channel, external_id, contact_name, contact_phone,
+          contact_ig_handle, contact_fb_id, status, unread_count, last_message_at, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'open', 0, $8, $8)`,
+        [
+          threadId,
+          msg.channel,
+          msg.senderId,
+          msg.senderName,
+          msg.senderPhone || null,
+          msg.senderIgHandle || null,
+          msg.senderFbId || (msg.channel === 'messenger' || msg.channel === 'fb_comment' ? msg.senderId : null),
+          msg.timestamp,
+        ],
+      );
+    } catch {
+      // Race condition: another webhook created the thread — look it up
+      const retry = await query(
+        `SELECT id FROM al_unified_inbox WHERE channel = $1 AND external_id = $2 LIMIT 1`,
+        [msg.channel, msg.senderId],
+      );
+      if (retry.rows.length > 0) {
+        threadId = retry.rows[0].id;
+      } else {
+        throw new Error('Failed to create or find inbox thread');
+      }
+    }
 
     // Try to match to existing lead/client
     await tryMatchContact(threadId, msg);

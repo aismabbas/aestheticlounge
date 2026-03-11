@@ -98,66 +98,86 @@ export default function GoogleBusinessPage() {
 
   const fetchOverview = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/dashboard/google?type=overview');
-    const data = await res.json();
-    if (!data.configured) {
-      setConfigured(false);
-      setMissing(data.missing || []);
+    try {
+      const res = await fetch('/api/dashboard/google?type=overview');
+      const data = await res.json();
+      if (!data.configured) {
+        setConfigured(false);
+        setMissing(data.missing || []);
+        return;
+      }
+      setConfigured(true);
+      setLocation(data.location);
+      setReviewSummary(data.reviews);
+      setOverviewInsights(data.insights);
+      if (data.location) {
+        setEditFields({
+          title: data.location.title || '',
+          phone: data.location.phoneNumbers?.primaryPhone || '',
+          website: data.location.websiteUri || '',
+          description: data.location.profile?.description || '',
+        });
+      }
+    } catch (err) {
+      console.error('[google] Overview fetch error:', err);
+    } finally {
       setLoading(false);
-      return;
     }
-    setConfigured(true);
-    setLocation(data.location);
-    setReviewSummary(data.reviews);
-    setOverviewInsights(data.insights);
-    if (data.location) {
-      setEditFields({
-        title: data.location.title || '',
-        phone: data.location.phoneNumbers?.primaryPhone || '',
-        website: data.location.websiteUri || '',
-        description: data.location.profile?.description || '',
-      });
-    }
-    setLoading(false);
   }, []);
 
   const fetchReviews = useCallback(async () => {
-    const res = await fetch('/api/dashboard/google/reviews?pageSize=50');
-    const data = await res.json();
-    if (data.configured === false) return;
-    setReviews(data.reviews || []);
-    setReviewsTotal(data.totalReviewCount || 0);
-    setReviewsAvg(data.averageRating || 0);
+    try {
+      const res = await fetch('/api/dashboard/google/reviews?pageSize=50');
+      const data = await res.json();
+      if (data.configured === false) return;
+      setReviews(data.reviews || []);
+      setReviewsTotal(data.totalReviewCount || 0);
+      setReviewsAvg(data.averageRating || 0);
+    } catch (err) {
+      console.error('[google] Reviews fetch error:', err);
+    }
   }, []);
 
   const fetchInsights = useCallback(async () => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
-    const prevEnd = new Date(start);
-    const prevStart = new Date(start);
-    prevStart.setDate(prevStart.getDate() - 30);
+    try {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      const prevEnd = new Date(start);
+      const prevStart = new Date(start);
+      prevStart.setDate(prevStart.getDate() - 30);
 
-    const [curRes, prevRes] = await Promise.all([
-      fetch(`/api/dashboard/google?type=insights&start=${fmt(start)}&end=${fmt(end)}`),
-      fetch(`/api/dashboard/google?type=insights&start=${fmt(prevStart)}&end=${fmt(prevEnd)}`),
-    ]);
-    const cur = await curRes.json();
-    const prev = await prevRes.json();
-    if (cur.insights) setInsights(cur.insights);
-    if (prev.insights) setPrevInsights(prev.insights);
+      const [curRes, prevRes] = await Promise.all([
+        fetch(`/api/dashboard/google?type=insights&start=${fmt(start)}&end=${fmt(end)}`),
+        fetch(`/api/dashboard/google?type=insights&start=${fmt(prevStart)}&end=${fmt(prevEnd)}`),
+      ]);
+      const cur = await curRes.json();
+      const prev = await prevRes.json();
+      if (cur.insights) setInsights(cur.insights);
+      if (prev.insights) setPrevInsights(prev.insights);
+    } catch (err) {
+      console.error('[google] Insights fetch error:', err);
+    }
   }, []);
 
   const fetchPosts = useCallback(async () => {
-    const res = await fetch('/api/dashboard/google/posts');
-    const data = await res.json();
-    if (data.posts) setPosts(data.posts);
+    try {
+      const res = await fetch('/api/dashboard/google/posts');
+      const data = await res.json();
+      if (data.posts) setPosts(data.posts);
+    } catch (err) {
+      console.error('[google] Posts fetch error:', err);
+    }
   }, []);
 
   const fetchPhotos = useCallback(async () => {
-    const res = await fetch('/api/dashboard/google/photos');
-    const data = await res.json();
-    if (data.photos) setPhotos(data.photos);
+    try {
+      const res = await fetch('/api/dashboard/google/photos');
+      const data = await res.json();
+      if (data.photos) setPhotos(data.photos);
+    } catch (err) {
+      console.error('[google] Photos fetch error:', err);
+    }
   }, []);
 
   useEffect(() => { fetchOverview(); }, [fetchOverview]);
@@ -174,62 +194,86 @@ export default function GoogleBusinessPage() {
 
   async function handleSaveInfo() {
     setSaveLoading(true);
-    await fetch('/api/dashboard/google', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: editFields.title,
-        phoneNumbers: { primaryPhone: editFields.phone },
-        websiteUri: editFields.website,
-        profile: { description: editFields.description },
-      }),
-    });
-    setSaveLoading(false);
-    setEditing(false);
-    fetchOverview();
+    try {
+      const res = await fetch('/api/dashboard/google', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editFields.title,
+          phoneNumbers: { primaryPhone: editFields.phone },
+          websiteUri: editFields.website,
+          profile: { description: editFields.description },
+        }),
+      });
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      setEditing(false);
+      fetchOverview();
+    } catch (err) {
+      console.error('[google] Save info error:', err);
+    } finally {
+      setSaveLoading(false);
+    }
   }
 
   async function handleReply(reviewId: string) {
     const reply = replyDrafts[reviewId]?.trim();
     if (!reply) return;
     setReplyLoading(reviewId);
-    await fetch('/api/dashboard/google/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reviewId, reply }),
-    });
-    setReplyLoading(null);
-    setReplyDrafts((d) => ({ ...d, [reviewId]: '' }));
-    fetchReviews();
+    try {
+      const res = await fetch('/api/dashboard/google/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId, reply }),
+      });
+      if (!res.ok) throw new Error(`Reply failed: ${res.status}`);
+      setReplyDrafts((d) => ({ ...d, [reviewId]: '' }));
+      fetchReviews();
+    } catch (err) {
+      console.error('[google] Reply error:', err);
+    } finally {
+      setReplyLoading(null);
+    }
   }
 
   async function handleCreatePost() {
     if (!newPost.summary.trim()) return;
     setPostLoading(true);
-    const body: Record<string, unknown> = { summary: newPost.summary };
-    if (newPost.mediaUrl) body.media = { url: newPost.mediaUrl };
-    if (newPost.ctaType && newPost.ctaUrl) body.callToAction = { actionType: newPost.ctaType, url: newPost.ctaUrl };
-    await fetch('/api/dashboard/google/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    setPostLoading(false);
-    setNewPost({ summary: '', mediaUrl: '', ctaType: '', ctaUrl: '' });
-    fetchPosts();
+    try {
+      const body: Record<string, unknown> = { summary: newPost.summary };
+      if (newPost.mediaUrl) body.media = { url: newPost.mediaUrl };
+      if (newPost.ctaType && newPost.ctaUrl) body.callToAction = { actionType: newPost.ctaType, url: newPost.ctaUrl };
+      const res = await fetch('/api/dashboard/google/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`Create post failed: ${res.status}`);
+      setNewPost({ summary: '', mediaUrl: '', ctaType: '', ctaUrl: '' });
+      fetchPosts();
+    } catch (err) {
+      console.error('[google] Create post error:', err);
+    } finally {
+      setPostLoading(false);
+    }
   }
 
   async function handleUploadPhoto() {
     if (!newPhoto.url.trim()) return;
     setPhotoLoading(true);
-    await fetch('/api/dashboard/google/photos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newPhoto),
-    });
-    setPhotoLoading(false);
-    setNewPhoto({ category: 'EXTERIOR', url: '' });
-    fetchPhotos();
+    try {
+      const res = await fetch('/api/dashboard/google/photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPhoto),
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+      setNewPhoto({ category: 'EXTERIOR', url: '' });
+      fetchPhotos();
+    } catch (err) {
+      console.error('[google] Upload photo error:', err);
+    } finally {
+      setPhotoLoading(false);
+    }
   }
 
   /* ---------- not configured ---------- */

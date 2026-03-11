@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 
 interface Client {
   id: string;
@@ -115,11 +115,16 @@ export default function PaymentsPage() {
     if (dateFrom) params.set('date_from', dateFrom);
     if (dateTo) params.set('date_to', dateTo);
 
-    const res = await fetch(`/api/dashboard/payments?${params}`);
-    const data = await res.json();
-    setPayments(data.payments || []);
-    setStats(data.stats || { month_revenue: 0, pending_total: 0, today_collections: 0, avg_transaction: 0 });
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/dashboard/payments?${params}`);
+      const data = await res.json();
+      setPayments(data.payments || []);
+      setStats(data.stats || { month_revenue: 0, pending_total: 0, today_collections: 0, avg_transaction: 0 });
+    } catch (err) {
+      console.error('[payments] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [sortKey, sortDir, filterStatus, filterMethod, dateFrom, dateTo]);
 
   useEffect(() => {
@@ -167,6 +172,8 @@ export default function PaymentsPage() {
         });
         fetchPayments();
       }
+    } catch (err) {
+      console.error('[payments] Submit error:', err);
     } finally {
       setSubmitting(false);
     }
@@ -425,9 +432,8 @@ export default function PaymentsPage() {
           </thead>
           <tbody>
             {payments.map((payment) => (
-              <>
+              <Fragment key={payment.id}>
                 <tr
-                  key={payment.id}
                   onClick={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
                   className="border-b border-border-light hover:bg-warm-white transition-colors cursor-pointer"
                 >
@@ -483,7 +489,7 @@ export default function PaymentsPage() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
             {payments.length === 0 && (
               <tr>

@@ -56,11 +56,16 @@ export default function ClientsPage() {
     if (filters.vip) params.set('vip', 'true');
     if (filters.new) params.set('new', 'true');
     if (filters.tag) params.set('tag', filters.tag);
-    const res = await fetch(`/api/dashboard/clients?${params}`);
-    const data = await res.json();
-    setClients(Array.isArray(data.clients) ? data.clients : Array.isArray(data) ? data : []);
-    setAllTags(Array.isArray(data.allTags) ? data.allTags : []);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/dashboard/clients?${params}`);
+      const data = await res.json();
+      setClients(Array.isArray(data.clients) ? data.clients : Array.isArray(data) ? data : []);
+      setAllTags(Array.isArray(data.allTags) ? data.allTags : []);
+    } catch (err) {
+      console.error('[clients] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [search, sortKey, sortDir, filters]);
 
   useEffect(() => {

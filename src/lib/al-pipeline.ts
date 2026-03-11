@@ -462,11 +462,12 @@ export async function publishToInstagram(opts: {
       { method: 'POST' },
     );
     const published = await publishRes.json();
+    if (!published.id) throw new Error(`IG publish error: ${JSON.stringify(published)}`);
     return { id: published.id };
   }
 
-  if (type === 'carousel' && imageUrls && imageUrls.length > 0) {
-    // Step 1: Create child containers
+  if (type === 'carousel' && imageUrls && imageUrls.length >= 2) {
+    // Step 1: Create child containers (Instagram requires 2-10 items)
     const childIds: string[] = [];
     for (const url of imageUrls) {
       const res = await fetch(
@@ -474,7 +475,15 @@ export async function publishToInstagram(opts: {
         { method: 'POST' },
       );
       const data = await res.json();
-      if (data.id) childIds.push(data.id);
+      if (data.id) {
+        childIds.push(data.id);
+      } else {
+        console.error('[publishToInstagram] Child container failed:', data);
+      }
+    }
+
+    if (childIds.length < 2) {
+      throw new Error(`Carousel requires at least 2 uploaded images, only ${childIds.length} succeeded`);
     }
 
     // Step 2: Create carousel container
@@ -491,6 +500,7 @@ export async function publishToInstagram(opts: {
       { method: 'POST' },
     );
     const published = await publishRes.json();
+    if (!published.id) throw new Error(`IG carousel publish error: ${JSON.stringify(published)}`);
     return { id: published.id };
   }
 
@@ -523,6 +533,7 @@ export async function publishToInstagram(opts: {
       { method: 'POST' },
     );
     const published = await publishRes.json();
+    if (!published.id) throw new Error(`Reel publish failed: ${JSON.stringify(published)}`);
     return { id: published.id };
   }
 

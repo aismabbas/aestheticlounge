@@ -25,7 +25,7 @@ export default function ContactPage() {
           phone: fd.get('phone'),
           email: fd.get('email') || undefined,
           message: fd.get('message'),
-          treatment: undefined,
+          treatment: null,
           landing_page: window.location.pathname,
           ...utm,
         }),
@@ -45,7 +45,7 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
@@ -303,6 +303,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

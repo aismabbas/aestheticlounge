@@ -103,35 +103,39 @@ export default function PerformancePage() {
     if (channelFilter) params.set('channel', channelFilter);
     if (staffFilter) params.set('staff_id', staffFilter);
 
-    const [res, qualityRes] = await Promise.all([
-      fetch(`/api/dashboard/performance?${params}`),
-      fetch(`/api/dashboard/analytics/agent-quality?${new URLSearchParams({ period })}`).catch(() => null),
-    ]);
+    try {
+      const [res, qualityRes] = await Promise.all([
+        fetch(`/api/dashboard/performance?${params}`),
+        fetch(`/api/dashboard/analytics/agent-quality?${new URLSearchParams({ period })}`).catch(() => null),
+      ]);
 
-    if (res.ok) {
-      const d: PerformanceData = await res.json();
-      setData(d);
-      const timers: Record<string, number> = {};
-      d.waiting_leads.forEach((wl) => {
-        timers[wl.lead_id] = wl.seconds_waiting;
-      });
-      setWaitingTimers(timers);
-    }
-
-    if (qualityRes?.ok) {
-      const qd = await qualityRes.json();
-      const scores: Record<string, AgentQualityScore> = {};
-      for (const agent of qd.agent_rankings || []) {
-        scores[agent.staff_id] = {
-          staff_id: agent.staff_id,
-          overall_score: agent.overall_score,
-          avg_client_sentiment: agent.avg_client_sentiment,
-        };
+      if (res.ok) {
+        const d: PerformanceData = await res.json();
+        setData(d);
+        const timers: Record<string, number> = {};
+        d.waiting_leads.forEach((wl) => {
+          timers[wl.lead_id] = wl.seconds_waiting;
+        });
+        setWaitingTimers(timers);
       }
-      setQualityScores(scores);
-    }
 
-    setLoading(false);
+      if (qualityRes?.ok) {
+        const qd = await qualityRes.json();
+        const scores: Record<string, AgentQualityScore> = {};
+        for (const agent of qd.agent_rankings || []) {
+          scores[agent.staff_id] = {
+            staff_id: agent.staff_id,
+            overall_score: agent.overall_score,
+            avg_client_sentiment: agent.avg_client_sentiment,
+          };
+        }
+        setQualityScores(scores);
+      }
+    } catch (err) {
+      console.error('[performance] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [period, channelFilter, staffFilter]);
 
   useEffect(() => {

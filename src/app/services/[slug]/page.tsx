@@ -69,7 +69,7 @@ export default async function TreatmentPage({ params }: PageProps) {
   ]);
 
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
@@ -217,6 +217,6 @@ export default async function TreatmentPage({ params }: PageProps) {
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 }

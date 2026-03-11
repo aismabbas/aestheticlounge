@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { isValidRole } from '@/lib/rbac';
+import { signSession } from '@/lib/api-auth';
 
 const COOKIE_NAME = 'al_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -49,8 +50,8 @@ export async function POST(req: NextRequest) {
       await query('UPDATE al_otp SET used = true WHERE id = $1', [otpResult.rows[0].id]);
     }
 
-    // Dev fallback: accept 000000 when WhatsApp isn't configured
-    if (!otpValid && otp === DEV_OTP && !process.env.WHATSAPP_ACCESS_TOKEN) {
+    // Dev fallback: accept 000000 when WhatsApp isn't configured AND not in production
+    if (!otpValid && otp === DEV_OTP && !process.env.WHATSAPP_ACCESS_TOKEN && process.env.NODE_ENV !== 'production') {
       otpValid = true;
     }
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       role,
     });
 
-    response.cookies.set(COOKIE_NAME, JSON.stringify(sessionPayload), {
+    response.cookies.set(COOKIE_NAME, signSession(sessionPayload), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

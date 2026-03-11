@@ -229,3 +229,43 @@ export const landingPages: LandingPage[] = [
 export function getLandingPage(slug: string): LandingPage | undefined {
   return landingPages.find((lp) => lp.slug === slug);
 }
+
+/**
+ * Check database for dynamically generated landing pages.
+ * Falls back to static if not found.
+ */
+export async function getLandingPageFromDB(slug: string): Promise<LandingPage | undefined> {
+  // Check static first
+  const staticLP = getLandingPage(slug);
+  if (staticLP) return staticLP;
+
+  // Check database
+  try {
+    const { query } = await import('@/lib/db');
+    const { rows } = await query(
+      `SELECT * FROM al_landing_pages WHERE slug = $1 AND status = 'active'`,
+      [slug],
+    );
+    if (rows.length === 0) return undefined;
+
+    const row = rows[0];
+    return {
+      slug: row.slug as string,
+      treatment: row.treatment as string,
+      headline: row.headline as string,
+      subheadline: row.subheadline as string,
+      problem_points: typeof row.problem_points === 'string' ? JSON.parse(row.problem_points) : row.problem_points,
+      solution_points: typeof row.solution_points === 'string' ? JSON.parse(row.solution_points) : row.solution_points,
+      steps: typeof row.steps === 'string' ? JSON.parse(row.steps) : row.steps,
+      faqs: typeof row.faqs === 'string' ? JSON.parse(row.faqs) : row.faqs,
+      price_display: row.price_display as string,
+      cta_text: (row.cta_text as string) || 'Book Free Consultation',
+      whatsapp_message: (row.whatsapp_message as string) || '',
+      meta_title: (row.meta_title as string) || '',
+      meta_description: (row.meta_description as string) || '',
+    };
+  } catch (err) {
+    console.error('[landing-pages] DB lookup failed:', err);
+    return undefined;
+  }
+}

@@ -63,18 +63,26 @@ export default function FeedbackDashboardPage() {
   const [notesText, setNotesText] = useState('');
 
   const fetchFeedback = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (ratingFilter) params.set('rating', ratingFilter.toString());
-    const res = await fetch(`/api/feedback?${params}`);
-    if (res.ok) setFeedbacks(await res.json());
+    try {
+      const params = new URLSearchParams();
+      if (ratingFilter) params.set('rating', ratingFilter.toString());
+      const res = await fetch(`/api/feedback?${params}`);
+      if (res.ok) setFeedbacks(await res.json());
+    } catch (err) {
+      console.error('[feedback] Fetch error:', err);
+    }
   }, [ratingFilter]);
 
   const fetchComplaints = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (statusFilter) params.set('status', statusFilter);
-    if (categoryFilter) params.set('category', categoryFilter);
-    const res = await fetch(`/api/feedback/complaint?${params}`);
-    if (res.ok) setComplaints(await res.json());
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      if (categoryFilter) params.set('category', categoryFilter);
+      const res = await fetch(`/api/feedback/complaint?${params}`);
+      if (res.ok) setComplaints(await res.json());
+    } catch (err) {
+      console.error('[feedback] Complaints fetch error:', err);
+    }
   }, [statusFilter, categoryFilter]);
 
   useEffect(() => {
@@ -88,16 +96,20 @@ export default function FeedbackDashboardPage() {
     id: string,
     updates: { status?: string; admin_notes?: string },
   ) {
-    const res = await fetch('/api/feedback/complaint', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...updates }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setComplaints((prev) =>
-        prev.map((c) => (c.id === id ? updated : c)),
-      );
+    try {
+      const res = await fetch('/api/feedback/complaint', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setComplaints((prev) =>
+          prev.map((c) => (c.id === id ? updated : c)),
+        );
+      }
+    } catch (err) {
+      console.error('[feedback] Update complaint error:', err);
     }
   }
 

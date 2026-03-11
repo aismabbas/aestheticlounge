@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     template: "%s | Aesthetic Lounge",
   },
   description:
-    "Lahore's premier medical aesthetics clinic at Plaza-126, BWB Phase 8, DHA Lahore Cantt. 80+ treatments including HydraFacial, Botox, fillers, laser hair removal & body contouring. Expert doctors delivering personalized care.",
+    "Lahore's premier medical aesthetics clinic at Plaza-126, BWB Phase 8, DHA Lahore Cantt. 66+ treatments including HydraFacial, Botox, fillers, laser hair removal & body contouring. Expert doctors delivering personalized care.",
   keywords: [
     "medical aesthetics Lahore",
     "aesthetic clinic DHA",
@@ -64,10 +64,10 @@ export const metadata: Metadata = {
     siteName: "Aesthetic Lounge",
     title: "Aesthetic Lounge — Premium Medical Aesthetics in Lahore",
     description:
-      "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
+      "66+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
     images: [
       {
-        url: "https://aesthetic-lounge-dev.netlify.app/logo.png",
+        url: "https://aestheticloungeofficial.com/logo.png",
         width: 1200,
         height: 630,
         alt: "Aesthetic Lounge — Premium Medical Aesthetics",
@@ -78,8 +78,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Aesthetic Lounge — Premium Medical Aesthetics in Lahore",
     description:
-      "80+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
-    images: ["https://aesthetic-lounge-dev.netlify.app/logo.png"],
+      "66+ treatments. Expert care. DHA Phase 8, Lahore. Book your consultation today.",
+    images: ["https://aestheticloungeofficial.com/logo.png"],
   },
   robots: {
     index: true,

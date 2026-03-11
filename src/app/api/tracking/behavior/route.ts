@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+
+const MAX_BATCH_SIZE = 50;
 
 /**
  * POST /api/tracking/behavior
@@ -73,6 +76,11 @@ function extractTreatmentName(url: string): string | null {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const ip = getClientIp(req.headers);
+  if (isRateLimited(`behavior:${ip}`, 60_000, 30)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const events: IncomingEvent[] = Array.isArray(body.events)
@@ -85,10 +93,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'No events provided' }, { status: 400 });
     }
 
-    // Validate events
-    const validEvents = events.filter(
-      (e) => e.visitor_id && e.event_type && e.page_url && e.session_id,
-    );
+    // Validate events and limit batch size
+    const validEvents = events
+      .filter((e) => e.visitor_id && e.event_type && e.page_url && e.session_id)
+      .slice(0, MAX_BATCH_SIZE);
 
     if (validEvents.length === 0) {
       return NextResponse.json({ error: 'No valid events' }, { status: 400 });

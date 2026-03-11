@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
 
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
@@ -229,6 +229,6 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 }

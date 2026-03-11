@@ -57,23 +57,31 @@ export async function POST(req: NextRequest) {
     }
 
     if (type === 'ad') {
-      const { adSetId, name, headline, body: adBody, imageUrl, ctaType, leadFormId } = body;
+      const { adSetId, name, headline, body: adBody, imageUrl, ctaType, leadFormId, landingPageSlug, leadCaptureType } = body;
       if (!adSetId || !name || !headline || !adBody || !imageUrl) {
         return NextResponse.json(
           { error: 'adSetId, name, headline, body, and imageUrl are required' },
           { status: 400 },
         );
       }
+
+      // Determine lead form or landing page based on leadCaptureType
+      let resolvedLeadFormId = leadFormId;
+      if (leadCaptureType === 'landing_page' && landingPageSlug) {
+        // Landing page ads use LEARN_MORE CTA pointing to /lp/{slug}
+        // No lead form needed — leads captured on the page itself
+      }
+
       const result = await createAd(query, {
         adSetId,
         name,
         headline,
         body: adBody,
         imageUrl,
-        ctaType,
-        leadFormId,
+        ctaType: leadCaptureType === 'landing_page' ? 'LEARN_MORE' : (ctaType || 'BOOK_TRAVEL'),
+        leadFormId: resolvedLeadFormId,
       });
-      return NextResponse.json({ success: true, type: 'ad', ...result });
+      return NextResponse.json({ success: true, type: 'ad', ...result, landingPageSlug });
     }
   } catch (err) {
     console.error('[ads/create] POST error:', err);

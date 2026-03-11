@@ -537,20 +537,25 @@ export default function LeadsPage() {
   };
 
   const fetchLeads = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (search) params.set('search', search);
-    if (temperature !== 'all') params.set('temperature', temperature);
-    if (sortBy !== 'created_at') params.set('sort', sortBy);
-    if (myLeadsOnly) params.set('my_leads', 'true');
-    const res = await fetch(`/api/dashboard/leads?${params}`);
-    const data = await res.json();
-    setLeads(data.leads || []);
-    setStats(data.stats || { total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0, total_pipeline_value: 0, total_revenue: 0 });
-    setStaffList(data.staff || []);
-    // Reset tick base on each data refresh
-    baseTimeRef.current = Date.now();
-    setTick(0);
-    setLoading(false);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (temperature !== 'all') params.set('temperature', temperature);
+      if (sortBy !== 'created_at') params.set('sort', sortBy);
+      if (myLeadsOnly) params.set('my_leads', 'true');
+      const res = await fetch(`/api/dashboard/leads?${params}`);
+      const data = await res.json();
+      setLeads(data.leads || []);
+      setStats(data.stats || { total_leads: 0, hot_count: 0, warm_count: 0, cold_count: 0, conversion_rate: 0, avg_score: 0, total_pipeline_value: 0, total_revenue: 0 });
+      setStaffList(data.staff || []);
+      // Reset tick base on each data refresh
+      baseTimeRef.current = Date.now();
+      setTick(0);
+    } catch (err) {
+      console.error('[leads] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [search, temperature, sortBy, myLeadsOnly]);
 
   useEffect(() => {
@@ -561,32 +566,48 @@ export default function LeadsPage() {
   }, [fetchLeads]);
 
   const updateStage = async (leadId: string, newStage: string) => {
-    await fetch(`/api/dashboard/leads/${leadId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stage: newStage }),
-    });
-    fetchLeads();
-    if (selectedLead?.id === leadId) {
-      setSelectedLead({ ...selectedLead, stage: newStage });
+    try {
+      const res = await fetch(`/api/dashboard/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: newStage }),
+      });
+      if (res.ok) {
+        fetchLeads();
+        if (selectedLead?.id === leadId) {
+          setSelectedLead({ ...selectedLead, stage: newStage });
+        }
+      } else {
+        console.error('[leads] Stage update failed:', res.status);
+      }
+    } catch (err) {
+      console.error('[leads] Stage update error:', err);
     }
   };
 
   const addNote = async (leadId: string) => {
     if (!noteText.trim()) return;
-    const lead = leads.find((l) => l.id === leadId);
-    const existing = lead?.notes || '';
-    const updated = existing
-      ? `${existing}\n[${new Date().toLocaleDateString()}] ${noteText}`
-      : `[${new Date().toLocaleDateString()}] ${noteText}`;
+    try {
+      const lead = leads.find((l) => l.id === leadId);
+      const existing = lead?.notes || '';
+      const updated = existing
+        ? `${existing}\n[${new Date().toLocaleDateString()}] ${noteText}`
+        : `[${new Date().toLocaleDateString()}] ${noteText}`;
 
-    await fetch(`/api/dashboard/leads/${leadId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: updated }),
-    });
-    setNoteText('');
-    fetchLeads();
+      const res = await fetch(`/api/dashboard/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: updated }),
+      });
+      if (!res.ok) {
+        console.error('[leads] Add note failed:', res.status);
+        return;
+      }
+      setNoteText('');
+      fetchLeads();
+    } catch (err) {
+      console.error('[leads] Add note error:', err);
+    }
   };
 
   const groupedLeads = STAGES.reduce(

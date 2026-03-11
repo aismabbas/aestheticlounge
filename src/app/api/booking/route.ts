@@ -224,9 +224,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, appointmentId });
   } catch (err) {
     console.error('[booking] error:', err);
-    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: 'Internal server error' },
       { status: 500 },
     );
   }

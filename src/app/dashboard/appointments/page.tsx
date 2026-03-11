@@ -64,10 +64,15 @@ export default function AppointmentsPage() {
     if (filterDoctor) params.set('doctor', filterDoctor);
     if (filterStatus) params.set('status', filterStatus);
 
-    const res = await fetch(`/api/dashboard/appointments?${params}`);
-    const data = await res.json();
-    setAppointments(Array.isArray(data.appointments) ? data.appointments : Array.isArray(data) ? data : []);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/dashboard/appointments?${params}`);
+      const data = await res.json();
+      setAppointments(Array.isArray(data.appointments) ? data.appointments : Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('[appointments] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedDate, filterDoctor, filterStatus, viewMode]);
 
   useEffect(() => {
@@ -75,11 +80,19 @@ export default function AppointmentsPage() {
   }, [fetchAppointments]);
 
   const updateStatus = async (aptId: string, newStatus: string) => {
-    await fetch('/api/dashboard/appointments', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: aptId, status: newStatus }),
-    });
+    try {
+      const res = await fetch(`/api/dashboard/appointments/${aptId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[appointments] Status update failed:', data.error || res.status);
+      }
+    } catch (err) {
+      console.error('[appointments] Status update error:', err);
+    }
     fetchAppointments();
   };
 

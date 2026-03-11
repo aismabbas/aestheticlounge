@@ -50,9 +50,19 @@ export async function GET(req: NextRequest) {
 
     const { dateFrom, dateTo } = getDateRange(period);
 
-    // Build optional filter clauses
-    const staffClause = staffFilter ? `AND c.agent = '${staffFilter}'` : '';
-    const channelClause = channelFilter ? `AND c.channel = '${channelFilter}'` : '';
+    // Build optional filter clauses with parameterized queries
+    const baseParams: unknown[] = [dateFrom, dateTo];
+    let staffClause = '';
+    let channelClause = '';
+
+    if (staffFilter) {
+      baseParams.push(staffFilter);
+      staffClause = `AND c.agent = $${baseParams.length}`;
+    }
+    if (channelFilter) {
+      baseParams.push(channelFilter);
+      channelClause = `AND c.channel = $${baseParams.length}`;
+    }
 
     // Get all conversations in the period grouped by phone (thread)
     const threadsResult = await query(
@@ -62,7 +72,7 @@ export async function GET(req: NextRequest) {
        WHERE c.created_at >= $1 AND c.created_at < $2
        ${staffClause} ${channelClause}
        ORDER BY c.phone`,
-      [dateFrom, dateTo],
+      baseParams,
     );
 
     let totalPositive = 0;
@@ -88,15 +98,21 @@ export async function GET(req: NextRequest) {
 
     for (const thread of threadsResult.rows) {
       // Get all messages for this thread in the period
+      const msgParams: unknown[] = [thread.phone, dateFrom, dateTo];
+      let msgStaffClause = '';
+      if (staffFilter) {
+        msgParams.push(staffFilter);
+        msgStaffClause = `AND c.agent = $${msgParams.length}`;
+      }
       const messagesResult = await query(
         `SELECT c.id, c.direction, COALESCE(c.content, c.message, '') AS content,
                 c.created_at, c.agent,
                 COALESCE(c.channel, 'whatsapp') AS channel
          FROM al_conversations c
          WHERE c.phone = $1 AND c.created_at >= $2 AND c.created_at < $3
-         ${staffClause}
+         ${msgStaffClause}
          ORDER BY c.created_at ASC`,
-        [thread.phone, dateFrom, dateTo],
+        msgParams,
       );
 
       if (messagesResult.rows.length === 0) continue;

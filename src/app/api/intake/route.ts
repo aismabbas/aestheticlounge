@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
+import { checkAuth } from '@/lib/api-auth';
 import crypto from 'crypto';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(req: NextRequest) {
   const user = await checkAuth();

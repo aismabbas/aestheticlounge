@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ServicesPage() {
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
@@ -21,17 +21,15 @@ export default function ServicesPage() {
         </p>
       </section>
 
-      {/* Bento Grid */}
+      {/* Category Cards with All Treatment Links */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((cat, i) => {
-            // Make the first two cards span wider for bento effect
             const isLarge = i < 2;
             return (
-              <Link
+              <div
                 key={cat.slug}
-                href={`/services/${cat.treatments[0].slug}`}
-                className={`group relative overflow-hidden rounded-2xl border border-gold-pale bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-gold ${
+                className={`relative overflow-hidden rounded-2xl border border-gold-pale bg-white p-8 shadow-sm ${
                   isLarge ? "sm:col-span-2 lg:col-span-1" : ""
                 }`}
               >
@@ -39,7 +37,7 @@ export default function ServicesPage() {
                 <span className="text-4xl">{cat.icon}</span>
 
                 {/* Content */}
-                <h2 className="mt-4 font-serif text-2xl text-text-dark group-hover:text-gold transition-colors">
+                <h2 className="mt-4 font-serif text-2xl text-text-dark">
                   {cat.name}
                 </h2>
                 <p className="mt-2 text-sm text-text-light leading-relaxed">
@@ -47,32 +45,25 @@ export default function ServicesPage() {
                 </p>
 
                 {/* Treatment count */}
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-6">
                   <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     {cat.treatments.length} treatments
                   </span>
-                  <span className="text-gold group-hover:translate-x-1 transition-transform">
-                    &rarr;
-                  </span>
                 </div>
 
-                {/* Treatment list preview */}
+                {/* All treatments as clickable links */}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {cat.treatments.slice(0, 4).map((t) => (
-                    <span
+                  {cat.treatments.map((t) => (
+                    <Link
                       key={t.slug}
-                      className="rounded-full bg-gold-pale px-3 py-1 text-xs text-text-dark"
+                      href={`/services/${t.slug}`}
+                      className="rounded-full bg-gold-pale px-3 py-1 text-xs text-text-dark hover:bg-gold hover:text-white transition-colors"
                     >
                       {t.name}
-                    </span>
+                    </Link>
                   ))}
-                  {cat.treatments.length > 4 && (
-                    <span className="rounded-full bg-warm-white px-3 py-1 text-xs text-text-muted">
-                      +{cat.treatments.length - 4} more
-                    </span>
-                  )}
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
@@ -104,6 +95,6 @@ export default function ServicesPage() {
           </a>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

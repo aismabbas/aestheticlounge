@@ -21,10 +21,12 @@ export async function POST(req: NextRequest) {
     );
 
     if (!result.rows || result.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No active staff account found with this email' },
-        { status: 404 },
-      );
+      // Don't reveal whether email exists — generic message
+      return NextResponse.json({
+        success: true,
+        channel: 'sent',
+        message: 'If this email is registered, an OTP has been sent.',
+      });
     }
 
     const staff = result.rows[0];

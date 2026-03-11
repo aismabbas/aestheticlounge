@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function DoctorsPage() {
   return (
-    <main className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-text-dark pt-32 pb-20 text-center text-white">
         <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">
@@ -107,6 +107,6 @@ export default function DoctorsPage() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

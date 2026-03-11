@@ -218,11 +218,17 @@ export default function CarouselsPage() {
                       {draft.headline && <p className="text-xs text-text-muted mt-0.5">{draft.headline}</p>}
                       {draft.caption && <p className="text-xs text-text-muted mt-1 line-clamp-3">{draft.caption.slice(0, 300)}</p>}
                       {draft.imageUrls && draft.imageUrls.length > 0 && (
-                        <div className="mt-2 flex gap-1.5 overflow-x-auto">
-                          {draft.imageUrls.map((url, i) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img key={i} src={url} alt="" className="h-20 rounded-md object-cover shrink-0" />
-                          ))}
+                        <div className="mt-2">
+                          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wide mb-1">{draft.imageUrls.length} Slides</p>
+                          <div className="flex gap-1.5 overflow-x-auto pb-1">
+                            {draft.imageUrls.map((url, i) => (
+                              <div key={i} className="shrink-0 relative">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={url} alt={`Slide ${i + 1}`} className="h-24 w-24 rounded-md object-cover border border-border" />
+                                <span className="absolute top-0.5 left-0.5 bg-black/60 text-white text-[9px] font-medium px-1 py-0.5 rounded">{i + 1}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -240,15 +246,28 @@ export default function CarouselsPage() {
                         </>
                       )}
                       {draft.stage === 'pending_design' && (
-                        <button onClick={() => handleDraftAction(draft.id, 'generate_image')} disabled={!!actionLoading}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50">
-                          Generate Slides
-                        </button>
+                        <>
+                          {(!draft.imageUrls || draft.imageUrls.length === 0) ? (
+                            <button onClick={() => handleDraftAction(draft.id, 'generate_image')} disabled={!!actionLoading}
+                              className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50">
+                              {actionLoading === `${draft.id}:generate_image` ? 'Generating...' : 'Generate Slides'}
+                            </button>
+                          ) : (
+                            <button onClick={() => handleDraftAction(draft.id, 'approve_design', { imageUrls: draft.imageUrls, imageUrl: draft.imageUrls?.[0] })} disabled={!!actionLoading}
+                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50">
+                              Approve {draft.imageUrls.length} Slides
+                            </button>
+                          )}
+                          <button onClick={() => handleDraftAction(draft.id, 'reject')} disabled={!!actionLoading}
+                            className="px-3 py-1.5 bg-white text-red-600 text-xs font-medium rounded-md border border-red-200 hover:bg-red-50 disabled:opacity-50">
+                            Reject
+                          </button>
+                        </>
                       )}
                       {draft.stage === 'pending_publish' && (
                         <button onClick={() => handleDraftAction(draft.id, 'publish')} disabled={!!actionLoading}
                           className="px-3 py-1.5 bg-gold text-white text-xs font-medium rounded-md hover:bg-gold-dark disabled:opacity-50">
-                          Publish to IG
+                          {actionLoading === `${draft.id}:publish` ? 'Publishing...' : `Publish ${draft.imageUrls?.length || 1} Slides to IG`}
                         </button>
                       )}
                     </div>

@@ -6,10 +6,10 @@ const BUSINESS_INFO = {
   name: 'Aesthetic Lounge',
   alternateName: 'Aesthetic Lounge Official',
   url: BASE_URL,
-  logo: 'https://aesthetic-lounge-dev.netlify.app/logo.png',
-  image: 'https://aesthetic-lounge-dev.netlify.app/logo.png',
+  logo: 'https://aestheticloungeofficial.com/logo.png',
+  image: 'https://aestheticloungeofficial.com/logo.png',
   description:
-    'Premium medical aesthetics clinic offering 80+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.',
+    'Premium medical aesthetics clinic offering 66+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.',
   telephone: '+92-327-6620000',
   email: 'info@aestheticloungeofficial.com',
   address: {
@@ -55,12 +55,6 @@ export function generateLocalBusinessSchema() {
     geo: BUSINESS_INFO.geo,
     openingHoursSpecification: BUSINESS_INFO.openingHours,
     priceRange: '$$',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '1000',
-      bestRating: '5',
-    },
     sameAs: BUSINESS_INFO.sameAs,
   };
 }
@@ -82,12 +76,6 @@ export function generateMedicalBusinessSchema() {
     openingHoursSpecification: BUSINESS_INFO.openingHours,
     medicalSpecialty: 'Dermatology',
     priceRange: '$$',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '1000',
-      bestRating: '5',
-    },
     sameAs: BUSINESS_INFO.sameAs,
     founder: {
       '@type': 'Person',

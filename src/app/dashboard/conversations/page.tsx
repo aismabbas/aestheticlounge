@@ -270,12 +270,14 @@ export default function UnifiedInboxPage() {
       if (searchQuery) params.set('search', searchQuery);
 
       const res = await fetch(`/api/dashboard/inbox?${params}`);
+      if (!res.ok) throw new Error(`Fetch threads failed: ${res.status}`);
       const data = await res.json();
 
       let filteredThreads = data.threads || [];
       // If comments filter is selected, include both ig_comment and fb_comment
       if (channelFilter === 'ig_comment') {
         const allRes = await fetch(`/api/dashboard/inbox?status=${statusFilter !== 'all' ? statusFilter : 'all'}${searchQuery ? `&search=${searchQuery}` : ''}`);
+        if (!allRes.ok) throw new Error(`Fetch all threads failed: ${allRes.status}`);
         const allData = await allRes.json();
         filteredThreads = (allData.threads || []).filter(
           (t: Thread) => t.channel === 'ig_comment' || t.channel === 'fb_comment',
@@ -392,21 +394,18 @@ export default function UnifiedInboxPage() {
   const handleLinkContact = async (type: 'lead' | 'client', contactId: string) => {
     if (!selectedThread) return;
     try {
-      if (type === 'lead') {
-        // Link existing lead
-        await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lead_id: contactId }),
-        });
-      } else {
-        await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'link_client', client_id: contactId }),
-        });
-      }
-      // Refresh profile
+      const res = type === 'lead'
+        ? await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lead_id: contactId }),
+          })
+        : await fetch(`/api/dashboard/inbox/${selectedThread.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'link_client', client_id: contactId }),
+          });
+      if (!res.ok) throw new Error(`Link failed: ${res.status}`);
       fetchContactProfile(selectedThread.id);
     } catch (err) {
       console.error('Link contact failed:', err);
@@ -416,7 +415,7 @@ export default function UnifiedInboxPage() {
   const handleBookAppointment = async () => {
     if (!selectedThread || !bookingTreatment || !bookingDate) return;
     try {
-      await fetch('/api/booking', {
+      const res = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -429,6 +428,7 @@ export default function UnifiedInboxPage() {
           source: `inbox_${selectedThread.channel}`,
         }),
       });
+      if (!res.ok) throw new Error(`Booking failed: ${res.status}`);
       setShowBooking(false);
       setBookingTreatment('');
       setBookingDate('');
@@ -453,6 +453,7 @@ export default function UnifiedInboxPage() {
           content: messageInput.trim(),
         }),
       });
+      if (!res.ok) throw new Error(`Send failed: ${res.status}`);
       const data = await res.json();
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
@@ -488,6 +489,7 @@ export default function UnifiedInboxPage() {
           template_params: params,
         }),
       });
+      if (!res.ok) throw new Error(`Send template failed: ${res.status}`);
       const data = await res.json();
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
@@ -525,11 +527,12 @@ export default function UnifiedInboxPage() {
     updates: { status?: ThreadStatus; assigned_to?: string },
   ) => {
     try {
-      await fetch(`/api/dashboard/inbox/${threadId}`, {
+      const res = await fetch(`/api/dashboard/inbox/${threadId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!res.ok) throw new Error(`Update thread failed: ${res.status}`);
       setThreads((prev) =>
         prev.map((t) =>
           t.id === threadId ? { ...t, ...updates } : t,

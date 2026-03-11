@@ -80,22 +80,36 @@ export async function GET(req: NextRequest) {
       `SELECT COUNT(*) AS total FROM al_appointments WHERE status = 'cancelled' ${apptDateFilter}`,
     );
 
-    // Campaigns
+    // Campaign date filter
+    let campDateFilter = '';
+    if (period === 'week') {
+      campDateFilter = `AND p.date >= CURRENT_DATE - INTERVAL '7 days'`;
+    } else if (period === 'month') {
+      campDateFilter = `AND p.date >= date_trunc('month', CURRENT_DATE)`;
+    }
+
+    // Campaigns — use al_ad_campaigns + al_ad_performance for spend/metrics
     const campaignStats = await query(
       `SELECT
-         COALESCE(SUM(budget_spent), 0) AS total_spend,
-         COALESCE(AVG(NULLIF(cpl, 0)), 0) AS avg_cpl,
-         COALESCE(AVG(NULLIF(cpa, 0)), 0) AS avg_cpa,
-         COALESCE(AVG(NULLIF(roas, 0)), 0) AS roas
-       FROM al_campaigns`,
-    );
+         COALESCE(SUM(p.spend), 0) AS total_spend,
+         CASE WHEN SUM(p.leads) > 0 THEN SUM(p.spend) / SUM(p.leads) ELSE 0 END AS avg_cpl,
+         0 AS avg_cpa,
+         0 AS roas
+       FROM al_ad_performance p
+       WHERE p.meta_ad_id IS NULL ${campDateFilter}`,
+    ).catch(() => ({ rows: [{ total_spend: 0, avg_cpl: 0, avg_cpa: 0, roas: 0 }] }));
 
     const topCampaigns = await query(
-      `SELECT name, treatment, status, budget_spent, leads, booked, cpl, cpa, roas
-       FROM al_campaigns
+      `SELECT c.name, c.status,
+              COALESCE(SUM(p.spend), 0) AS budget_spent,
+              COALESCE(SUM(p.leads), 0) AS leads,
+              CASE WHEN SUM(p.leads) > 0 THEN SUM(p.spend) / SUM(p.leads) ELSE 0 END AS cpl
+       FROM al_ad_campaigns c
+       LEFT JOIN al_ad_performance p ON p.meta_campaign_id = c.meta_id AND p.meta_ad_id IS NULL ${campDateFilter.replace('p.date', 'p.date')}
+       GROUP BY c.name, c.status
        ORDER BY leads DESC NULLS LAST
        LIMIT 10`,
-    );
+    ).catch(() => ({ rows: [] }));
 
     // GA4 site overview
     let ga4: Awaited<ReturnType<typeof getSiteOverview>> = null;

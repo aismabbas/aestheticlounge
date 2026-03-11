@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Build login URL
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://aesthetic-lounge-dev.netlify.app';
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://aestheticloungeofficial.com';
     const loginUrl = `${baseUrl}/api/auth/magic-link/verify?token=${token}`;
 
     // Send email

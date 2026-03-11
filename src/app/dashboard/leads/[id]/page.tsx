@@ -664,10 +664,17 @@ export default function LeadDetailPage() {
 
   const fetchLead = () => {
     fetch(`/api/dashboard/leads/${id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setLead(data.lead);
         setConversations(data.conversations || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('[leads/id] Fetch error:', err);
         setLoading(false);
       });
   };

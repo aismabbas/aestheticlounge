@@ -70,7 +70,7 @@ export async function POST(
   } catch (err) {
     console.error(`[ads/${action}] POST error:`, err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Action failed' },
+      { error: 'Action failed' },
       { status: 500 },
     );
   }

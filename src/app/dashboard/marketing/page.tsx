@@ -130,8 +130,15 @@ export default function MarketingStudioPage() {
       const data = await res.json();
       if (data.success) {
         if (action === 'generate_image' && data.images?.length) {
-          setGeneratedImages((prev) => ({ ...prev, [draftId]: data.images }));
-          showFeedback(`${data.images.length} image(s) generated — pick one to approve`, 'success');
+          if (data.slideCount) {
+            // Carousel: slides saved to draft automatically, refresh to show them
+            showFeedback(`${data.slideCount} carousel slides generated`, 'success');
+            fetchDrafts();
+            fetchStatus();
+          } else {
+            setGeneratedImages((prev) => ({ ...prev, [draftId]: data.images }));
+            showFeedback(`${data.images.length} image(s) generated — pick one to approve`, 'success');
+          }
         } else {
           showFeedback(`${action.replace(/_/g, ' ')} completed`, 'success');
           if (action === 'approve_design') {
@@ -159,7 +166,7 @@ export default function MarketingStudioPage() {
     setWizardOpen(true);
   };
 
-  const totalDrafts = Object.values(status.draftCounts).reduce((a, b) => a + b, 0);
+  const totalDrafts = Object.values(status.draftCounts || {}).reduce((a, b) => a + b, 0);
   const pendingDrafts = (status.draftCounts.pending_copy || 0) +
     (status.draftCounts.pending_design || 0) +
     (status.draftCounts.pending_publish || 0);
@@ -377,21 +384,28 @@ export default function MarketingStudioPage() {
                           <p className="text-xs text-text-dark whitespace-pre-line leading-relaxed">{draft.caption.slice(0, 500)}{draft.caption.length > 500 ? '...' : ''}</p>
                         </div>
                       )}
-                      {/* Media preview */}
-                      {draft.imageUrl && (
+                      {/* Media preview — carousels show all slides, posts show single image */}
+                      {draft.imageUrls && draft.imageUrls.length > 1 ? (
+                        <div className="mt-2">
+                          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wide mb-1.5">
+                            {draft.imageUrls.length} Slides
+                          </p>
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {draft.imageUrls.map((url, idx) => (
+                              <div key={idx} className="shrink-0 relative">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={url} alt={`Slide ${idx + 1}`} className="h-32 w-32 rounded-lg object-cover border border-border shadow-sm" />
+                                <span className="absolute top-1 left-1 bg-black/60 text-white text-[9px] font-medium px-1.5 py-0.5 rounded">{idx + 1}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : draft.imageUrl ? (
                         <div className="mt-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={draft.imageUrl} alt={draft.topic} className="max-h-48 rounded-lg object-cover border border-border shadow-sm" />
                         </div>
-                      )}
-                      {!draft.imageUrl && draft.imageUrls && draft.imageUrls.length > 0 && (
-                        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-                          {draft.imageUrls.map((url, idx) => (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img key={idx} src={url} alt={`Slide ${idx + 1}`} className="h-32 rounded-lg object-cover border border-border shadow-sm shrink-0" />
-                          ))}
-                        </div>
-                      )}
+                      ) : null}
                       {draft.videoUrl && (
                         <div className="mt-2">
                           <video src={draft.videoUrl} controls className="max-h-64 rounded-lg border border-border shadow-sm w-full" preload="metadata" />
@@ -480,21 +494,42 @@ export default function MarketingStudioPage() {
                       )}
                       {draft.stage === 'pending_design' && (
                         <>
-                          <button
-                            onClick={() => handleDraftAction(draft.id, 'generate_image')}
-                            disabled={!!actionLoading}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
-                          >
-                            {isLoading('generate_image') ? '...' : generatedImages[draft.id]?.length ? 'Regenerate' : 'Generate Image'}
-                          </button>
-                          {!generatedImages[draft.id]?.length && (
-                            <button
-                              onClick={() => handleDraftAction(draft.id, 'approve_design')}
-                              disabled={!!actionLoading}
-                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
-                            >
-                              {isLoading('approve_design') ? '...' : 'Approve Design'}
-                            </button>
+                          {draft.contentType === 'carousel' && draft.imageUrls?.length ? (
+                            <>
+                              <button
+                                onClick={() => handleDraftAction(draft.id, 'approve_design', { imageUrls: draft.imageUrls, imageUrl: draft.imageUrls?.[0] })}
+                                disabled={!!actionLoading}
+                                className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                              >
+                                {isLoading('approve_design') ? '...' : `Approve ${draft.imageUrls.length} Slides`}
+                              </button>
+                              <button
+                                onClick={() => handleDraftAction(draft.id, 'generate_image')}
+                                disabled={!!actionLoading}
+                                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {isLoading('generate_image') ? '...' : 'Regenerate'}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleDraftAction(draft.id, 'generate_image')}
+                                disabled={!!actionLoading}
+                                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {isLoading('generate_image') ? '...' : generatedImages[draft.id]?.length ? 'Regenerate' : 'Generate Image'}
+                              </button>
+                              {!generatedImages[draft.id]?.length && (
+                                <button
+                                  onClick={() => handleDraftAction(draft.id, 'approve_design')}
+                                  disabled={!!actionLoading}
+                                  className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                                >
+                                  {isLoading('approve_design') ? '...' : 'Approve Design'}
+                                </button>
+                              )}
+                            </>
                           )}
                         </>
                       )}

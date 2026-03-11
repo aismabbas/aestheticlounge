@@ -70,8 +70,15 @@ export async function POST(
     }
 
     const formData = body.form_data;
-    if (!formData) {
+    if (!formData || typeof formData !== 'object') {
       return NextResponse.json({ error: 'form_data is required' }, { status: 400 });
+    }
+
+    // Sanitize string values in form_data to prevent stored XSS
+    for (const key of Object.keys(formData)) {
+      if (typeof formData[key] === 'string') {
+        formData[key] = formData[key].replace(/<[^>]*>/g, '').trim().slice(0, 2000);
+      }
     }
 
     // Update intake form

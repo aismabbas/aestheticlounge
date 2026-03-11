@@ -53,16 +53,27 @@ export default function AnalyticsPage() {
   useEffect(() => {
     setLoading(true);
     fetch(`/api/dashboard/analytics?period=${period}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => {
         setData(d);
+      })
+      .catch((err) => {
+        console.error('[analytics] Fetch error:', err);
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, [period]);
 
   useEffect(() => {
     fetch('/api/dashboard/google?type=overview')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => setGbp(d))
       .catch(() => setGbp({ configured: false }));
   }, []);
@@ -178,15 +189,15 @@ export default function AnalyticsPage() {
             </div>
             <div className="bg-white rounded-xl border border-border p-5">
               <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Page Views</p>
-              <p className="text-2xl font-semibold mt-2 text-text-dark">{data.ga4.totals.pageviews.toLocaleString()}</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{(data.ga4.totals.pageviews ?? 0).toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl border border-border p-5">
               <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Avg Duration</p>
-              <p className="text-2xl font-semibold mt-2 text-text-dark">{Math.round(data.ga4.totals.avgDuration)}s</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{Math.round(data.ga4.totals.avgDuration ?? 0)}s</p>
             </div>
             <div className="bg-white rounded-xl border border-border p-5">
               <p className="text-xs font-semibold uppercase text-text-muted tracking-wider">Bounce Rate</p>
-              <p className="text-2xl font-semibold mt-2 text-text-dark">{(data.ga4.totals.bounceRate * 100).toFixed(1)}%</p>
+              <p className="text-2xl font-semibold mt-2 text-text-dark">{((data.ga4.totals.bounceRate ?? 0) * 100).toFixed(1)}%</p>
             </div>
           </div>
 

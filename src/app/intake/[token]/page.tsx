@@ -185,6 +185,9 @@ export default function IntakeFormPage() {
       .then((data) => {
         if (data.token) {
           window.location.href = `/intake/${data.token}?mode=ipad`;
+        } else {
+          setError('Could not create a new form. Please try again.');
+          setSubmitted(false);
         }
       })
       .catch(() => {

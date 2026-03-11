@@ -37,6 +37,8 @@ export default function LeadForm({ treatment, whatsappMessage }: LeadFormProps) 
           message: formData.best_time
             ? `Best time to call: ${formData.best_time}`
             : undefined,
+          landing_page: window.location.pathname,
+          source: 'website',
           ...utm,
         }),
       });

@@ -19,10 +19,16 @@ export default function ContentApprovalPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchPending = async () => {
-    const res = await fetch('/api/dashboard/campaigns?status=pending_approval');
-    const data = await res.json();
-    setPending(Array.isArray(data.campaigns) ? data.campaigns : Array.isArray(data) ? data : []);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/dashboard/campaigns?status=pending_approval');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setPending(Array.isArray(data.campaigns) ? data.campaigns : Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('[content] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -30,11 +36,16 @@ export default function ContentApprovalPage() {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch('/api/dashboard/campaigns', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    });
+    try {
+      const res = await fetch('/api/dashboard/campaigns', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) console.error('[content] Update failed:', res.status);
+    } catch (err) {
+      console.error('[content] Update error:', err);
+    }
     fetchPending();
   };
 

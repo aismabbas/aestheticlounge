@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { landingPages, getLandingPage } from '@/data/landing-pages';
+import { landingPages, getLandingPageFromDB } from '@/data/landing-pages';
 import LeadForm from './lead-form';
 import FAQAccordion from './faq-accordion';
 import StickyCTA from './sticky-cta';
 import LPTracking from './lp-tracking';
+
+export const dynamicParams = true;
 
 const lpBeforeAfter: Record<string, { slug: string; folder: string; label: string }[]> = {
   'laser-hair-removal': [
@@ -41,7 +43,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const lp = getLandingPage(slug);
+  const lp = await getLandingPageFromDB(slug);
   if (!lp) return {};
 
   return {
@@ -64,7 +66,7 @@ export default async function LandingPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const lp = getLandingPage(slug);
+  const lp = await getLandingPageFromDB(slug);
   if (!lp) notFound();
 
   const waLink = `https://wa.me/923276620000?text=${encodeURIComponent(lp.whatsapp_message)}`;

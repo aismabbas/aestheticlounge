@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { query } from '@/lib/db';
 import { ulid } from '@/lib/ulid';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { checkAuth } from '@/lib/api-auth';
 
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('al_session');
-  if (!session?.value) return null;
-  try {
-    const data = JSON.parse(session.value);
-    if (data.exp < Date.now()) return null;
-    return data;
-  } catch {
-    return null;
-  }
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, '').trim();
 }
 
 // POST — public, no auth required
@@ -29,20 +20,21 @@ export async function POST(req: NextRequest) {
     const {
       client_name,
       treatment,
-      rating,
+      rating: rawRating,
       feedback,
       would_recommend,
       improvements,
     } = body;
 
-    if (!rating || rating < 1 || rating > 5) {
+    const rating = typeof rawRating === 'number' ? Math.floor(rawRating) : parseInt(rawRating, 10);
+    if (isNaN(rating) || rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: 'Rating (1-5) is required' },
         { status: 400 },
       );
     }
 
-    if (!feedback || feedback.trim().length === 0) {
+    if (!feedback || typeof feedback !== 'string' || feedback.trim().length === 0) {
       return NextResponse.json(
         { error: 'Feedback text is required' },
         { status: 400 },
@@ -56,12 +48,12 @@ export async function POST(req: NextRequest) {
        RETURNING id`,
       [
         id,
-        client_name || null,
-        treatment || null,
+        client_name ? stripHtml(String(client_name)).slice(0, 200) : null,
+        treatment ? stripHtml(String(treatment)).slice(0, 200) : null,
         rating,
-        feedback.trim(),
+        stripHtml(feedback).slice(0, 2000),
         would_recommend ?? null,
-        improvements?.trim() || null,
+        improvements ? stripHtml(String(improvements)).slice(0, 2000) : null,
       ],
     );
 

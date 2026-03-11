@@ -27,7 +27,7 @@ export async function GET(
 
     // Check response speed
     const responseCheck = await query(
-      `SELECT response_seconds FROM al_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      `SELECT response_seconds FROM al_lead_response_times WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 1`,
       [id],
     ).catch(() => ({ rows: [] }));
 

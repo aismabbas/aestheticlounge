@@ -64,11 +64,14 @@ export async function GET(req: NextRequest) {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
+    const mp = statsParams.length + 1; // monthStart param index
+    const tp = statsParams.length + 2; // todayStart param index
+
     const statsSql = `
       SELECT
-        COALESCE(SUM(CASE WHEN status = 'completed' AND created_at >= '${monthStart}' THEN amount ELSE 0 END), 0) AS month_revenue,
+        COALESCE(SUM(CASE WHEN status = 'completed' AND created_at >= $${mp}::timestamptz THEN amount ELSE 0 END), 0) AS month_revenue,
         COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) AS pending_total,
-        COALESCE(SUM(CASE WHEN status = 'completed' AND created_at >= '${todayStart}' THEN amount ELSE 0 END), 0) AS today_collections,
+        COALESCE(SUM(CASE WHEN status = 'completed' AND created_at >= $${tp}::timestamptz THEN amount ELSE 0 END), 0) AS today_collections,
         COALESCE(AVG(CASE WHEN status = 'completed' THEN amount END), 0) AS avg_transaction,
         COUNT(*) AS total_count
       FROM al_payments${whereClause}
@@ -76,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     const [result, statsResult] = await Promise.all([
       query(sql, params),
-      query(statsSql, statsParams),
+      query(statsSql, [...statsParams, monthStart, todayStart]),
     ]);
 
     const stats = statsResult.rows[0];

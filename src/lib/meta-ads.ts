@@ -13,7 +13,8 @@ import { ulid } from './ulid';
 
 const META_BASE = 'https://graph.facebook.com/v21.0';
 const AD_ACCOUNT = process.env.META_AD_ACCOUNT_ID || 'act_1035082445426356';
-const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || '';
+// Lazy-evaluated to avoid capturing empty string during serverless cold starts
+function ACCESS_TOKEN() { return process.env.META_ACCESS_TOKEN || ''; }
 const PAGE_ID = process.env.META_PAGE_ID || '470913939437743';
 const IG_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || '17841469764033544';
 
@@ -89,7 +90,7 @@ export interface CampaignInsights {
 
 async function metaGet(path: string, params: Record<string, string> = {}): Promise<unknown> {
   const url = new URL(`${META_BASE}/${path}`);
-  url.searchParams.set('access_token', ACCESS_TOKEN);
+  url.searchParams.set('access_token', ACCESS_TOKEN());
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, v);
   }
@@ -104,7 +105,7 @@ async function metaGet(path: string, params: Record<string, string> = {}): Promi
 async function metaPost(path: string, body: Record<string, unknown>): Promise<unknown> {
   const url = `${META_BASE}/${path}`;
   const formData = new URLSearchParams();
-  formData.set('access_token', ACCESS_TOKEN);
+  formData.set('access_token', ACCESS_TOKEN());
   for (const [k, v] of Object.entries(body)) {
     formData.set(k, typeof v === 'string' ? v : JSON.stringify(v));
   }
@@ -134,14 +135,19 @@ async function metaGetAll(path: string, params: Record<string, string> = {}): Pr
 
   url = firstPage.paging?.next || null;
   while (url) {
-    const res = await fetch(url);
-    if (!res.ok) break;
-    const page = (await res.json()) as {
-      data: Record<string, unknown>[];
-      paging?: { next?: string };
-    };
-    all.push(...(page.data || []));
-    url = page.paging?.next || null;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) break;
+      const page = (await res.json()) as {
+        data: Record<string, unknown>[];
+        paging?: { next?: string };
+      };
+      all.push(...(page.data || []));
+      url = page.paging?.next || null;
+    } catch (err) {
+      console.error('[meta-ads] Pagination error:', err);
+      break;
+    }
   }
 
   return all;
@@ -362,25 +368,17 @@ export async function syncPerformance(db: QueryFn): Promise<number> {
         const cplAction = ((day.cost_per_action_type as Array<{ action_type: string; value: string }>) || [])
           .find(a => a.action_type === 'lead' || a.action_type === 'onsite_conversion.lead_grouped');
 
+        const dayDate = (day.date_start as string) || null;
+        // Delete existing campaign-level row for this date, then insert fresh
+        await db(
+          `DELETE FROM al_ad_performance WHERE meta_campaign_id = $1 AND meta_ad_id IS NULL AND date = $2`,
+          [metaCampaignId, dayDate],
+        );
         await db(
           `INSERT INTO al_ad_performance (id, meta_campaign_id, meta_ad_id, date, impressions, reach, clicks, spend, leads, cpl, cpc, cpm, ctr, frequency, synced_at)
-           VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-           ON CONFLICT (meta_campaign_id, meta_ad_id, date)
-           WHERE meta_ad_id IS NULL
-           DO UPDATE SET
-             impressions = EXCLUDED.impressions,
-             reach = EXCLUDED.reach,
-             clicks = EXCLUDED.clicks,
-             spend = EXCLUDED.spend,
-             leads = EXCLUDED.leads,
-             cpl = EXCLUDED.cpl,
-             cpc = EXCLUDED.cpc,
-             cpm = EXCLUDED.cpm,
-             ctr = EXCLUDED.ctr,
-             frequency = EXCLUDED.frequency,
-             synced_at = EXCLUDED.synced_at`,
+           VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
           [
-            ulid(), metaCampaignId, (day.date_start as string) || null,
+            ulid(), metaCampaignId, dayDate,
             parseInt(day.impressions as string) || 0,
             parseInt(day.reach as string) || 0,
             parseInt(day.clicks as string) || 0,
@@ -686,8 +684,8 @@ export async function uploadImage(imageUrl: string): Promise<string> {
 
   // Upload to Meta as multipart
   const formData = new FormData();
-  formData.append('access_token', ACCESS_TOKEN);
-  formData.append('filename', new Blob([buffer]), 'image.jpg');
+  formData.append('access_token', ACCESS_TOKEN());
+  formData.append('bytes', new Blob([buffer]), 'image.jpg');
 
   const res = await fetch(`${META_BASE}/${AD_ACCOUNT}/adimages`, {
     method: 'POST',

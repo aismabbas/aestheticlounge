@@ -52,7 +52,9 @@ export async function POST(req: NextRequest) {
       }, 5000);
 
       const send = (data: Record<string, unknown>) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch { /* stream closed by client */ }
       };
 
       try {
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
             const copyMem = await loadAgentMemory('copywriter');
             const copyResponse = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}\n\nRESEARCH CONTEXT:\n${JSON.stringify(resParsed)}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${chosenType}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel),\n  "voiceover_text": "..." (if reel)\n}`,
+              userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}\n\nRESEARCH CONTEXT:\n${JSON.stringify(resParsed)}${chosenType === 'carousel' ? `\n\nCAROUSEL RULES:\n- This is for Aesthetic Lounge, premium medical aesthetics clinic by Dr. Huma Abbas, DHA Phase 7, Lahore.\n- Structure: Hook slide → 3-5 educational slides → CTA slide\n- Include "scene_descriptions" array with text for EACH slide (5-7 total)\n- Mention "Aesthetic Lounge" on first and last slides, "Dr. Huma Abbas" on last slide\n- CTA in CAPTION ONLY — "Book Your Free Consultation" + WhatsApp +92 327 6660004 — NEVER "Link in bio"\n- NEVER put CTA text ON images — images are visual only, no text overlay\n- Caption ends with: "Book now — DM us or visit aestheticloungeofficial.com"` : ''}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${chosenType}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel — text for EACH slide),\n  "voiceover_text": "..." (if reel)\n}`,
               systemPrompt: buildSystemPrompt(copyMem),
               temperature: 0.5,
             });
@@ -216,9 +218,24 @@ export async function POST(req: NextRequest) {
 
             const researchContext = params?.research ? `\n\nRESEARCH CONTEXT:\n${JSON.stringify(params.research)}` : '';
 
+            const carouselInstructions = ct === 'carousel' ? `
+
+CAROUSEL RULES:
+- This is an EDUCATIONAL carousel for Aesthetic Lounge, a premium medical aesthetics clinic by Dr. Huma Abbas in DHA Phase 7, Lahore.
+- Structure: Hook slide (attention-grabbing question/stat) → 3-5 educational info slides → CTA slide
+- Each slide should have a short title and 1-2 key points
+- Include "scene_descriptions" array with text for EACH slide (5-7 slides total)
+- Slide 1: Hook — bold question or surprising fact
+- Slides 2-5: Educational content — myths, steps, comparisons, facts
+- Last slide: CTA — "Book your free consultation today" + "DM us or tap the link to book" + mention Dr. Huma Abbas
+- BRANDING: Mention "Aesthetic Lounge" on first and last slide. Mention "Dr. Huma Abbas" on last slide.
+- CTA in CAPTION ONLY — "Book Your Free Consultation" + WhatsApp +92 327 6660004 — NEVER "Link in bio"
+- NEVER put "Book Now" or any CTA text ON the images — images are visual only, no text overlay
+- Caption should reference what they'll learn by swiping, end with "Book now — DM us or visit aestheticloungeofficial.com"` : '';
+
             const response = await callClaude({
               agent: 'copywriter',
-              userMessage: `Write Instagram ${ct} copy for: ${topic}${researchContext}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel),\n  "voiceover_text": "..." (if reel)\n}`,
+              userMessage: `Write Instagram ${ct} copy for: ${topic}${researchContext}${carouselInstructions}\n\nOutput JSON:\n{\n  "headline": "...",\n  "instagram_caption": "...(150-300 words, hook first line, end with CTA, include medical disclaimer)...",\n  "content_type": "${ct}",\n  "suggested_character": "ayesha|meher|noor|usman",\n  "scene_descriptions": [...] (if reel/carousel — text for EACH slide),\n  "voiceover_text": "..." (if reel)\n}`,
               systemPrompt: buildSystemPrompt(mem),
               chatHistory: history,
               temperature: 0.5,
@@ -628,7 +645,11 @@ Output JSON (no markdown wrapping):
             send({ type: 'step', step: 'Running quality check...' });
 
             const draft = await getDraft(draftId);
-            const qaResults = qaValidate(draft!, aiImages);
+            if (!draft) {
+              send({ type: 'error', error: 'Draft not found after save' });
+              return;
+            }
+            const qaResults = qaValidate(draft, aiImages);
 
             // Send complete result
             send({

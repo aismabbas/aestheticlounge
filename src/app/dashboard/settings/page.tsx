@@ -69,10 +69,16 @@ export default function SettingsPage() {
   const [assignSaving, setAssignSaving] = useState(false);
 
   const fetchStaff = async () => {
-    const res = await fetch('/api/dashboard/staff');
-    const data = await res.json();
-    setStaff(Array.isArray(data.staff) ? data.staff : Array.isArray(data) ? data : []);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/dashboard/staff');
+      const data = await res.json();
+      setStaff(Array.isArray(data.staff) ? data.staff : Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('[settings] Failed to fetch staff:', err);
+      setError('Failed to load staff');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchAssignmentSettings = async () => {
@@ -95,43 +101,53 @@ export default function SettingsPage() {
   }, []);
 
   const toggleActive = async (s: Staff) => {
-    await fetch(`/api/dashboard/staff/${s.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: !s.active }),
-    });
+    try {
+      const res = await fetch(`/api/dashboard/staff/${s.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !s.active }),
+      });
+      if (!res.ok) setError('Failed to update staff status');
+    } catch {
+      setError('Failed to update staff status');
+    }
     fetchStaff();
   };
 
   const addStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const res = await fetch('/api/dashboard/staff', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newStaff),
-    });
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || 'Failed to add staff');
-      return;
+    try {
+      const res = await fetch('/api/dashboard/staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStaff),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to add staff');
+        return;
+      }
+      setShowAddStaff(false);
+      setNewStaff({ name: '', email: '', role: 'receptionist', phone: '' });
+      fetchStaff();
+    } catch {
+      setError('Failed to add staff member');
     }
-    setShowAddStaff(false);
-    setNewStaff({ name: '', email: '', role: 'receptionist', phone: '' });
-    fetchStaff();
   };
 
   const saveAssignmentSettings = async () => {
     setAssignSaving(true);
     try {
-      await fetch('/api/dashboard/settings/assignment', {
+      const res = await fetch('/api/dashboard/settings/assignment', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(assignSettings),
       });
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
       await fetchAssignmentSettings();
     } catch {
-      // silent
+      setError('Failed to save assignment settings');
     }
     setAssignSaving(false);
   };

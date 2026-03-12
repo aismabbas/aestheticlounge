@@ -27,6 +27,7 @@ import {
   imagePromptCraftBlock,
   storyDirectorSystemPrompt,
 } from '@/lib/brand-context';
+import { renderOverlayAndUpload, type OverlayTemplate } from '@/lib/render-overlay';
 
 // ---------------------------------------------------------------------------
 // Rich prompt blocks — injected into agent user messages
@@ -888,11 +889,55 @@ Pick a music style that matches the mood.`,
                     console.error(`[run_pipeline] Reel scene ${idx + 1} error:`, imgErr);
                   }
                 }
-              } else {
-                // Single post or reel without StoryDirector
+              } else if (ct === 'post') {
+                // Single post — designer outputs image prompt + template params for text overlay
                 const designResponse = await callClaude({
                   agent: 'designer',
-                  userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: ${ct}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nUse the full character description from the CHARACTER BIBLE above.\n\nOutput ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
+                  userMessage: `Design a branded social media post for:\nTopic: ${topic}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nYou must output JSON with two parts:\n1. "image_prompt" — detailed fal.ai prompt for the BACKGROUND photo (full character description, Pakistani/DHA Lahore setting, technical specs, NO text in the image)\n2. "template" — one of: "treatment", "tips", "stats", "overlay", "lifestyle"\n3. "template_params" — text overlay params matching the template:\n   - treatment: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cta }\n   - tips: { category, headline, headline-highlight, tip1, tip2, tip3, tip4, tip5, cta }\n   - stats: { category, headline, headline-highlight, big-number, big-label, body, cta }\n   - overlay: { category, headline, headline-highlight, subtitle, hook }\n   - lifestyle: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cities, model-name, model-title }\n\nUse the copy headline/caption for inspiration. Always include CTA "Book a Consultation" for treatment/tips/stats templates.\n\nOutput ONLY valid JSON: { "image_prompt": "...", "template": "...", "template_params": { ... } }`,
+                  systemPrompt: buildSystemPrompt(designerMem),
+                  temperature: 0.3,
+                  maxTokens: 1500,
+                });
+                totalInput += designResponse.inputTokens;
+                totalOutput += designResponse.outputTokens;
+
+                const designParsed = parseJSON<{ image_prompt?: string; template?: string; template_params?: Record<string, string> }>(designResponse.text);
+                const imagePrompt = (designParsed?.image_prompt || designResponse.text).replace(/^["']|["']$/g, '').trim();
+
+                try {
+                  aiImages = await generateImage({
+                    prompt: imagePrompt,
+                    width: dims.w,
+                    height: dims.h,
+                    numImages: 1,
+                  });
+                } catch (imgErr) {
+                  console.error('[run_pipeline] Image generation error:', imgErr);
+                }
+
+                // Apply text overlay on top of the raw AI image
+                if (aiImages.length > 0 && designParsed?.template && designParsed?.template_params) {
+                  send({ type: 'step', step: 'Applying text overlay...' });
+                  try {
+                    const overlayedUrl = await renderOverlayAndUpload({
+                      template: designParsed.template as OverlayTemplate,
+                      backgroundUrl: aiImages[0],
+                      params: designParsed.template_params,
+                      width: dims.w,
+                      height: dims.h,
+                    });
+                    // Overlayed image first, raw as backup
+                    aiImages = [overlayedUrl, ...aiImages];
+                  } catch (overlayErr) {
+                    console.error('[run_pipeline] Overlay rendering error:', overlayErr);
+                    // Continue with raw images — overlay is a nice-to-have
+                  }
+                }
+              } else {
+                // Reel without StoryDirector — just image prompt
+                const designResponse = await callClaude({
+                  agent: 'designer',
+                  userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: reel\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nUse the full character description from the CHARACTER BIBLE above.\n\nOutput ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
                   systemPrompt: buildSystemPrompt(designerMem),
                   temperature: 0.3,
                   maxTokens: 500,
@@ -1210,23 +1255,26 @@ Pick a music style that matches the mood.`,
             const ciCharName = ciDraft.model || 'ayesha';
             const ciDesignerMem = await loadAgentMemory('designer');
 
-            // Step 1: Generate per-slide prompts via designer agent
-            send({ type: 'step', step: 'Crafting per-slide prompts...' });
+            // Step 1: Generate per-slide prompts + template params via designer agent
+            send({ type: 'step', step: 'Crafting per-slide design...' });
             const ciPromptResponse = await callClaude({
               agent: 'designer',
-              userMessage: `Generate unique image prompts for each slide of this carousel.\n\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\n${DESIGNER_CONTEXT}\n\nGenerate 5 unique Nano Banana Pro prompts, one per slide. Each must include full character description from CHARACTER BIBLE, unique background/setting (rotate across scenes), brand aesthetics (gold/cream luxury medical spa), camera/lighting specs, and "No text overlay".\n\nOutput JSON array of strings: ["prompt1", "prompt2", ...]`,
+              userMessage: `Design a branded carousel for:\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\n${DESIGNER_CONTEXT}\n\nGenerate a JSON object with "slides" array (5 slides). Each slide needs:\n- "image_prompt": Nano Banana Pro prompt for BACKGROUND photo (full character description, unique setting, no text)\n- "template": "carousel_hook" for slide 1, "carousel_info" for middle slides, "carousel_cta" for last slide\n- "template_params": text overlay params:\n  - carousel_hook: { category, headline, headline-highlight }\n  - carousel_info: { headline, body, big-number, big-label, slide-number, slide-total }\n  - carousel_cta: { headline, cta, subtitle }\n\nSlide 1 = Hook (bold question/fact). Slides 2-4 = Educational info with stats. Slide 5 = CTA "Book a Consultation".\n\nOutput ONLY valid JSON: { "slides": [ { "image_prompt": "...", "template": "...", "template_params": { ... } }, ... ] }`,
               systemPrompt: buildSystemPrompt(ciDesignerMem),
               temperature: 0.4,
-              maxTokens: 2048,
+              maxTokens: 3000,
             });
 
-            const ciSlidePrompts = parseJSON<string[]>(ciPromptResponse.text);
-            const ciPrompts = Array.isArray(ciSlidePrompts) && ciSlidePrompts.length > 0
-              ? ciSlidePrompts.slice(0, 5)
-              : [`${ciDraft.topic}, ${ciCharName}, luxury clinic, gold and cream, 8K, no text overlay`];
+            const ciDesign = parseJSON<{ slides: Array<{ image_prompt: string; template: string; template_params: Record<string, string> }> }>(ciPromptResponse.text);
+            const ciSlides = ciDesign?.slides || [];
 
-            // Step 2: Generate all slides in parallel
-            send({ type: 'step', step: `Generating ${ciPrompts.length} carousel slides...` });
+            // Fallback: simple prompts if parsing failed
+            const ciPrompts = ciSlides.length > 0
+              ? ciSlides.map(s => s.image_prompt)
+              : Array(5).fill(`${ciDraft.topic}, ${ciCharName}, luxury clinic, gold and cream, 8K, no text overlay`);
+
+            // Step 2: Generate all background images in parallel
+            send({ type: 'step', step: `Generating ${ciPrompts.length} carousel backgrounds...` });
             const ciResults = await Promise.allSettled(
               ciPrompts.map((prompt: string) =>
                 generateImage({
@@ -1238,16 +1286,58 @@ Pick a music style that matches the mood.`,
               )
             );
 
-            const ciImages: string[] = [];
+            const ciRawImages: string[] = [];
             for (const [idx, result] of ciResults.entries()) {
               if (result.status === 'fulfilled') {
-                ciImages.push(...result.value);
+                ciRawImages.push(result.value[0] || '');
               } else {
                 console.error(`[generate_carousel_images] Slide ${idx + 1} error:`, result.reason);
+                ciRawImages.push('');
               }
             }
 
-            send({ type: 'step', step: `${ciImages.length}/${ciPrompts.length} slides generated` });
+            send({ type: 'step', step: `${ciRawImages.filter(Boolean).length}/${ciPrompts.length} backgrounds ready` });
+
+            // Step 3: Apply text overlays in parallel
+            const ciImages: string[] = [];
+            if (ciSlides.length > 0) {
+              send({ type: 'step', step: 'Applying text overlays...' });
+              const overlayResults = await Promise.allSettled(
+                ciSlides.map(async (slide, idx) => {
+                  const bgUrl = ciRawImages[idx];
+                  if (!bgUrl || !slide.template_params) return bgUrl;
+                  // Add slide numbering to info slides
+                  if (slide.template === 'carousel_info') {
+                    slide.template_params['slide-number'] = String(idx + 1);
+                    slide.template_params['slide-total'] = String(ciSlides.length);
+                  }
+                  return renderOverlayAndUpload({
+                    template: slide.template as OverlayTemplate,
+                    backgroundUrl: bgUrl,
+                    params: slide.template_params,
+                    width: 1080,
+                    height: 1080,
+                  });
+                })
+              );
+
+              for (const [idx, result] of overlayResults.entries()) {
+                if (result.status === 'fulfilled' && result.value) {
+                  ciImages.push(result.value);
+                } else {
+                  // Fallback to raw image
+                  ciImages.push(ciRawImages[idx] || '');
+                  if (result.status === 'rejected') {
+                    console.error(`[generate_carousel_images] Overlay ${idx + 1} error:`, result.reason);
+                  }
+                }
+              }
+            } else {
+              // No template data — use raw images
+              ciImages.push(...ciRawImages.filter(Boolean));
+            }
+
+            send({ type: 'step', step: `${ciImages.length} slides with overlays ready` });
 
             // Run QA
             const ciQaResults = qaValidate(ciDraft, ciImages);

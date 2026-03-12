@@ -10,13 +10,15 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@resvg/resvg-wasm": "^2.6.2",
     "googleapis": "^144.0.0",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "pg": "^8.20.0",
     "playwright": "^1.58.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "satori": "^0.25.0"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.8",

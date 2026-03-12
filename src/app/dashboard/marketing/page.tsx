@@ -81,6 +81,8 @@ export default function MarketingStudioPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
+  const [selectedDrafts, setSelectedDrafts] = useState<Set<string>>(new Set());
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Wizard state
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -159,6 +161,75 @@ export default function MarketingStudioPage() {
       showFeedback('Failed to perform action', 'error');
     } finally {
       setActionLoading(null);
+    }
+  }
+
+  const toggleDraft = (id: string) => {
+    setSelectedDrafts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllDrafts = () => {
+    if (selectedDrafts.size === drafts.length) {
+      setSelectedDrafts(new Set());
+    } else {
+      setSelectedDrafts(new Set(drafts.map((d) => d.id)));
+    }
+  };
+
+  async function handleDeleteSelected() {
+    if (selectedDrafts.size === 0) return;
+    if (!confirm(`Delete ${selectedDrafts.size} draft(s)? This is permanent.`)) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/al/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_selected', draftIds: [...selectedDrafts] }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showFeedback(`Deleted ${data.deleted} draft(s)`, 'success');
+        setSelectedDrafts(new Set());
+        fetchDrafts();
+        fetchStatus();
+      } else {
+        showFeedback(data.error || 'Delete failed', 'error');
+      }
+    } catch {
+      showFeedback('Failed to delete drafts', 'error');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  async function handleDeleteAll() {
+    const stage = draftFilter === 'all' ? undefined : draftFilter;
+    const label = stage ? STAGE_CONFIG[stage]?.label || stage : 'ALL';
+    if (!confirm(`Delete ${label} drafts? This is permanent and cannot be undone.`)) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/al/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_all', stage }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showFeedback(`Deleted ${data.deleted} draft(s)`, 'success');
+        setSelectedDrafts(new Set());
+        fetchDrafts();
+        fetchStatus();
+      } else {
+        showFeedback(data.error || 'Delete failed', 'error');
+      }
+    } catch {
+      showFeedback('Failed to delete drafts', 'error');
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -326,10 +397,30 @@ export default function MarketingStudioPage() {
       {/* Draft Queue */}
       <div className="bg-white rounded-xl border border-border p-5 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-text-dark">
-            Draft Queue
-            {totalDrafts > 0 && <span className="ml-2 text-text-muted font-normal">({totalDrafts})</span>}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold text-text-dark">
+              Draft Queue
+              {totalDrafts > 0 && <span className="ml-2 text-text-muted font-normal">({totalDrafts})</span>}
+            </h2>
+            {drafts.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={selectedDrafts.size === 0 || deleteLoading}
+                  className="px-2.5 py-1 text-[10px] font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deleteLoading ? '...' : `Delete (${selectedDrafts.size})`}
+                </button>
+                <button
+                  onClick={handleDeleteAll}
+                  disabled={deleteLoading}
+                  className="px-2.5 py-1 text-[10px] font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-30 transition-colors"
+                >
+                  {deleteLoading ? '...' : draftFilter === 'all' ? 'Delete All' : `Delete All ${STAGE_CONFIG[draftFilter]?.label || ''}`}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex gap-1">
             {['all', 'pending_copy', 'pending_design', 'pending_publish', 'published', 'rejected'].map((stage) => {
               const config = STAGE_CONFIG[stage];
@@ -358,6 +449,16 @@ export default function MarketingStudioPage() {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Select all */}
+            <label className="flex items-center gap-2 px-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedDrafts.size === drafts.length && drafts.length > 0}
+                onChange={toggleAllDrafts}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-gold focus:ring-gold/30 cursor-pointer"
+              />
+              <span className="text-[10px] text-text-muted font-medium">Select all</span>
+            </label>
             {drafts.map((draft) => {
               const stageConf = STAGE_CONFIG[draft.stage] || { label: draft.stage, color: 'text-gray-600', bg: 'bg-gray-50 border-gray-200' };
               const isLoading = (id: string) => actionLoading?.startsWith(`${draft.id}:${id}`);
@@ -365,6 +466,13 @@ export default function MarketingStudioPage() {
               return (
                 <div key={draft.id} className={`rounded-lg border p-4 ${stageConf.bg}`}>
                   <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedDrafts.has(draft.id)}
+                        onChange={() => toggleDraft(draft.id)}
+                        className="w-3.5 h-3.5 mt-1 rounded border-gray-300 text-gold focus:ring-gold/30 cursor-pointer shrink-0"
+                      />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${stageConf.color} bg-white/60`}>
@@ -468,6 +576,7 @@ export default function MarketingStudioPage() {
                           <p className="text-xs text-text-dark leading-relaxed">{draft.voiceoverText}</p>
                         </div>
                       )}
+                    </div>
                     </div>
 
                     {/* Actions */}

@@ -136,6 +136,23 @@ export async function updateDraftStage(id: string, stage: string): Promise<void>
   );
 }
 
+export async function deleteDrafts(ids: string[]): Promise<number> {
+  if (ids.length === 0) return 0;
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  const result = await query(
+    `DELETE FROM al_pipeline_drafts WHERE id IN (${placeholders})`,
+    ids,
+  );
+  return result.rowCount ?? 0;
+}
+
+export async function deleteAllDrafts(stage?: string): Promise<number> {
+  const result = stage
+    ? await query('DELETE FROM al_pipeline_drafts WHERE stage = $1', [stage])
+    : await query('DELETE FROM al_pipeline_drafts');
+  return result.rowCount ?? 0;
+}
+
 function rowToDraft(row: any): PipelineDraft {
   return {
     id: row.id,

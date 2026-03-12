@@ -11,6 +11,8 @@ import {
   updateDraftStage,
   logDecision,
   saveDraft,
+  deleteDrafts,
+  deleteAllDrafts,
 } from '../lib/drafts.js';
 import {
   loadAgentMemory,
@@ -46,6 +48,30 @@ draftsRoute.get('/', async (c) => {
 draftsRoute.post('/', async (c) => {
   const body = await c.req.json();
   const { action, draftId } = body;
+
+  // Delete actions don't need a single draftId
+  if (action === 'delete_selected') {
+    const ids: string[] = body.draftIds || [];
+    if (ids.length === 0) return c.json({ error: 'No draft IDs provided' }, 400);
+    try {
+      const count = await deleteDrafts(ids);
+      return c.json({ success: true, deleted: count });
+    } catch (err) {
+      console.error('[drafts] delete_selected error:', err);
+      return c.json({ error: 'Failed to delete drafts' }, 500);
+    }
+  }
+
+  if (action === 'delete_all') {
+    const stage: string | undefined = body.stage || undefined;
+    try {
+      const count = await deleteAllDrafts(stage);
+      return c.json({ success: true, deleted: count });
+    } catch (err) {
+      console.error('[drafts] delete_all error:', err);
+      return c.json({ error: 'Failed to delete drafts' }, 500);
+    }
+  }
 
   if (!action || !draftId) {
     return c.json({ error: 'action and draftId required' }, 400);

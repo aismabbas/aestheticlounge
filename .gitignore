@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# Worker migration backup files
+src/app/api/al/**/*.original
+src/app/api/al/**/*.proxy
+worker/node_modules
+worker/dist

@@ -7,10 +7,10 @@
 
 # Increase timeout for AI pipeline routes (Pro plan: up to 300s)
 [functions."api/al/*"]
-  timeout = 180
+  timeout = 300
 
 [functions."api/dashboard/marketing/*"]
-  timeout = 180
+  timeout = 300
 
 [[headers]]
   for = "/*"

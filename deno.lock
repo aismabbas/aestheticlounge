@@ -12,16 +12,22 @@
     "packageJson": {
       "dependencies": [
         "npm:@neondatabase/serverless@^1.0.2",
+        "npm:@netlify/plugin-nextjs@^5.15.8",
+        "npm:@resvg/resvg-wasm@^2.6.2",
         "npm:@tailwindcss/postcss@4",
         "npm:@types/node@20",
         "npm:@types/react-dom@19",
         "npm:@types/react@19",
         "npm:eslint-config-next@16.1.6",
         "npm:eslint@9",
+        "npm:googleapis@144",
+        "npm:next-auth@^4.24.13",
         "npm:next@16.1.6",
+        "npm:pg@^8.20.0",
         "npm:playwright@^1.58.2",
         "npm:react-dom@19.2.3",
         "npm:react@19.2.3",
+        "npm:satori@0.25",
         "npm:tailwindcss@4",
         "npm:typescript@5"
       ]

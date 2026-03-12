@@ -1,18 +1,27 @@
 /**
- * render-overlay.ts — Satori + resvg-wasm text overlay renderer for serverless.
+ * render-overlay.ts — Satori + resvg-wasm text overlay renderer.
  *
- * Replaces Playwright-based render-al-post.mjs for the Netlify pipeline.
- * Generates branded PNG overlays (text, stats, CTA) on top of fal.ai background images.
- *
- * Supported templates: treatment, tips, stats, overlay, lifestyle,
- *                      carousel_hook, carousel_info, carousel_cta
+ * Adapted from src/lib/render-overlay.ts for the Railway worker.
+ * Font path changed from process.cwd()/public/fonts to __dirname/../fonts
  */
 
 import satori from 'satori';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
 import type { ReactNode } from 'react';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+
+// ---------------------------------------------------------------------------
+// Resolve fonts directory relative to this file
+// ---------------------------------------------------------------------------
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// In built output: dist/lib/render-overlay.js -> fonts is at ../../fonts
+// In dev with tsx: src/lib/render-overlay.ts -> fonts is at ../../fonts
+const FONTS_DIR = join(__dirname, '..', '..', 'fonts');
 
 // ---------------------------------------------------------------------------
 // Brand Constants
@@ -38,7 +47,6 @@ function ensureWasm(): Promise<void> {
   if (!wasmInit) {
     wasmInit = (async () => {
       try {
-        // Load WASM from node_modules at runtime — resolve via require.resolve for Netlify compatibility
         let wasmPath: string;
         try {
           const pkgPath = require.resolve('@resvg/resvg-wasm/package.json');
@@ -49,7 +57,6 @@ function ensureWasm(): Promise<void> {
         const wasmBuffer = await readFile(wasmPath);
         await initWasm(wasmBuffer);
       } catch (e) {
-        // Already initialized — ignore
         if (!(e instanceof Error && e.message.includes('Already initialized'))) throw e;
       }
     })();
@@ -60,12 +67,10 @@ function ensureWasm(): Promise<void> {
 async function loadFonts() {
   if (!fontsPromise) {
     fontsPromise = (async () => {
-      // Read fonts from filesystem — avoids circular HTTP request that times out on Netlify
-      const fontsDir = join(process.cwd(), 'public', 'fonts');
       const [playfairReg, playfairBold, inter] = await Promise.all([
-        readFile(join(fontsDir, 'PlayfairDisplay-Regular.ttf')),
-        readFile(join(fontsDir, 'PlayfairDisplay-Bold.ttf')),
-        readFile(join(fontsDir, 'Inter-Regular.ttf')),
+        readFile(join(FONTS_DIR, 'PlayfairDisplay-Regular.ttf')),
+        readFile(join(FONTS_DIR, 'PlayfairDisplay-Bold.ttf')),
+        readFile(join(FONTS_DIR, 'Inter-Regular.ttf')),
       ]);
       return [
         { name: 'Playfair Display', data: playfairReg.buffer.slice(playfairReg.byteOffset, playfairReg.byteOffset + playfairReg.byteLength), weight: 400, style: 'normal' },
@@ -176,13 +181,11 @@ function BgImage({ url, scrimGradient }: { url: string; scrimGradient: string })
   ];
 }
 
-// Light scrim (cream)
 const LIGHT_SCRIM = 'linear-gradient(180deg, rgba(250,249,246,0.6) 0%, rgba(250,249,246,0.2) 28%, rgba(250,249,246,0.15) 42%, rgba(250,249,246,0.4) 62%, rgba(250,249,246,0.88) 80%, rgba(250,249,246,0.96) 100%)';
-// Dark scrim (for lifestyle/carousel_hook)
 const DARK_SCRIM = 'linear-gradient(180deg, rgba(26,26,26,0.6) 0%, rgba(26,26,26,0.2) 20%, rgba(26,26,26,0.15) 40%, rgba(26,26,26,0.5) 65%, rgba(26,26,26,0.92) 85%, rgba(26,26,26,0.98) 100%)';
 
 // ---------------------------------------------------------------------------
-// Template: Treatment (1080x1080 or 1080x1350)
+// Templates (all 8)
 // ---------------------------------------------------------------------------
 
 function treatmentTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
@@ -197,7 +200,6 @@ function treatmentTemplate(p: Record<string, string>, bgUrl?: string): ReactNode
       ...(bgUrl ? BgImage({ url: bgUrl, scrimGradient: LIGHT_SCRIM }) : []),
       Badge({ label: p.category || 'Treatment Spotlight' }),
       BrandTop({}),
-      // Hero text
       h('div', {
         style: { position: 'absolute', top: 110, left: 48, right: 48, display: 'flex', flexDirection: 'column' },
         children: [
@@ -206,7 +208,6 @@ function treatmentTemplate(p: Record<string, string>, bgUrl?: string): ReactNode
           p.body ? h('span', { style: { fontSize: 22, color: GRAY, lineHeight: 1.5, maxWidth: 800, marginTop: 16 }, children: p.body }) : null,
         ].filter(Boolean),
       }),
-      // Content area
       h('div', {
         style: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 48px 44px', display: 'flex', flexDirection: 'column' },
         children: [
@@ -228,10 +229,6 @@ function treatmentTemplate(p: Record<string, string>, bgUrl?: string): ReactNode
     ],
   });
 }
-
-// ---------------------------------------------------------------------------
-// Template: Tips (1080x1080)
-// ---------------------------------------------------------------------------
 
 function tipsTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   const tips = [p.tip1, p.tip2, p.tip3, p.tip4, p.tip5].filter(Boolean);
@@ -275,10 +272,6 @@ function tipsTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Template: Stats (1080x1080)
-// ---------------------------------------------------------------------------
-
 function statsTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   return h('div', {
     style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', background: CREAM, fontFamily: 'Inter' },
@@ -308,10 +301,6 @@ function statsTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Template: Overlay (1080x1080) — simple headline + body over background
-// ---------------------------------------------------------------------------
-
 function overlayTmpl(p: Record<string, string>, bgUrl?: string): ReactNode {
   return h('div', {
     style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', background: CREAM, fontFamily: 'Inter' },
@@ -338,10 +327,6 @@ function overlayTmpl(p: Record<string, string>, bgUrl?: string): ReactNode {
     ],
   });
 }
-
-// ---------------------------------------------------------------------------
-// Template: Lifestyle (1080x1350) — dark theme with model/bg photo
-// ---------------------------------------------------------------------------
 
 function lifestyleTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   const cities = p.cities ? p.cities.split(',').map(c => c.trim()).filter(Boolean) : [];
@@ -396,10 +381,6 @@ function lifestyleTemplate(p: Record<string, string>, bgUrl?: string): ReactNode
   });
 }
 
-// ---------------------------------------------------------------------------
-// Template: Carousel Hook (1080x1080) — dark theme, headline + swipe
-// ---------------------------------------------------------------------------
-
 function carouselHookTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   return h('div', {
     style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', background: DARK, fontFamily: 'Inter', color: '#fff' },
@@ -425,10 +406,6 @@ function carouselHookTemplate(p: Record<string, string>, bgUrl?: string): ReactN
   });
 }
 
-// ---------------------------------------------------------------------------
-// Template: Carousel Info (1080x1080) — light, centered content
-// ---------------------------------------------------------------------------
-
 function carouselInfoTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   const slideNum = p['slide-number'] || '01';
   const slideTotal = p['slide-total'] || '5';
@@ -439,13 +416,11 @@ function carouselInfoTemplate(p: Record<string, string>, bgUrl?: string): ReactN
       ...(bgUrl ? [
         h('img', { src: bgUrl, style: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15 } }),
       ] : []),
-      // Large faded slide number
       h('span', {
         style: { position: 'absolute', top: 48, left: 48, fontFamily: 'Playfair Display', fontSize: 80, color: 'rgba(184,146,74,0.12)', lineHeight: 1 },
         children: String(slideNum).padStart(2, '0'),
       }),
       BrandTop({}),
-      // Center content
       h('div', {
         style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '0 48px', maxWidth: 980 },
         children: [
@@ -455,7 +430,6 @@ function carouselInfoTemplate(p: Record<string, string>, bgUrl?: string): ReactN
           p.body ? h('span', { style: { fontSize: 22, color: GRAY, lineHeight: 1.55, maxWidth: 800 }, children: p.body }) : null,
         ].filter(Boolean),
       }),
-      // Slide counter
       h('span', {
         style: { position: 'absolute', bottom: 48, fontSize: 14, color: 'rgba(26,26,26,0.3)', letterSpacing: 2 },
         children: `${slideNum} of ${slideTotal}`,
@@ -463,10 +437,6 @@ function carouselInfoTemplate(p: Record<string, string>, bgUrl?: string): ReactN
     ],
   });
 }
-
-// ---------------------------------------------------------------------------
-// Template: Carousel CTA (1080x1080) — light, centered CTA
-// ---------------------------------------------------------------------------
 
 function carouselCtaTemplate(p: Record<string, string>, bgUrl?: string): ReactNode {
   return h('div', {
@@ -476,7 +446,6 @@ function carouselCtaTemplate(p: Record<string, string>, bgUrl?: string): ReactNo
         h('img', { src: bgUrl, style: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15 } }),
       ] : []),
       BrandTop({}),
-      // Center content
       h('div', {
         style: { position: 'absolute', top: '45%', left: 48, right: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transform: 'translateY(-55%)' },
         children: [
@@ -492,7 +461,6 @@ function carouselCtaTemplate(p: Record<string, string>, bgUrl?: string): ReactNo
           p.subtitle ? h('span', { style: { fontSize: 18, color: GRAY, marginTop: 12 }, children: p.subtitle }) : null,
         ].filter(Boolean),
       }),
-      // Footer
       h('div', {
         style: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 48px 44px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
         children: [
@@ -540,9 +508,6 @@ const DEFAULT_DIMS: Record<OverlayTemplate, { w: number; h: number }> = {
 // Public API
 // ---------------------------------------------------------------------------
 
-/**
- * Render a branded overlay as a PNG buffer.
- */
 export async function renderOverlay(opts: OverlayParams): Promise<Buffer> {
   const templateFn = TEMPLATES[opts.template];
   if (!templateFn) throw new Error(`Unknown template: ${opts.template}`);
@@ -568,16 +533,12 @@ export async function renderOverlay(opts: OverlayParams): Promise<Buffer> {
   return Buffer.from(rendered.asPng());
 }
 
-/**
- * Render overlay and upload to fal.ai storage. Returns public CDN URL.
- */
 export async function renderOverlayAndUpload(opts: OverlayParams): Promise<string> {
   const pngBuffer = await renderOverlay(opts);
 
   const falKey = process.env.FAL_KEY;
   if (!falKey) throw new Error('FAL_KEY not set — cannot upload overlay');
 
-  // Step 1: Initiate upload
   const initRes = await fetch('https://rest.alpha.fal.ai/storage/upload/initiate', {
     method: 'POST',
     headers: { Authorization: `Key ${falKey}`, 'Content-Type': 'application/json' },
@@ -586,7 +547,6 @@ export async function renderOverlayAndUpload(opts: OverlayParams): Promise<strin
   const { upload_url, file_url } = await initRes.json();
   if (!upload_url || !file_url) throw new Error('fal.ai upload initiation failed');
 
-  // Step 2: Upload PNG
   await fetch(upload_url, {
     method: 'PUT',
     headers: { 'Content-Type': 'image/png' },

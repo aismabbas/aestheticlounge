@@ -40,7 +40,7 @@ app.route('/ads/chat', adsChatRoute);
 
 // Start server
 const port = parseInt(process.env.PORT || '3000');
-console.log(`[al-worker] v4.1-prompt-fix Starting on port ${port}`);
+console.log(`[al-worker] v4.2-delete Starting on port ${port}`);
 
 serve({
   fetch: app.fetch,

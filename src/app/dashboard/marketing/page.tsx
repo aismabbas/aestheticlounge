@@ -83,6 +83,7 @@ export default function MarketingStudioPage() {
   const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
   const [selectedDrafts, setSelectedDrafts] = useState<Set<string>>(new Set());
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   // Wizard state
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -694,30 +695,40 @@ export default function MarketingStudioPage() {
         ))}
       </div>
 
-      {/* Recent pipeline activity */}
+      {/* Recent pipeline activity — collapsed by default */}
       {status.recentActivity.length > 0 && (
-        <div className="bg-white rounded-xl border border-border p-5">
-          <h2 className="text-sm font-semibold text-text-dark mb-4">Recent Pipeline Activity</h2>
-          <div className="space-y-2">
-            {status.recentActivity.map((item, i) => (
-              <div key={item.id ?? i} className="flex items-start gap-3 py-2 border-b border-border-light last:border-0">
-                <div className="flex items-center justify-center w-7 h-7 rounded-md bg-warm-white text-[10px] font-medium text-text-muted uppercase">
-                  {(item.agent ?? '??').slice(0, 2)}
+        <div className="bg-white rounded-xl border border-border">
+          <button
+            onClick={() => setActivityOpen(!activityOpen)}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50/50 transition-colors rounded-xl"
+          >
+            <span className="text-xs font-semibold text-text-muted">
+              Recent Activity ({status.recentActivity.length})
+            </span>
+            <span className="text-[10px] text-text-muted">{activityOpen ? '\u25B2' : '\u25BC'}</span>
+          </button>
+          {activityOpen && (
+            <div className="px-5 pb-4 space-y-2">
+              {status.recentActivity.map((item, i) => (
+                <div key={item.id ?? i} className="flex items-start gap-3 py-2 border-b border-border-light last:border-0">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-md bg-warm-white text-[10px] font-medium text-text-muted uppercase">
+                    {(item.agent ?? '??').slice(0, 2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-text-dark truncate">
+                      <span className="font-medium capitalize">{item.agent}</span>
+                      {' \u2014 '}
+                      <span className="text-text-muted">{item.action}</span>
+                    </p>
+                    <p className="text-[11px] text-text-muted truncate mt-0.5">{item.decision || 'No details'}</p>
+                  </div>
+                  <span className="text-[10px] text-text-muted whitespace-nowrap">
+                    {item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-text-dark truncate">
-                    <span className="font-medium capitalize">{item.agent}</span>
-                    {' \u2014 '}
-                    <span className="text-text-muted">{item.action}</span>
-                  </p>
-                  <p className="text-[11px] text-text-muted truncate mt-0.5">{item.decision || 'No details'}</p>
-                </div>
-                <span className="text-[10px] text-text-muted whitespace-nowrap">
-                  {item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

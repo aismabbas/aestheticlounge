@@ -8,7 +8,7 @@
  *   GBP_LOCATION_ID            — locations/{id}
  */
 
-import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+import { getGoogleCredentialsAsync, isGoogleConfigured } from './google-auth';
 
 /* ---------- types ---------- */
 
@@ -99,7 +99,7 @@ export function getConfigStatus(): { configured: boolean; missing: string[] } {
 async function getAccessToken(): Promise<string> {
   if (!isConfigured()) throw new Error('Google Business Profile API not configured');
 
-  const key = getGoogleCredentials();
+  const key = await getGoogleCredentialsAsync();
   const now = Math.floor(Date.now() / 1000);
 
   // Build JWT

@@ -36,6 +36,9 @@ import {
   storyDirectorSystemPrompt,
 } from '../lib/brand-context.js';
 import { renderOverlayAndUpload, type OverlayTemplate } from '../lib/render-overlay.js';
+import { gatherResearch, formatResearchForPrompt } from '../lib/web-search.js';
+
+const OPUS_MODEL = 'claude-opus-4-6';
 
 // ---------------------------------------------------------------------------
 // Rich prompt blocks — injected into agent user messages
@@ -307,19 +310,59 @@ Output JSON:
           const mem = await loadAgentMemory('researcher');
           const history = await loadChatHistory('researcher', 2);
 
-          await send({ type: 'step', step: 'Researching topic' });
+          // --- STEP 1: Gather real-world data from web + Meta Ad Library ---
+          await send({ type: 'step', step: 'Searching web for trends & competitor data...' });
+          const researchData = await gatherResearch(topic);
+          const externalResearch = formatResearchForPrompt(researchData);
 
+          const adCount = researchData.competitorAds.length;
+          const webCount = researchData.webResults.length;
+          await send({ type: 'step', step: `Found ${webCount} web results, ${adCount} competitor ads — analyzing with Opus...` });
+
+          // --- STEP 2: Deep analysis with Opus ---
           const response = await callClaude({
             agent: 'researcher',
-            userMessage: `Research this topic for an Instagram campaign: ${topic}
-${RESEARCHER_CONTEXT}
-Gather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.
-Consider which content category (from the 10 above) fits best and which character matches the treatment.
+            model: OPUS_MODEL,
+            userMessage: `You are the Head of Research for Aesthetic Lounge, a premium medical aesthetics clinic in DHA Phase 7, Lahore. Conduct deep research on this topic for an Instagram campaign: "${topic}"
 
-Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel", "content_category": "..." }`,
+${RESEARCHER_CONTEXT}
+
+== LIVE RESEARCH DATA (gathered just now) ==
+${externalResearch}
+
+== YOUR MISSION ==
+Synthesize the live research data above with your knowledge to produce actionable insights. You have REAL competitor ad data and current web trends — use them.
+
+Analyze:
+1. **Market landscape**: What are competitors doing RIGHT NOW? What messaging works? What gaps exist?
+2. **Trending hooks**: Based on current web trends and successful ads, what angles are hot?
+3. **Audience psychology**: What pain points, desires, and triggers resonate with Pakistani women seeking aesthetics?
+4. **Content opportunity**: Where is the whitespace — what is NO ONE talking about that we should own?
+5. **Seasonal relevance**: Given today's date (${new Date().toISOString().split('T')[0]}), what's timely in Pakistan?
+6. **Competitor weakness**: Based on the active ads, where are competitors falling short that we can exploit?
+
+Output JSON:
+{
+  "summary": "2-3 sentence executive summary of the research",
+  "key_facts": ["5-8 specific, data-backed facts — cite sources from web results where possible"],
+  "hooks": ["5 proven hook formats — inspired by what's working in competitor ads and trends"],
+  "competitor_analysis": {
+    "active_advertisers": ${adCount},
+    "common_messaging": "what most competitors are saying",
+    "gaps": "what nobody is talking about",
+    "our_advantage": "how Aesthetic Lounge can differentiate"
+  },
+  "audience_insight": "deep insight about the target audience psychographics",
+  "trending_angles": ["3 current trends we can ride"],
+  "recommended_character": "ayesha|meher|noor|usman — with reasoning",
+  "content_type_suggestion": "post|carousel|reel — with reasoning",
+  "content_category": "which of the 10 diversity categories fits best",
+  "suggested_headline": "one killer headline based on all research"
+}`,
             systemPrompt: buildSystemPrompt(mem),
             chatHistory: history,
             maxTokens: 4096,
+            temperature: 0.4,
           });
 
           await send({ type: 'step', step: 'Saving research' });
@@ -333,6 +376,7 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
             action: 'research',
             topic,
             result: parsed || { raw: response.text },
+            sources: { webResults: webCount, competitorAds: adCount },
             tokens: { input: response.inputTokens, output: response.outputTokens },
           });
           break;
@@ -531,7 +575,7 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
         }
 
         case 'research_topics': {
-          await send({ type: 'step', step: 'Researching trending topics...' });
+          await send({ type: 'step', step: 'Scanning web trends & competitor ads...' });
 
           const orchMem = await loadAgentMemory('orchestrator');
           const resMem = await loadAgentMemory('researcher');
@@ -542,39 +586,57 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
             ? `\n== DO NOT REPEAT THESE RECENT TOPICS ==\n${pastTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}\nSuggest FRESH topics that are different from all of the above.\n`
             : '';
 
-          await send({ type: 'step', step: 'Analyzing seasonal data...' });
+          // Gather real-world data for topic discovery
+          const [trendData, competitorData, seasonalData] = await Promise.all([
+            gatherResearch('medical aesthetics trending Pakistan'),
+            gatherResearch('beauty clinic Lahore skincare treatment'),
+            gatherResearch('aesthetic treatment seasonal trends summer Pakistan'),
+          ]);
+          const trendResearch = formatResearchForPrompt(trendData);
+          const competitorResearch = formatResearchForPrompt(competitorData);
+
+          await send({ type: 'step', step: `Found ${trendData.webResults.length + competitorData.webResults.length} web results, ${trendData.competitorAds.length + competitorData.competitorAds.length} competitor ads — Opus analyzing...` });
 
           const orchResponse = await callClaude({
             agent: 'orchestrator',
-            userMessage: `Today is ${new Date().toISOString().split('T')[0]}. Research the most trending and seasonally relevant topics for Aesthetic Lounge Instagram content RIGHT NOW.
-${RESEARCHER_CONTEXT}${pastTopicsBlock}
-Consider:
-- Current season/holidays in Pakistan (use SEASONAL CALENDAR above)
-- Instagram engagement trends for medical aesthetics
-- Treatment seasonality and CPL data (use TOP TREATMENTS above)
-- What competitors are posting
-- Recent best-performing content types
-- Rotate across the 10 CONTENT DIVERSITY categories
+            model: OPUS_MODEL,
+            userMessage: `Today is ${new Date().toISOString().split('T')[0]}. You are the Chief Marketing Strategist for Aesthetic Lounge. Using REAL market data gathered moments ago, identify the most high-impact content topics.
 
-IMPORTANT: Include a MIX of content types — at least 1 "post", at least 1 "carousel", and optionally a "reel". Do NOT only suggest carousels or only reels. Single posts are our bread and butter.
+${RESEARCHER_CONTEXT}${pastTopicsBlock}
+
+== LIVE MARKET INTELLIGENCE ==
+${trendResearch}
+
+== COMPETITOR LANDSCAPE ==
+${competitorResearch}
+
+== STRATEGY REQUIREMENTS ==
+- Use the LIVE data above — don't guess what's trending, you have REAL search results and active competitor ads
+- Find gaps in competitor messaging we can exploit
+- Identify treatments gaining search momentum
+- Match seasonal timing in Pakistan (use SEASONAL CALENDAR)
+- Cross-reference with our TOP TREATMENTS CPL data — prioritize high-ROI treatments
+- Rotate across the 10 CONTENT DIVERSITY categories
+- Include a MIX: at least 1 "post", at least 1 "carousel", optionally a "reel". Single posts are our bread and butter.
 
 Output JSON with 4-5 topic suggestions:
 {
   "topics": [
     {
       "title": "Short topic title",
-      "reasoning": "2-line explanation of why this topic is hot right now",
+      "reasoning": "2-line explanation citing SPECIFIC data from the research above",
       "content_type": "post|carousel|reel",
       "treatment_category": "face|body|hair|skin|general",
       "engagement_estimate": "high|medium",
       "character": "ayesha|meher|noor|usman",
-      "content_category": "which of the 10 diversity categories"
+      "content_category": "which of the 10 diversity categories",
+      "data_source": "what research finding inspired this topic"
     }
   ]
 }`,
             systemPrompt: buildSystemPrompt(orchMem),
             temperature: 0.4,
-            maxTokens: 2048,
+            maxTokens: 3000,
           });
 
           await send({ type: 'step', step: 'Picking best topics...' });
@@ -632,28 +694,38 @@ Output JSON with 4-5 topic suggestions:
             break;
           }
 
-          await send({ type: 'step', step: 'Researching your topic...' });
+          await send({ type: 'step', step: 'Searching web & competitor ads...' });
 
           const resMem = await loadAgentMemory('researcher');
           const chatHistory = await loadChatHistory('researcher', 4);
 
+          const chatResearch = await gatherResearch(String(message));
+          const chatResearchBlock = formatResearchForPrompt(chatResearch);
+
+          await send({ type: 'step', step: `Analyzing with Opus (${chatResearch.webResults.length} web results, ${chatResearch.competitorAds.length} ads)...` });
+
           const response = await callClaude({
             agent: 'researcher',
+            model: OPUS_MODEL,
             userMessage: `The user wants to create content about: "${message}"
 ${RESEARCHER_CONTEXT}
-Research this topic and suggest 3-5 specific content ideas.
-Use the treatment performance data, seasonal calendar, and content categories above to inform your suggestions.
 
-IMPORTANT: Keep your response concise. Each topic reasoning should be 1-2 sentences max.
-IMPORTANT: Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter — don't only suggest carousels or reels.
+== LIVE RESEARCH DATA ==
+${chatResearchBlock}
+
+Using the real research data above, suggest 3-5 specific content ideas backed by actual market intelligence.
+Cross-reference with treatment performance data, seasonal calendar, and content categories.
+
+IMPORTANT: Keep your response concise. Each topic reasoning should cite specific findings from the research.
+IMPORTANT: Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter.
 
 Output JSON (no markdown wrapping):
 {
-  "response": "2-3 sentence conversational reply to the user",
+  "response": "2-3 sentence conversational reply referencing what you found in the research",
   "topics": [
     {
       "title": "Short specific title",
-      "reasoning": "1-2 sentence why this works now",
+      "reasoning": "1-2 sentence why this works — cite research data",
       "content_type": "post|carousel|reel",
       "treatment_category": "face|body|hair|skin|general",
       "engagement_estimate": "high|medium",
@@ -715,14 +787,25 @@ Output JSON (no markdown wrapping):
           const copyMem = await loadAgentMemory('copywriter');
           const resMem = await loadAgentMemory('researcher');
 
+          // Gather real research data in parallel with agent memory
+          await send({ type: 'step', step: 'Gathering market intelligence...' });
+          const pipeResearch = await gatherResearch(topic);
+          const pipeResearchBlock = formatResearchForPrompt(pipeResearch);
+
           const resResponse = await callClaude({
             agent: 'researcher',
-            userMessage: `Quick research for Instagram ${ct} about: ${topic}
+            model: OPUS_MODEL,
+            userMessage: `Deep research for Instagram ${ct} about: ${topic}
 ${RESEARCHER_CONTEXT}
-Output JSON: { "key_facts": [...], "hooks": [...], "recommended_character": "ayesha|meher|noor|usman", "audience_insight": "...", "content_category": "..." }`,
+
+== LIVE MARKET DATA ==
+${pipeResearchBlock}
+
+Synthesize the live data with your knowledge. Provide actionable research for the copywriter and designer.
+Output JSON: { "key_facts": ["5+ data-backed facts"], "hooks": ["5 proven hook formats from competitor analysis"], "recommended_character": "ayesha|meher|noor|usman", "audience_insight": "deep psychographic insight", "content_category": "...", "competitor_gap": "what competitors are missing" }`,
             systemPrompt: buildSystemPrompt(resMem),
-            temperature: 0.2,
-            maxTokens: 1024,
+            temperature: 0.3,
+            maxTokens: 2048,
           });
           totalInput += resResponse.inputTokens;
           totalOutput += resResponse.outputTokens;
@@ -891,6 +974,7 @@ Pick a music style that matches the mood.`,
 
               if (aiImages.length > 0 && designParsed?.template && designParsed?.template_params) {
                 await send({ type: 'step', step: 'Applying text overlay...' });
+                console.log(`[run_pipeline] Overlay: template=${designParsed.template}, bg=${aiImages[0]?.substring(0, 60)}...`);
                 try {
                   const overlayedUrl = await renderOverlayAndUpload({
                     template: designParsed.template as OverlayTemplate,
@@ -899,6 +983,7 @@ Pick a music style that matches the mood.`,
                     width: dims.w,
                     height: dims.h,
                   });
+                  console.log(`[run_pipeline] Overlay success: ${overlayedUrl?.substring(0, 80)}...`);
                   aiImages = [overlayedUrl, ...aiImages];
                 } catch (overlayErr) {
                   console.error('[run_pipeline] Overlay rendering error:', overlayErr);

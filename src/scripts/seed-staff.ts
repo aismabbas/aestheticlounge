@@ -34,7 +34,7 @@ async function main() {
   // Insert default admin
   const result = await pool.query(`
     INSERT INTO al_staff (id, email, name, role, phone)
-    VALUES ('admin-001', 'info@aestheticloungeofficial.com', 'Admin', 'admin', '+923276620000')
+    VALUES ('admin-001', 'info@aestheticloungeofficial.com', 'Admin', 'admin', '+923276660004')
     ON CONFLICT (id) DO NOTHING
     RETURNING id, email, name, role
   `);

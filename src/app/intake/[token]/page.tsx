@@ -609,7 +609,7 @@ export default function IntakeFormPage() {
       <footer className="border-t border-[#EAEAEA] bg-white">
         <div className={`${sz.container} mx-auto px-4 py-4 text-center`}>
           <p className="text-xs text-[#999]">
-            Aesthetic Lounge &middot; Plaza-126, BWB Phase 8, DHA Lahore Cantt &middot; +92-327-6620000
+            Aesthetic Lounge &middot; Plaza-126, BWB Phase 8, DHA Lahore Cantt &middot; +92-327-6660004
           </p>
         </div>
       </footer>

@@ -117,10 +117,10 @@ export default function DataDeletionPage() {
                 <p>
                   Send a message to{' '}
                   <a
-                    href="https://wa.me/923276620000?text=I%20would%20like%20to%20request%20deletion%20of%20my%20data"
+                    href="https://wa.me/923276660004?text=I%20would%20like%20to%20request%20deletion%20of%20my%20data"
                     className="text-[#B8924A] hover:underline"
                   >
-                    +92 327 6620000
+                    +92 327 6660004
                   </a>{' '}
                   requesting data deletion.
                 </p>

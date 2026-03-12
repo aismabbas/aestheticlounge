@@ -19,7 +19,7 @@ export async function generateImage(opts: {
     width = 1080,
     height = 1350,
     numImages = 1,
-    guidanceScale = 4.0,
+    guidanceScale = 3.0,
   } = opts;
 
   const useEdit = referenceUrls && referenceUrls.length > 0;

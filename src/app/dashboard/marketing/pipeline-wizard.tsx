@@ -87,7 +87,20 @@ export interface ChatMessage {
 // SSE helper
 // ---------------------------------------------------------------------------
 
-const STREAM_TIMEOUT_MS = 300_000; // 5 min client-side timeout (matches Netlify Pro 300s limit)
+const STREAM_TIMEOUT_MS = 300_000; // 5 min client-side timeout
+
+// Cache the pipeline token (valid 10 min, refresh at 8 min)
+let cachedToken: { token: string; workerUrl: string; expires: number } | null = null;
+
+async function getPipelineToken(): Promise<{ token: string; workerUrl: string }> {
+  if (cachedToken && cachedToken.expires > Math.floor(Date.now() / 1000) + 120) {
+    return cachedToken;
+  }
+  const res = await fetch('/api/al/pipeline-token');
+  if (!res.ok) throw new Error('Failed to get pipeline token — are you logged in?');
+  cachedToken = await res.json();
+  return cachedToken!;
+}
 
 async function streamPipeline(
   body: Record<string, unknown>,
@@ -98,18 +111,22 @@ async function streamPipeline(
   signal?: AbortSignal,
 ) {
   try {
-    // Client-side timeout — abort if no result within 90s
     const timeoutController = new AbortController();
     const timeout = setTimeout(() => timeoutController.abort(), STREAM_TIMEOUT_MS);
 
-    // Combine user cancel signal with timeout signal
     const combinedSignal = signal
       ? AbortSignal.any([signal, timeoutController.signal])
       : timeoutController.signal;
 
-    const res = await fetch('/api/al/pipeline', {
+    // Get auth token and call Railway directly (bypasses Netlify proxy timeout)
+    const { token, workerUrl } = await getPipelineToken();
+
+    const res = await fetch(`${workerUrl}/pipeline`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
       signal: combinedSignal,
     });

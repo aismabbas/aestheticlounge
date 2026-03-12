@@ -53,7 +53,7 @@ export default function LeadForm({ treatment, whatsappMessage }: LeadFormProps) 
   }
 
   if (status === 'success') {
-    const waLink = `https://wa.me/923276620000?text=${encodeURIComponent(whatsappMessage)}`;
+    const waLink = `https://wa.me/923276660004?text=${encodeURIComponent(whatsappMessage)}`;
     return (
       <div className="rounded-2xl border border-gold/20 bg-white p-8 text-center shadow-[0_8px_40px_rgba(0,0,0,0.06)]">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">

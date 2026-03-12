@@ -32,7 +32,7 @@ interface DateRange {
 
 // ── Config ─────────────────────────────────────────────────────────
 
-import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+import { getGoogleCredentialsAsync, isGoogleConfigured } from './google-auth';
 
 function getConfig() {
   return {
@@ -63,7 +63,7 @@ async function getAccessToken(): Promise<string | null> {
   }
 
   try {
-    const sa = getGoogleCredentials();
+    const sa = await getGoogleCredentialsAsync();
     const now = Math.floor(Date.now() / 1000);
 
     // Build JWT (use Buffer for Node.js compatibility)

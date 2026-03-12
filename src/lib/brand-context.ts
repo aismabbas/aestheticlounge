@@ -102,7 +102,7 @@ export const BRAND_CONTEXT = {
   colors: { gold: '#B8924A', cream: '#FAF9F6', dark: '#1A1A1A' },
   fonts: { heading: 'Playfair Display', accent: 'Cormorant Garamond', body: 'Inter' },
   style: 'Clinical-luxury, white & gold, aspirational',
-  whatsapp: '+92 327 6620000',
+  whatsapp: '+92 327 6660004',
   instagram: '@aestheticloungeofficial',
   website: 'aestheticloungeofficial.com',
   disclaimer: 'Individual results may vary. Consult with our medical professionals. Dr. Huma Abbas, Medical Director.',

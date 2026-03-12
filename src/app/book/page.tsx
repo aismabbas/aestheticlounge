@@ -270,7 +270,7 @@ export default function BookPage() {
           </p>
           <div className="mt-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <a
-              href="https://wa.me/923276620000?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20Aesthetic%20Lounge."
+              href="https://wa.me/923276660004?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20Aesthetic%20Lounge."
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-full border border-gold px-6 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-white"
@@ -278,10 +278,10 @@ export default function BookPage() {
               WhatsApp Us
             </a>
             <a
-              href="tel:+923276620000"
+              href="tel:+923276660004"
               className="rounded-full border border-gold px-6 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-white"
             >
-              Call +92 327 6620000
+              Call +92 327 6660004
             </a>
           </div>
         </div>

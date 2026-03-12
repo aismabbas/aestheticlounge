@@ -18,7 +18,7 @@ export default function StickyCTA({ ctaText, whatsappMessage }: StickyCTAProps) 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const waLink = `https://wa.me/923276620000?text=${encodeURIComponent(whatsappMessage)}`;
+  const waLink = `https://wa.me/923276660004?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <div

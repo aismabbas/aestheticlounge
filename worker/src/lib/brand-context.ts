@@ -189,11 +189,14 @@ export function treatmentBaselinesBlock(): string {
 
 export function imagePromptCraftBlock(): string {
   return `== IMAGE PROMPT CRAFT (fal.ai Nano Banana Pro) ==
-- ALWAYS: sharp focus, 8K, photorealistic, f/2.8, deep depth of field
+- ALWAYS append to every prompt: "Ultra high quality, photorealistic, 4K, cinematic lighting, shot on Canon 5D 85mm, sharp focus, 8K, f/2.8, deep depth of field"
 - NEVER: shallow depth of field, bokeh, soft focus, dreamy, blurry background
-- Full prompt structure: [Character full description] [Outfit] [Action/pose] [Setting with Pakistani/Lahore context] [Technical: sharp focus, 8K, f/2.8, deep depth of field, photorealistic]
+- Full prompt structure: [Character full description] [Outfit] [Action/pose] [Setting with Pakistani/Lahore context] [Technical suffix above]
 - No text, logos, or watermarks in images
-- "NOT glossy, NOT airbrushed, realistic skin texture, matte natural finish"`;
+- "NOT glossy, NOT airbrushed, realistic skin texture, matte natural finish"
+- guidance_scale: 3.0 for backgrounds/scenes, 2.5 for portraits/close-ups
+- For treatment backgrounds: use "luxury medical clinic interior, cream and gold tones, soft natural light, DHA Lahore"
+- For lifestyle backgrounds: use "upscale DHA Phase 7 setting, modern luxury, warm golden hour light"`;
 }
 
 export function motionPromptCraftBlock(): string {

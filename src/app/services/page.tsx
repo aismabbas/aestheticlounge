@@ -86,7 +86,7 @@ export default function ServicesPage() {
             Book Consultation
           </Link>
           <a
-            href="https://wa.me/923276620000?text=Hi%2C%20I%20would%20like%20to%20book%20a%20consultation."
+            href="https://wa.me/923276660004?text=Hi%2C%20I%20would%20like%20to%20book%20a%20consultation."
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-gold px-8 py-3 font-medium text-gold transition-colors hover:bg-gold hover:text-white"

@@ -139,7 +139,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-5 space-y-1">
                 <li><strong className="text-[#1A1A1A]">Business Name:</strong> Aesthetic Lounge Official</li>
                 <li><strong className="text-[#1A1A1A]">Address:</strong> Plaza-126, BWB Phase 8, DHA Lahore Cantt, Lahore, Pakistan</li>
-                <li><strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6620000 | +92 42 35740271</li>
+                <li><strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6660004 | +92 42 35740271</li>
                 <li><strong className="text-[#1A1A1A]">Email:</strong> info@aestheticloungeofficial.com</li>
                 <li><strong className="text-[#1A1A1A]">Website:</strong> aestheticloungeofficial.com</li>
               </ul>
@@ -518,7 +518,7 @@ export default function PrivacyPolicyPage() {
                 >
                   info@aestheticloungeofficial.com
                 </a>{' '}
-                or call +92 327 6620000. We will respond within 30 days.
+                or call +92 327 6660004. We will respond within 30 days.
               </p>
             </div>
           </section>
@@ -706,15 +706,15 @@ export default function PrivacyPolicyPage() {
                   </a>
                 </li>
                 <li>
-                  <strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6620000
+                  <strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6660004
                 </li>
                 <li>
                   <strong className="text-[#1A1A1A]">Address:</strong> Plaza-126, BWB Phase 8, DHA Lahore Cantt, Lahore, Pakistan
                 </li>
                 <li>
                   <strong className="text-[#1A1A1A]">WhatsApp:</strong>{' '}
-                  <a href="https://wa.me/923276620000" className="text-[#B8924A] hover:underline">
-                    +92 327 6620000
+                  <a href="https://wa.me/923276660004" className="text-[#B8924A] hover:underline">
+                    +92 327 6660004
                   </a>
                 </li>
               </ul>

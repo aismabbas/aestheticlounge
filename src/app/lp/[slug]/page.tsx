@@ -69,7 +69,7 @@ export default async function LandingPage({
   const lp = await getLandingPageFromDB(slug);
   if (!lp) notFound();
 
-  const waLink = `https://wa.me/923276620000?text=${encodeURIComponent(lp.whatsapp_message)}`;
+  const waLink = `https://wa.me/923276660004?text=${encodeURIComponent(lp.whatsapp_message)}`;
 
   return (
     <>
@@ -428,7 +428,7 @@ export default async function LandingPage({
               {/* Contact options */}
               <div className="space-y-4">
                 <a
-                  href="tel:+923276620000"
+                  href="tel:+923276660004"
                   className="flex items-center gap-4 rounded-xl border border-border bg-white p-4 transition-colors hover:border-gold/30"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gold/10">

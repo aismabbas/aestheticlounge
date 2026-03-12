@@ -9,7 +9,7 @@
  *   GOOGLE_CALENDAR_ID — the calendar to sync with (e.g. primary or a specific calendar ID)
  */
 
-import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+import { getGoogleCredentialsAsync, isGoogleConfigured } from './google-auth';
 
 const CALENDAR_ID = () => process.env.GCAL_ID || process.env.GOOGLE_CALENDAR_ID || 'primary';
 const TIMEZONE = 'Asia/Karachi'; // Lahore clinic timezone
@@ -26,7 +26,7 @@ async function getAccessToken(): Promise<string | null> {
   }
 
   try {
-    const sa = getGoogleCredentials();
+    const sa = await getGoogleCredentialsAsync();
     const now = Math.floor(Date.now() / 1000);
 
     const toBase64Url = (str: string) => Buffer.from(str).toString('base64url');

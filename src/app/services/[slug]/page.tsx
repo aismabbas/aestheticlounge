@@ -174,7 +174,7 @@ export default async function TreatmentPage({ params }: PageProps) {
             </Link>
 
             <a
-              href={`https://wa.me/923276620000?text=${whatsappMessage}`}
+              href={`https://wa.me/923276660004?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full rounded-full border border-gold py-3 text-center font-medium text-gold transition-colors hover:bg-gold hover:text-white"

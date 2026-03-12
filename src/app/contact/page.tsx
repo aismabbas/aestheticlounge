@@ -182,10 +182,10 @@ export default function ContactPage() {
                 Call Us
               </h3>
               <a
-                href="tel:+923276620000"
+                href="tel:+923276660004"
                 className="mt-2 block text-text-dark hover:text-gold transition-colors"
               >
-                +92 327 6620000
+                +92 327 6660004
               </a>
               <a
                 href="tel:+924235740271"
@@ -201,7 +201,7 @@ export default function ContactPage() {
                 WhatsApp
               </h3>
               <a
-                href="https://wa.me/923276620000?text=Hi%2C%20I%20would%20like%20to%20get%20in%20touch%20with%20Aesthetic%20Lounge."
+                href="https://wa.me/923276660004?text=Hi%2C%20I%20would%20like%20to%20get%20in%20touch%20with%20Aesthetic%20Lounge."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-block rounded-full border border-gold px-6 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-white"
@@ -276,7 +276,7 @@ export default function ContactPage() {
                   </svg>
                 </a>
                 <a
-                  href="https://wa.me/923276620000"
+                  href="https://wa.me/923276660004"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-11 w-11 items-center justify-center rounded-xl border border-gold-pale bg-warm-white text-text-light transition-all hover:-translate-y-0.5 hover:border-[#25D366] hover:text-[#25D366]"

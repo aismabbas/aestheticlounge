@@ -468,7 +468,7 @@ export default function TermsOfServicePage() {
                   </a>
                 </li>
                 <li>
-                  <strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6620000 | +92 42 35740271
+                  <strong className="text-[#1A1A1A]">Phone:</strong> +92 327 6660004 | +92 42 35740271
                 </li>
                 <li>
                   <strong className="text-[#1A1A1A]">Address:</strong> Plaza-126, BWB Phase 8, DHA Lahore Cantt, Lahore, Pakistan

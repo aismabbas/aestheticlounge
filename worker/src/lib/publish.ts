@@ -5,6 +5,27 @@
 const IG_API = 'https://graph.facebook.com/v21.0';
 const FB_API = 'https://graph.facebook.com/v21.0';
 
+/**
+ * Poll IG container until it's ready for publishing.
+ * Instagram processes media async — publishing immediately after creation fails.
+ */
+async function waitForContainer(containerId: string, accessToken: string, maxAttempts = 30): Promise<void> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(`${IG_API}/${containerId}?fields=status_code,status&access_token=${accessToken}`);
+    const data = await res.json();
+    const status = data.status_code || data.status;
+
+    if (status === 'FINISHED') return;
+    if (status === 'ERROR' || status === 'EXPIRED') {
+      throw new Error(`IG container processing failed: ${status} — ${JSON.stringify(data)}`);
+    }
+
+    // IN_PROGRESS — wait and retry
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`IG container still processing after ${maxAttempts * 2}s`);
+}
+
 export async function publishToInstagram(opts: {
   type: 'photo' | 'carousel' | 'reel';
   imageUrl?: string;
@@ -27,6 +48,8 @@ export async function publishToInstagram(opts: {
     );
     const container = await containerRes.json();
     if (!container.id) throw new Error(`IG container error: ${JSON.stringify(container)}`);
+
+    await waitForContainer(container.id, accessToken);
 
     const publishRes = await fetch(
       `${IG_API}/${igAccountId}/media_publish?creation_id=${container.id}&access_token=${accessToken}`,
@@ -56,12 +79,19 @@ export async function publishToInstagram(opts: {
       throw new Error(`Carousel requires at least 2 uploaded images, only ${childIds.length} succeeded`);
     }
 
+    // Wait for all children to finish processing
+    for (const childId of childIds) {
+      await waitForContainer(childId, accessToken);
+    }
+
     const containerRes = await fetch(
       `${IG_API}/${igAccountId}/media?media_type=CAROUSEL&children=${childIds.join(',')}&caption=${encodeURIComponent(caption)}&access_token=${accessToken}`,
       { method: 'POST' },
     );
     const container = await containerRes.json();
     if (!container.id) throw new Error(`IG carousel error: ${JSON.stringify(container)}`);
+
+    await waitForContainer(container.id, accessToken);
 
     const publishRes = await fetch(
       `${IG_API}/${igAccountId}/media_publish?creation_id=${container.id}&access_token=${accessToken}`,
@@ -80,19 +110,7 @@ export async function publishToInstagram(opts: {
     const container = await containerRes.json();
     if (!container.id) throw new Error(`IG reel error: ${JSON.stringify(container)}`);
 
-    let status = 'IN_PROGRESS';
-    let attempts = 0;
-    while (status === 'IN_PROGRESS' && attempts < 30) {
-      await new Promise((r) => setTimeout(r, 5000));
-      const statusRes = await fetch(
-        `${IG_API}/${container.id}?fields=status_code&access_token=${accessToken}`,
-      );
-      const statusData = await statusRes.json();
-      status = statusData.status_code || 'ERROR';
-      attempts++;
-    }
-
-    if (status !== 'FINISHED') throw new Error(`Reel processing failed: ${status}`);
+    await waitForContainer(container.id, accessToken);
 
     const publishRes = await fetch(
       `${IG_API}/${igAccountId}/media_publish?creation_id=${container.id}&access_token=${accessToken}`,

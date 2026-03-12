@@ -10,7 +10,7 @@ const BUSINESS_INFO = {
   image: 'https://aestheticloungeofficial.com/logo.png',
   description:
     'Premium medical aesthetics clinic offering 66+ treatments at Plaza-126, BWB Phase 8, DHA Lahore Cantt. Expert doctors delivering personalized care with advanced solutions.',
-  telephone: '+92-327-6620000',
+  telephone: '+92-327-6660004',
   email: 'info@aestheticloungeofficial.com',
   address: {
     '@type': 'PostalAddress' as const,

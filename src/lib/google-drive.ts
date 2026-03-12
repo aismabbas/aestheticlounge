@@ -1,6 +1,6 @@
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
-import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+import { getGoogleCredentialsAsync, isGoogleConfigured } from './google-auth';
 
 /* ------------------------------------------------------------------ */
 /* Google Drive API client — API-only, no local filesystem dependency. */
@@ -45,10 +45,10 @@ export function isGoogleDriveConfigured(): boolean {
 /**
  * Lazily initialize and return the Google Drive client.
  */
-function getDrive(): drive_v3.Drive {
+async function getDrive(): Promise<drive_v3.Drive> {
   if (driveClient) return driveClient;
 
-  const credentials = getGoogleCredentials();
+  const credentials = await getGoogleCredentialsAsync();
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/drive'],
@@ -65,7 +65,7 @@ async function findOrCreateFolder(
   parentId: string,
   folderName: string,
 ): Promise<string> {
-  const drive = getDrive();
+  const drive = await getDrive();
 
   // Search for existing folder
   const search = await drive.files.list({
@@ -141,7 +141,7 @@ export async function uploadPhoto(
   fileBuffer: Buffer,
   mimeType: string,
 ): Promise<{ fileId: string; webViewLink: string; thumbnailLink: string }> {
-  const drive = getDrive();
+  const drive = await getDrive();
 
   const stream = new Readable();
   stream.push(fileBuffer);
@@ -195,7 +195,7 @@ export async function listPhotos(
     createdTime: string;
   }>
 > {
-  const drive = getDrive();
+  const drive = await getDrive();
 
   const result = await drive.files.list({
     q: `'${folderId}' in parents and trashed=false and mimeType contains 'image/'`,
@@ -220,7 +220,7 @@ export async function listPhotos(
  * Get a thumbnail URL for a specific file.
  */
 export async function getPhotoThumbnail(fileId: string): Promise<string> {
-  const drive = getDrive();
+  const drive = await getDrive();
 
   const file = await drive.files.get({
     fileId,
@@ -237,7 +237,7 @@ export async function getPhotoThumbnail(fileId: string): Promise<string> {
  * Delete a photo from Google Drive.
  */
 export async function deletePhoto(fileId: string): Promise<void> {
-  const drive = getDrive();
+  const drive = await getDrive();
   await drive.files.delete({ fileId });
 }
 
@@ -259,7 +259,7 @@ export async function uploadFromUrl(
   folderId: string,
   mimeType = 'image/png',
 ): Promise<{ id: string; name: string; webViewLink: string }> {
-  const drive = getDrive();
+  const drive = await getDrive();
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Download failed: ${response.status}`);
   const buffer = Buffer.from(await response.arrayBuffer());
@@ -290,7 +290,7 @@ export async function uploadFromUrl(
 
 /** Download a file as a buffer (API-only) */
 export async function downloadFile(fileId: string): Promise<Buffer> {
-  const drive = getDrive();
+  const drive = await getDrive();
   const res = await drive.files.get(
     { fileId, alt: 'media', supportsAllDrives: true },
     { responseType: 'arraybuffer' },
@@ -300,7 +300,7 @@ export async function downloadFile(fileId: string): Promise<Buffer> {
 
 /** List all files in a folder */
 export async function listFiles(folderId: string, maxResults = 50) {
-  const drive = getDrive();
+  const drive = await getDrive();
   const res = await drive.files.list({
     q: `'${folderId}' in parents and trashed = false`,
     fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,thumbnailLink)',
@@ -314,7 +314,7 @@ export async function listFiles(folderId: string, maxResults = 50) {
 
 /** Search files by name */
 export async function searchFiles(query: string, folderId?: string, maxResults = 20) {
-  const drive = getDrive();
+  const drive = await getDrive();
   let q = `name contains '${query.replace(/'/g, "\\'")}' and trashed = false`;
   if (folderId) q += ` and '${folderId}' in parents`;
 
@@ -331,7 +331,7 @@ export async function searchFiles(query: string, folderId?: string, maxResults =
 
 /** Create a subfolder */
 export async function createDriveFolder(name: string, parentId: string) {
-  const drive = getDrive();
+  const drive = await getDrive();
   const res = await drive.files.create({
     requestBody: {
       name,

@@ -108,7 +108,7 @@ const SCHEMA_TYPES = [
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "name": "Aesthetic Lounge",
-  "telephone": "+92-327-6620000",
+  "telephone": "+92-327-6660004",
   "address": { "streetAddress": "Plaza-126, BWB Phase 8", "addressLocality": "DHA Lahore Cantt" },
   "aggregateRating": { "ratingValue": "4.8", "reviewCount": "1000" }
 }`,

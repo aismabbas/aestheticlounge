@@ -1,5 +1,5 @@
 import { google, searchconsole_v1 } from 'googleapis';
-import { getGoogleCredentials, isGoogleConfigured } from './google-auth';
+import { getGoogleCredentialsAsync, isGoogleConfigured } from './google-auth';
 
 /* ------------------------------------------------------------------ */
 /* Google Search Console API client                                    */
@@ -21,10 +21,10 @@ export function isGSCConfigured(): boolean {
 /**
  * Lazily initialize and return the GSC client.
  */
-function getGSC(): searchconsole_v1.Searchconsole {
+async function getGSC(): Promise<searchconsole_v1.Searchconsole> {
   if (gscClient) return gscClient;
 
-  const credentials = getGoogleCredentials();
+  const credentials = await getGoogleCredentialsAsync();
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
@@ -68,7 +68,7 @@ export async function getSearchPerformance(
   startDate: string,
   endDate: string,
 ): Promise<SearchPerformance> {
-  const gsc = getGSC();
+  const gsc = await getGSC();
   const res = await gsc.searchanalytics.query({
     siteUrl: SITE_URL,
     requestBody: {
@@ -99,7 +99,7 @@ export async function getDailyPerformance(
   startDate: string,
   endDate: string,
 ): Promise<DailyPerformance[]> {
-  const gsc = getGSC();
+  const gsc = await getGSC();
   const res = await gsc.searchanalytics.query({
     siteUrl: SITE_URL,
     requestBody: {
@@ -126,7 +126,7 @@ export async function getTopQueries(
   endDate: string,
   limit = 20,
 ): Promise<SearchRow[]> {
-  const gsc = getGSC();
+  const gsc = await getGSC();
   const res = await gsc.searchanalytics.query({
     siteUrl: SITE_URL,
     requestBody: {
@@ -154,7 +154,7 @@ export async function getTopPages(
   endDate: string,
   limit = 20,
 ): Promise<SearchRow[]> {
-  const gsc = getGSC();
+  const gsc = await getGSC();
   const res = await gsc.searchanalytics.query({
     siteUrl: SITE_URL,
     requestBody: {
@@ -178,7 +178,7 @@ export async function getTopPages(
  * Get indexing status — list of sitemaps submitted.
  */
 export async function getSitemaps() {
-  const gsc = getGSC();
+  const gsc = await getGSC();
   const res = await gsc.sitemaps.list({ siteUrl: SITE_URL });
   return (res.data.sitemap || []).map((s) => ({
     path: s.path || '',

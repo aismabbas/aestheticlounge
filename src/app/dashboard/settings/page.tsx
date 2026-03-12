@@ -478,7 +478,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-text-dark">Business Phone</p>
-              <p className="text-xs text-text-muted">+92-327-6620000</p>
+              <p className="text-xs text-text-muted">+92-327-6660004</p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
               Verified

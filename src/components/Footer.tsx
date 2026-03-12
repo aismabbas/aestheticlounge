@@ -26,7 +26,7 @@ const topServices = [
 
 const contactInfo = [
   { icon: "\uD83D\uDCCD", label: "Address", value: "Plaza-126, BWB Phase 8, DHA Lahore Cantt" },
-  { icon: "\uD83D\uDCDE", label: "Phone", value: "+92 327 6620000 | +92 42 35740271" },
+  { icon: "\uD83D\uDCDE", label: "Phone", value: "+92 327 6660004 | +92 42 35740271" },
   { icon: "\u2709\uFE0F", label: "Email", value: "info@aestheticloungeofficial.com" },
   { icon: "\uD83D\uDD50", label: "Hours", value: "Mon \u2013 Sat: 10 AM \u2013 9 PM (By Appointment)" },
 ];

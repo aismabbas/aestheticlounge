@@ -146,9 +146,10 @@ export async function callClaude(opts: {
     { role: 'user' as const, content: userMessage },
   ];
 
-  // 45s timeout
+  // Opus needs more time (up to 120s), others 45s
+  const isOpus = model.includes('opus');
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
+  const timeout = setTimeout(() => controller.abort(), isOpus ? 120000 : 45000);
 
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',

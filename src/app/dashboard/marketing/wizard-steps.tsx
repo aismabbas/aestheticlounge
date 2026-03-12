@@ -54,7 +54,7 @@ export function WizardStepIndicator({ currentStep }: { currentStep: number }) {
 // Topic Loading
 // ---------------------------------------------------------------------------
 
-export function TopicLoadingView({ step }: { step: string }) {
+export function TopicLoadingView({ step, onCancel }: { step: string; onCancel?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-6">
       <div className="relative">
@@ -68,6 +68,14 @@ export function TopicLoadingView({ step }: { step: string }) {
       <div className="w-64 h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-gold-dark via-gold to-gold-light rounded-full animate-[shimmer_2s_ease-in-out_infinite]" style={{ width: '60%' }} />
       </div>
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="mt-2 px-4 py-1.5 text-xs font-medium text-text-muted hover:text-red-600 border border-gray-200 hover:border-red-200 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 }

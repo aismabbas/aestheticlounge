@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   WizardStepIndicator,
   TopicLoadingView,
@@ -87,22 +87,36 @@ export interface ChatMessage {
 // SSE helper
 // ---------------------------------------------------------------------------
 
+const STREAM_TIMEOUT_MS = 90_000; // 90s client-side timeout
+
 async function streamPipeline(
   body: Record<string, unknown>,
   onStep: (step: string) => void,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onResult: (result: any) => void,
   onError: (error: string) => void,
+  signal?: AbortSignal,
 ) {
   try {
+    // Client-side timeout — abort if no result within 90s
+    const timeoutController = new AbortController();
+    const timeout = setTimeout(() => timeoutController.abort(), STREAM_TIMEOUT_MS);
+
+    // Combine user cancel signal with timeout signal
+    const combinedSignal = signal
+      ? AbortSignal.any([signal, timeoutController.signal])
+      : timeoutController.signal;
+
     const res = await fetch('/api/al/pipeline', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      signal: combinedSignal,
     });
 
     const ct = res.headers.get('content-type') || '';
     if (ct.includes('application/json')) {
+      clearTimeout(timeout);
       const data = await res.json();
       if (!data.success) {
         onError(data.error || 'Request failed');
@@ -111,33 +125,54 @@ async function streamPipeline(
     }
 
     const reader = res.body?.getReader();
-    if (!reader) { onError('No response stream'); return; }
+    if (!reader) { clearTimeout(timeout); onError('No response stream'); return; }
 
     const decoder = new TextDecoder();
     let buffer = '';
+    let gotResult = false;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        try {
-          const event = JSON.parse(line.slice(6));
-          if (event.type === 'ping') continue;
-          if (event.type === 'step') onStep(event.step);
-          if (event.type === 'result') {
-            if (event.success) onResult(event);
-            else onError(event.error || 'Pipeline failed');
-          }
-        } catch { /* ignore parse errors */ }
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === 'ping') continue;
+            if (event.type === 'step') onStep(event.step);
+            if (event.type === 'result') {
+              gotResult = true;
+              if (event.success) onResult(event);
+              else onError(event.error || 'Pipeline failed');
+            }
+          } catch { /* ignore parse errors */ }
+        }
       }
+    } finally {
+      clearTimeout(timeout);
+      reader.releaseLock();
+    }
+
+    // Stream ended without a result event — server timed out or crashed
+    if (!gotResult) {
+      onError('Connection lost — the server may have timed out. Please try again.');
     }
   } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      // Distinguish user cancel vs timeout
+      if (signal?.aborted) {
+        onError('Cancelled');
+      } else {
+        onError('Request timed out — the pipeline took too long. Please try again.');
+      }
+      return;
+    }
     onError(err instanceof Error ? err.message : 'Request failed');
   }
 }
@@ -170,6 +205,19 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
   const [reviseContext, setReviseContext] = useState<'copy' | 'design'>('copy');
   const [publishFacebook, setPublishFacebook] = useState(false);
   const [publishResult, setPublishResult] = useState<Record<string, unknown> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const cancelPipeline = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
+
+  // Create a fresh AbortController and return its signal
+  const newAbortSignal = useCallback(() => {
+    abortRef.current?.abort(); // cancel any previous request
+    abortRef.current = new AbortController();
+    return abortRef.current.signal;
+  }, []);
 
   // Track which wizard step we're on (for the indicator)
   const currentStep = (() => {
@@ -213,8 +261,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setState('TOPIC_OPTIONS');
       },
       (err) => { setError(err); setState('IDLE'); },
+      newAbortSignal(),
     );
-  }, []);
+  }, [newAbortSignal]);
 
   const startChatResearch = useCallback(() => {
     setState('CHAT_OPEN');
@@ -244,8 +293,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setChatMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${err}` }]);
         setState('CHAT_OPEN');
       },
+      newAbortSignal(),
     );
-  }, []);
+  }, [newAbortSignal]);
 
   // ---- Pipeline Runner ----
 
@@ -266,8 +316,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setState('COPY_REVIEW');
       },
       (err) => { setError(err); setState('TOPIC_OPTIONS'); },
+      newAbortSignal(),
     );
-  }, []);
+  }, [newAbortSignal]);
 
   // ---- Approve / Navigate ----
 
@@ -306,8 +357,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setState('DESIGN_REVIEW');
       },
       (err) => { setError(err); setState('DESIGN_REVIEW'); },
+      newAbortSignal(),
     );
-  }, [draftId]);
+  }, [draftId, newAbortSignal]);
 
   // ---- Revise Flow ----
 
@@ -323,8 +375,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setState(context === 'copy' ? 'REVISE_COPY' : 'REVISE_DESIGN');
       },
       (err) => { setError(err); },
+      newAbortSignal(),
     );
-  }, [draftId]);
+  }, [draftId, newAbortSignal]);
 
   const submitRevision = useCallback(async (answers: Record<string, string>) => {
     const context = reviseContext;
@@ -348,8 +401,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setError(err);
         setState(context === 'copy' ? 'COPY_REVIEW' : 'DESIGN_REVIEW');
       },
+      newAbortSignal(),
     );
-  }, [draftId, reviseContext]);
+  }, [draftId, reviseContext, newAbortSignal]);
 
   // ---- Publish ----
 
@@ -397,6 +451,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
   if (!open) return null;
 
   const handleClose = () => {
+    cancelPipeline();
     reset();
     onClose();
   };
@@ -448,7 +503,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {/* TOPIC_LOADING */}
           {state === 'TOPIC_LOADING' && (
-            <TopicLoadingView step={loadingStep} />
+            <TopicLoadingView step={loadingStep} onCancel={handleClose} />
           )}
 
           {/* TOPIC_OPTIONS */}
@@ -468,7 +523,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
           {/* COPY_LOADING */}
           {(state === 'COPY_LOADING' || state === 'DESIGN_LOADING' || state === 'QA_LOADING') && (
-            <TopicLoadingView step={loadingStep} />
+            <TopicLoadingView step={loadingStep} onCancel={handleClose} />
           )}
 
           {/* COPY_REVIEW */}
@@ -531,7 +586,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
           {/* PUBLISHING */}
           {state === 'PUBLISHING' && (
-            <TopicLoadingView step="Publishing to Instagram..." />
+            <TopicLoadingView step="Publishing to Instagram..." onCancel={handleClose} />
           )}
 
           {/* PUBLISHED */}

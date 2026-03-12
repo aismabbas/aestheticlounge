@@ -50,6 +50,7 @@ interface BudgetInfo {
 // ---------------------------------------------------------------------------
 
 const actionIcons: Record<string, { icon: string; color: string }> = {
+  all_clear: { icon: '\u2713', color: 'text-green-600 bg-green-50' },
   pause: { icon: '||', color: 'text-red-600 bg-red-50' },
   budget_increase: { icon: '+', color: 'text-green-600 bg-green-50' },
   budget_decrease: { icon: '-', color: 'text-amber-600 bg-amber-50' },

@@ -456,10 +456,26 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
     }
 
     const adActions = evaluateRules(ad, config);
-    for (const action of adActions) {
-      action.id = ulid();
-      action.runId = runId;
-      allActions.push(action);
+    if (adActions.length === 0) {
+      // Log a healthy check so the actions table always has something to show
+      allActions.push({
+        id: ulid(),
+        runId,
+        runAt: startedAt,
+        tier: 0 as 1, // informational tier (cast to satisfy type)
+        actionType: 'all_clear',
+        entityType: 'ad',
+        metaId: ad.metaAdId,
+        entityName: ad.adName,
+        reason: `Healthy — CPL $${ad.cpl > 0 ? ad.cpl.toFixed(2) : '—'}, CTR ${ad.avgCtr.toFixed(1)}%, freq ${ad.avgFrequency.toFixed(1)}x, ${ad.daysActive}d active`,
+        executed: true,
+      });
+    } else {
+      for (const action of adActions) {
+        action.id = ulid();
+        action.runId = runId;
+        allActions.push(action);
+      }
     }
   }
 
@@ -468,6 +484,21 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
   let actionsFlagged = 0;
 
   for (const action of allActions) {
+    // Skip all_clear — informational only, already marked executed
+    if (action.actionType === 'all_clear') {
+      await query(
+        `INSERT INTO al_optimizer_actions
+         (id, run_id, run_at, tier, action_type, entity_type, meta_id, entity_name, reason, old_value, new_value, executed)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          action.id, action.runId, action.runAt, action.tier,
+          action.actionType, action.entityType, action.metaId,
+          action.entityName, action.reason, null, null, true,
+        ],
+      );
+      continue;
+    }
+
     const shouldExecute =
       (action.tier === 1 && config.autoExecuteTier1) ||
       (action.tier === 2 && config.autoExecuteTier2);

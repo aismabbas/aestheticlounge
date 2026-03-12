@@ -5,12 +5,12 @@
 [functions]
   external_node_modules = ["@neondatabase/serverless"]
 
-# Increase timeout for AI pipeline routes (Claude API calls need > 10s)
+# Increase timeout for AI pipeline routes (Pro plan: up to 300s)
 [functions."api/al/*"]
-  timeout = 60
+  timeout = 180
 
 [functions."api/dashboard/marketing/*"]
-  timeout = 60
+  timeout = 180
 
 [[headers]]
   for = "/*"

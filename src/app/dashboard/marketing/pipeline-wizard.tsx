@@ -87,7 +87,7 @@ export interface ChatMessage {
 // SSE helper
 // ---------------------------------------------------------------------------
 
-const STREAM_TIMEOUT_MS = 90_000; // 90s client-side timeout
+const STREAM_TIMEOUT_MS = 180_000; // 3 min client-side timeout (Netlify Pro allows up to 300s)
 
 async function streamPipeline(
   body: Record<string, unknown>,

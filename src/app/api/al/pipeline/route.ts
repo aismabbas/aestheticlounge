@@ -857,71 +857,61 @@ Pick a music style that matches the mood.`,
             }
 
             // --- STEP 3: Generate AI Images ---
-            send({ type: 'step', step: 'Generating design...' });
-
-            const designerMem = await loadAgentMemory('designer');
-
-            // For reels with StoryDirector output, use those prompts directly
-            const sdScenes = storyDirectorResult?.scenes as Array<{ image_prompt: string; motion_prompt: string; duration_seconds: number }> | undefined;
-
-            const designResponse = await callClaude({
-              agent: 'designer',
-              userMessage: `Create an image generation prompt for:
-Topic: ${topic}
-Content type: ${ct}
-Headline: ${copy?.headline || topic}
-Character: ${characterName}
-
-${DESIGNER_CONTEXT}
-
-Use the full character description from the CHARACTER BIBLE above.
-${ct === 'carousel' ? 'Rotate backgrounds across slides — each slide should have a different setting.' : ''}
-
-Output ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
-              systemPrompt: buildSystemPrompt(designerMem),
-              temperature: 0.3,
-              maxTokens: 500,
-            });
-            totalInput += designResponse.inputTokens;
-            totalOutput += designResponse.outputTokens;
-
-            const imagePrompt = designResponse.text.replace(/^["']|["']$/g, '').trim();
-
+            // Carousel images are handled in a separate generate_carousel_images call
             const dims = ct === 'reel' ? { w: 1080, h: 1920 } : ct === 'carousel' ? { w: 1080, h: 1080 } : { w: 1080, h: 1350 };
             let aiImages: string[] = [];
 
-            if (ct === 'reel' && sdScenes && sdScenes.length >= 2) {
-              // Reel with StoryDirector — generate one image per scene using SD prompts
-              send({ type: 'step', step: `Generating ${sdScenes.length} reel scenes...` });
-              for (const [idx, scene] of sdScenes.entries()) {
-                try {
-                  const sceneImages = await generateImage({
-                    prompt: scene.image_prompt,
-                    width: dims.w,
-                    height: dims.h,
-                    numImages: 1,
-                  });
-                  aiImages.push(...sceneImages);
-                  send({ type: 'step', step: `Scene ${idx + 1}/${sdScenes.length} done` });
-                } catch (imgErr) {
-                  console.error(`[run_pipeline] Reel scene ${idx + 1} error:`, imgErr);
-                }
-              }
-            } else if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
-              // Carousel images are generated in a separate call to avoid 60s timeout
-              // Skip image gen here — wizard will auto-fire generate_carousel_images
+            if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
+              // Skip designer call + image gen — wizard auto-fires generate_carousel_images
               send({ type: 'step', step: 'Copy ready — images will generate next...' });
             } else {
-              // Single post or reel without StoryDirector — generate 2 options
-              try {
-                aiImages = await generateImage({
-                  prompt: imagePrompt,
-                  width: dims.w,
-                  height: dims.h,
-                  numImages: 2,
+              // Post or reel — need designer prompt + image generation
+              send({ type: 'step', step: 'Generating design...' });
+
+              const designerMem = await loadAgentMemory('designer');
+              const sdScenes = storyDirectorResult?.scenes as Array<{ image_prompt: string; motion_prompt: string; duration_seconds: number }> | undefined;
+
+              if (ct === 'reel' && sdScenes && sdScenes.length >= 2) {
+                // Reel with StoryDirector — generate one image per scene
+                send({ type: 'step', step: `Generating ${sdScenes.length} reel scenes...` });
+                for (const [idx, scene] of sdScenes.entries()) {
+                  try {
+                    const sceneImages = await generateImage({
+                      prompt: scene.image_prompt,
+                      width: dims.w,
+                      height: dims.h,
+                      numImages: 1,
+                    });
+                    aiImages.push(...sceneImages);
+                    send({ type: 'step', step: `Scene ${idx + 1}/${sdScenes.length} done` });
+                  } catch (imgErr) {
+                    console.error(`[run_pipeline] Reel scene ${idx + 1} error:`, imgErr);
+                  }
+                }
+              } else {
+                // Single post or reel without StoryDirector
+                const designResponse = await callClaude({
+                  agent: 'designer',
+                  userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: ${ct}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nUse the full character description from the CHARACTER BIBLE above.\n\nOutput ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
+                  systemPrompt: buildSystemPrompt(designerMem),
+                  temperature: 0.3,
+                  maxTokens: 500,
                 });
-              } catch (imgErr) {
-                console.error('[run_pipeline] Image generation error:', imgErr);
+                totalInput += designResponse.inputTokens;
+                totalOutput += designResponse.outputTokens;
+
+                const imagePrompt = designResponse.text.replace(/^["']|["']$/g, '').trim();
+
+                try {
+                  aiImages = await generateImage({
+                    prompt: imagePrompt,
+                    width: dims.w,
+                    height: dims.h,
+                    numImages: 2,
+                  });
+                } catch (imgErr) {
+                  console.error('[run_pipeline] Image generation error:', imgErr);
+                }
               }
             }
 
@@ -1232,7 +1222,7 @@ Pick a music style that matches the mood.`,
 
             const ciSlidePrompts = parseJSON<string[]>(ciPromptResponse.text);
             const ciPrompts = Array.isArray(ciSlidePrompts) && ciSlidePrompts.length > 0
-              ? ciSlidePrompts.slice(0, 7)
+              ? ciSlidePrompts.slice(0, 5)
               : [`${ciDraft.topic}, ${ciCharName}, luxury clinic, gold and cream, 8K, no text overlay`];
 
             // Step 2: Generate all slides in parallel

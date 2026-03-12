@@ -299,6 +299,24 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
   // ---- Pipeline Runner ----
 
+  // Generate carousel images in a separate call (avoids 60s timeout)
+  const generateCarouselImages = useCallback(async (draftIdForImages: string) => {
+    setState('DESIGN_LOADING');
+    setLoadingStep('Generating carousel slides...');
+
+    await streamPipeline(
+      { action: 'generate_carousel_images', params: { draftId: draftIdForImages } },
+      (step) => setLoadingStep(step),
+      (result) => {
+        setAiImages(result.aiImages || []);
+        setQaResults(result.qaResults || null);
+        setState('COPY_REVIEW');
+      },
+      (err) => { setError(err); setState('COPY_REVIEW'); },
+      newAbortSignal(),
+    );
+  }, [newAbortSignal]);
+
   const selectTopic = useCallback(async (topic: TopicOption) => {
     setSelectedTopic(topic);
     setState('COPY_LOADING');
@@ -311,14 +329,22 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
         setDraftId(result.draftId);
         setCopy(result.copy || {});
         setBrandAssets(result.brandAssets || []);
-        setAiImages(result.aiImages || []);
-        setQaResults(result.qaResults || null);
-        setState('COPY_REVIEW');
+
+        // Carousel: images come from a second call
+        if (topic.content_type === 'carousel' && (!result.aiImages || result.aiImages.length === 0)) {
+          setAiImages([]);
+          setQaResults(null);
+          generateCarouselImages(result.draftId);
+        } else {
+          setAiImages(result.aiImages || []);
+          setQaResults(result.qaResults || null);
+          setState('COPY_REVIEW');
+        }
       },
       (err) => { setError(err); setState('TOPIC_OPTIONS'); },
       newAbortSignal(),
     );
-  }, [newAbortSignal]);
+  }, [newAbortSignal, generateCarouselImages]);
 
   // ---- Approve / Navigate ----
 

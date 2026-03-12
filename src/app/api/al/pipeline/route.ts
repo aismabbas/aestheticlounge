@@ -908,44 +908,9 @@ Output ONLY the enhanced prompt string. Include full character description, Paki
                 }
               }
             } else if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
-              // Generate per-slide prompts via designer agent
-              send({ type: 'step', step: 'Crafting per-slide prompts...' });
-              const slidePromptResponse = await callClaude({
-                agent: 'designer',
-                userMessage: `Generate unique image prompts for each slide of this carousel.\n\nTopic: ${topic}\nHeadline: ${headline}\nCharacter: ${characterName}\n\nSlide descriptions from copywriter:\n${copy.scene_descriptions.map((s: string, i: number) => `Slide ${i + 1}: ${s}`).join('\n')}\n\n${DESIGNER_CONTEXT}\n\nGenerate ${copy.scene_descriptions.length} unique Nano Banana Pro prompts. Each must include full character description from CHARACTER BIBLE, unique background/setting (rotate across scenes), brand aesthetics (gold/cream luxury medical spa), camera/lighting specs, and "No text overlay".\n\nOutput JSON array of strings: ["prompt1", "prompt2", ...]`,
-                systemPrompt: buildSystemPrompt(designerMem),
-                temperature: 0.4,
-                maxTokens: 2048,
-              });
-              totalInput += slidePromptResponse.inputTokens;
-              totalOutput += slidePromptResponse.outputTokens;
-
-              const slidePrompts = parseJSON<string[]>(slidePromptResponse.text);
-              const prompts = Array.isArray(slidePrompts) && slidePrompts.length > 0
-                ? slidePrompts.slice(0, 7)
-                : copy.scene_descriptions.map((s: string, i: number) => `${imagePrompt}\n\nSlide ${i + 1}: ${s}`);
-
-              // Generate all carousel slides in parallel to avoid Netlify timeout
-              send({ type: 'step', step: `Generating ${prompts.length} carousel slides in parallel...` });
-              const slideResults = await Promise.allSettled(
-                prompts.map((prompt: string) =>
-                  generateImage({
-                    prompt: prompt.replace(/^["']|["']$/g, '').trim(),
-                    width: dims.w,
-                    height: dims.h,
-                    numImages: 1,
-                  })
-                )
-              );
-
-              for (const [idx, result] of slideResults.entries()) {
-                if (result.status === 'fulfilled') {
-                  aiImages.push(...result.value);
-                } else {
-                  console.error(`[run_pipeline] Carousel slide ${idx + 1} error:`, result.reason);
-                }
-              }
-              send({ type: 'step', step: `${aiImages.length}/${prompts.length} slides generated` });
+              // Carousel images are generated in a separate call to avoid 60s timeout
+              // Skip image gen here — wizard will auto-fire generate_carousel_images
+              send({ type: 'step', step: 'Copy ready — images will generate next...' });
             } else {
               // Single post or reel without StoryDirector — generate 2 options
               try {
@@ -1235,6 +1200,76 @@ Pick a music style that matches the mood.`,
               draftId: sdDraftId,
               result: sdParsed || { raw: sdResponse.text },
               tokens: { input: sdResponse.inputTokens, output: sdResponse.outputTokens },
+            });
+            break;
+          }
+
+          case 'generate_carousel_images': {
+            const ciDraftId = params?.draftId;
+            if (!ciDraftId) {
+              send({ type: 'result', success: false, error: 'draftId required' });
+              break;
+            }
+
+            const ciDraft = await getDraft(ciDraftId);
+            if (!ciDraft) {
+              send({ type: 'result', success: false, error: 'Draft not found' });
+              break;
+            }
+
+            const ciCharName = ciDraft.model || 'ayesha';
+            const ciDesignerMem = await loadAgentMemory('designer');
+
+            // Step 1: Generate per-slide prompts via designer agent
+            send({ type: 'step', step: 'Crafting per-slide prompts...' });
+            const ciPromptResponse = await callClaude({
+              agent: 'designer',
+              userMessage: `Generate unique image prompts for each slide of this carousel.\n\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\n${DESIGNER_CONTEXT}\n\nGenerate 5 unique Nano Banana Pro prompts, one per slide. Each must include full character description from CHARACTER BIBLE, unique background/setting (rotate across scenes), brand aesthetics (gold/cream luxury medical spa), camera/lighting specs, and "No text overlay".\n\nOutput JSON array of strings: ["prompt1", "prompt2", ...]`,
+              systemPrompt: buildSystemPrompt(ciDesignerMem),
+              temperature: 0.4,
+              maxTokens: 2048,
+            });
+
+            const ciSlidePrompts = parseJSON<string[]>(ciPromptResponse.text);
+            const ciPrompts = Array.isArray(ciSlidePrompts) && ciSlidePrompts.length > 0
+              ? ciSlidePrompts.slice(0, 7)
+              : [`${ciDraft.topic}, ${ciCharName}, luxury clinic, gold and cream, 8K, no text overlay`];
+
+            // Step 2: Generate all slides in parallel
+            send({ type: 'step', step: `Generating ${ciPrompts.length} carousel slides...` });
+            const ciResults = await Promise.allSettled(
+              ciPrompts.map((prompt: string) =>
+                generateImage({
+                  prompt: prompt.replace(/^["']|["']$/g, '').trim(),
+                  width: 1080,
+                  height: 1080,
+                  numImages: 1,
+                })
+              )
+            );
+
+            const ciImages: string[] = [];
+            for (const [idx, result] of ciResults.entries()) {
+              if (result.status === 'fulfilled') {
+                ciImages.push(...result.value);
+              } else {
+                console.error(`[generate_carousel_images] Slide ${idx + 1} error:`, result.reason);
+              }
+            }
+
+            send({ type: 'step', step: `${ciImages.length}/${ciPrompts.length} slides generated` });
+
+            // Run QA
+            const ciQaResults = qaValidate(ciDraft, ciImages);
+
+            send({
+              type: 'result',
+              success: true,
+              action: 'generate_carousel_images',
+              draftId: ciDraftId,
+              aiImages: ciImages,
+              qaResults: ciQaResults,
+              tokens: { input: ciPromptResponse.inputTokens, output: ciPromptResponse.outputTokens },
             });
             break;
           }

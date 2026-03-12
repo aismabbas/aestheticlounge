@@ -27,6 +27,7 @@ interface OptimizerRun {
   actionsExecuted: number;
   actionsFlagged: number;
   monthlySpent: number;
+  syncError?: string | null;
 }
 
 interface Flag {
@@ -250,6 +251,14 @@ export default function OptimizerPanel() {
           </div>
         )}
       </div>
+
+      {/* Sync Error */}
+      {lastRun?.syncError && (
+        <div className="rounded-xl border border-red-200 bg-red-50/50 p-3">
+          <p className="text-xs font-semibold text-red-700">Meta Sync Failed</p>
+          <p className="text-xs text-red-600 mt-1 break-all">{lastRun.syncError}</p>
+        </div>
+      )}
 
       {/* Active Flags */}
       {flags.length > 0 && (

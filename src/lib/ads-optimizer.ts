@@ -467,7 +467,9 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
         entityType: 'ad',
         metaId: ad.metaAdId,
         entityName: ad.adName,
-        reason: `Healthy — CPL $${ad.cpl > 0 ? ad.cpl.toFixed(2) : '—'}, CTR ${ad.avgCtr.toFixed(1)}%, freq ${ad.avgFrequency.toFixed(1)}x, ${ad.daysActive}d active`,
+        reason: ad.daysActive > 0
+          ? `Healthy — CPL $${ad.cpl > 0 ? ad.cpl.toFixed(2) : '—'}, CTR ${ad.avgCtr.toFixed(1)}%, freq ${ad.avgFrequency.toFixed(1)}x, ${ad.daysActive}d active`
+          : `Healthy — ${ad.effectiveStatus}, budget $${(ad.dailyBudgetCents / 100).toFixed(2)}/day, no performance data yet`,
         executed: true,
       });
     } else {
@@ -572,12 +574,12 @@ export async function runOptimizationCycle(triggerSource: string): Promise<Optim
     `UPDATE al_optimizer_runs SET
        completed_at = $1, ads_evaluated = $2, actions_executed = $3,
        actions_flagged = $4, budget_before_cents = $5, budget_after_cents = $6,
-       monthly_spent = $7, report = $8::jsonb
+       monthly_spent = $7, report = $8::jsonb, sync_error = $10
      WHERE id = $9`,
     [
       completedAt, ads.length, actionsExecuted, actionsFlagged,
       budgetBeforeCents, budgetAfterCents, monthlySpent,
-      JSON.stringify(allActions), runId,
+      JSON.stringify(allActions), runId, syncError,
     ],
   );
 
@@ -625,6 +627,7 @@ export async function getOptimizerHistory(limit = 10): Promise<OptimizerRun[]> {
     budgetBeforeCents: parseInt(r.budget_before_cents as string) || 0,
     budgetAfterCents: parseInt(r.budget_after_cents as string) || 0,
     monthlySpent: parseFloat(r.monthly_spent as string) || 0,
+    syncError: (r.sync_error as string) || null,
     report: (typeof r.report === 'string' ? JSON.parse(r.report) : r.report) || [],
   }));
 }

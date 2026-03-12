@@ -166,19 +166,21 @@ pipelineRoute.post('/', async (c) => {
       stream.writeSSE({ data: JSON.stringify({ type: 'ping' }) }).catch(() => {});
     }, 5000);
 
-    const send = (data: Record<string, unknown>) => {
-      stream.writeSSE({ data: JSON.stringify(data) }).catch(() => {});
+    const send = async (data: Record<string, unknown>) => {
+      try {
+        await stream.writeSSE({ data: JSON.stringify(data) });
+      } catch { /* stream closed by client */ }
     };
 
     try {
-      send({ type: 'step', step: 'Loading agent memory' });
+      await send({ type: 'step', step: 'Loading agent memory' });
 
       switch (action) {
         case 'orchestrate': {
           const orchMem = await loadAgentMemory('orchestrator');
           const orchHistory = await loadChatHistory('orchestrator', 2);
 
-          send({ type: 'step', step: 'Picking best topic' });
+          await send({ type: 'step', step: 'Picking best topic' });
 
           const userMsg = topic
             ? `Create a new ${contentType || 'post'} about: ${topic}`
@@ -204,7 +206,7 @@ pipelineRoute.post('/', async (c) => {
           const chosenTopic = orchParsed?.topic || topic || 'Instagram content';
           const chosenType = orchParsed?.content_type || contentType || 'post';
 
-          send({ type: 'step', step: `Researching: ${chosenTopic.slice(0, 60)}` });
+          await send({ type: 'step', step: `Researching: ${chosenTopic.slice(0, 60)}` });
 
           const resMem = await loadAgentMemory('researcher');
           const resResponse = await callClaude({
@@ -222,7 +224,7 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
           const resParsed = parseJSON(resResponse.text);
           await logDecision('researcher', 'research', `Researched: ${chosenTopic}`, JSON.stringify(resParsed));
 
-          send({ type: 'step', step: 'Writing copy' });
+          await send({ type: 'step', step: 'Writing copy' });
 
           const orchCharacter = (resParsed as Record<string, unknown>)?.recommended_character as string || '';
           const copyMem = await loadAgentMemory('copywriter');
@@ -249,7 +251,7 @@ Output JSON:
             temperature: 0.5,
           });
 
-          send({ type: 'step', step: 'Creating draft' });
+          await send({ type: 'step', step: 'Creating draft' });
 
           const copyParsed = parseJSON<{
             headline?: string;
@@ -275,7 +277,7 @@ Output JSON:
 
           await logDecision('copywriter', 'write_content', `Draft created: ${chosenTopic}`, draftId);
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'orchestrate',
@@ -298,14 +300,14 @@ Output JSON:
 
         case 'research': {
           if (!topic) {
-            send({ type: 'result', success: false, error: 'topic required for research' });
+            await send({ type: 'result', success: false, error: 'topic required for research' });
             break;
           }
 
           const mem = await loadAgentMemory('researcher');
           const history = await loadChatHistory('researcher', 2);
 
-          send({ type: 'step', step: 'Researching topic' });
+          await send({ type: 'step', step: 'Researching topic' });
 
           const response = await callClaude({
             agent: 'researcher',
@@ -320,12 +322,12 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
             maxTokens: 4096,
           });
 
-          send({ type: 'step', step: 'Saving research' });
+          await send({ type: 'step', step: 'Saving research' });
 
           const parsed = parseJSON(response.text);
           await logDecision('researcher', 'research', `Researched: ${topic}`, JSON.stringify(parsed));
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'research',
@@ -338,7 +340,7 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
 
         case 'write_content': {
           if (!topic) {
-            send({ type: 'result', success: false, error: 'topic required' });
+            await send({ type: 'result', success: false, error: 'topic required' });
             break;
           }
 
@@ -346,7 +348,7 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
           const history = await loadChatHistory('copywriter', 2);
           const ct = contentType || 'post';
 
-          send({ type: 'step', step: 'Writing copy' });
+          await send({ type: 'step', step: 'Writing copy' });
 
           const researchContext = params?.research ? `\n\nRESEARCH CONTEXT:\n${JSON.stringify(params.research)}` : '';
           const wcCharacter = (params?.character as string) || '';
@@ -372,7 +374,7 @@ Output JSON:
             temperature: 0.5,
           });
 
-          send({ type: 'step', step: 'Creating draft' });
+          await send({ type: 'step', step: 'Creating draft' });
 
           const parsed = parseJSON<{
             headline?: string;
@@ -405,7 +407,7 @@ Output JSON:
 
           await logDecision('copywriter', 'write_content', `Draft created: ${topic}`, draftId);
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'write_content',
@@ -419,20 +421,20 @@ Output JSON:
         case 'design': {
           const draftId = params?.draftId;
           if (!draftId && !topic) {
-            send({ type: 'result', success: false, error: 'draftId or topic required' });
+            await send({ type: 'result', success: false, error: 'draftId or topic required' });
             break;
           }
 
           const mem = await loadAgentMemory('designer');
           const history = await loadChatHistory('designer', 2);
 
-          send({ type: 'step', step: 'Preparing design brief' });
+          await send({ type: 'step', step: 'Preparing design brief' });
 
           let designBrief = '';
           if (draftId) {
             const draft = await getDraft(draftId);
             if (!draft) {
-              send({ type: 'result', success: false, error: 'Draft not found' });
+              await send({ type: 'result', success: false, error: 'Draft not found' });
               break;
             }
             designBrief = `DRAFT DETAILS:\n- Topic: ${draft.topic}\n- Content Type: ${draft.contentType}\n- Headline: ${draft.headline}\n- Caption: ${draft.caption?.slice(0, 300)}\n- Suggested Model: ${draft.model}\n- Voiceover: ${draft.voiceoverText || 'N/A'}`;
@@ -440,7 +442,7 @@ Output JSON:
             designBrief = `Create design for: ${topic}\nContent type: ${contentType || 'post'}`;
           }
 
-          send({ type: 'step', step: 'Generating design' });
+          await send({ type: 'step', step: 'Generating design' });
 
           const response = await callClaude({
             agent: 'designer',
@@ -478,7 +480,7 @@ Output JSON:
 
           await logDecision('designer', 'design', `Designed: ${topic || draftId}`, JSON.stringify(parsed));
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'design',
@@ -493,7 +495,7 @@ Output JSON:
           const mem = await loadAgentMemory('analyst');
           const history = await loadChatHistory('analyst', 2);
 
-          send({ type: 'step', step: 'Analyzing performance' });
+          await send({ type: 'step', step: 'Analyzing performance' });
 
           const response = await callClaude({
             agent: 'analyst',
@@ -513,12 +515,12 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
             temperature: 0.2,
           });
 
-          send({ type: 'step', step: 'Saving analysis' });
+          await send({ type: 'step', step: 'Saving analysis' });
 
           const parsed = parseJSON(response.text);
           await logDecision('analyst', 'analyze', 'Performance analysis', JSON.stringify(parsed));
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'analyze',
@@ -529,7 +531,7 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
         }
 
         case 'research_topics': {
-          send({ type: 'step', step: 'Researching trending topics...' });
+          await send({ type: 'step', step: 'Researching trending topics...' });
 
           const orchMem = await loadAgentMemory('orchestrator');
           const resMem = await loadAgentMemory('researcher');
@@ -540,7 +542,7 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
             ? `\n== DO NOT REPEAT THESE RECENT TOPICS ==\n${pastTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}\nSuggest FRESH topics that are different from all of the above.\n`
             : '';
 
-          send({ type: 'step', step: 'Analyzing seasonal data...' });
+          await send({ type: 'step', step: 'Analyzing seasonal data...' });
 
           const orchResponse = await callClaude({
             agent: 'orchestrator',
@@ -575,7 +577,7 @@ Output JSON with 4-5 topic suggestions:
             maxTokens: 2048,
           });
 
-          send({ type: 'step', step: 'Picking best topics...' });
+          await send({ type: 'step', step: 'Picking best topics...' });
 
           const orchParsed = parseJSON<{
             topics: Array<{
@@ -599,7 +601,7 @@ Output JSON with 4-5 topic suggestions:
             });
             const enriched = parseJSON<{ topics: typeof topics }>(resResponse.text);
             if (enriched?.topics) {
-              send({
+              await send({
                 type: 'result',
                 success: true,
                 action: 'research_topics',
@@ -613,7 +615,7 @@ Output JSON with 4-5 topic suggestions:
             }
           }
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'research_topics',
@@ -626,11 +628,11 @@ Output JSON with 4-5 topic suggestions:
         case 'chat_research': {
           const message = params?.message || topic;
           if (!message) {
-            send({ type: 'result', success: false, error: 'message required for chat research' });
+            await send({ type: 'result', success: false, error: 'message required for chat research' });
             break;
           }
 
-          send({ type: 'step', step: 'Researching your topic...' });
+          await send({ type: 'step', step: 'Researching your topic...' });
 
           const resMem = await loadAgentMemory('researcher');
           const chatHistory = await loadChatHistory('researcher', 4);
@@ -686,7 +688,7 @@ Output JSON (no markdown wrapping):
             } catch { /* use as-is */ }
           }
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'chat_research',
@@ -699,7 +701,7 @@ Output JSON (no markdown wrapping):
 
         case 'run_pipeline': {
           if (!topic) {
-            send({ type: 'result', success: false, error: 'topic required' });
+            await send({ type: 'result', success: false, error: 'topic required' });
             break;
           }
 
@@ -708,7 +710,7 @@ Output JSON (no markdown wrapping):
           let totalOutput = 0;
 
           // --- STEP 1: Write Copy ---
-          send({ type: 'step', step: 'Writing copy...' });
+          await send({ type: 'step', step: 'Writing copy...' });
 
           const copyMem = await loadAgentMemory('copywriter');
           const resMem = await loadAgentMemory('researcher');
@@ -781,7 +783,7 @@ Output JSON:
           });
 
           // --- STEP 2: Search Brand Assets ---
-          send({ type: 'step', step: 'Searching brand assets...' });
+          await send({ type: 'step', step: 'Searching brand assets...' });
 
           const characterName = copy?.suggested_character || 'ayesha';
           let brandAssets: Array<{ id: string; name: string; thumbnailUrl: string }> = [];
@@ -803,7 +805,7 @@ Output JSON:
           // --- STEP 2.5: StoryDirector (reels only) ---
           let storyDirectorResult: Record<string, unknown> | null = null;
           if (ct === 'reel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
-            send({ type: 'step', step: 'Story directing reel scenes...' });
+            await send({ type: 'step', step: 'Story directing reel scenes...' });
 
             const sdResponse = await callClaude({
               agent: 'designer',
@@ -839,15 +841,15 @@ Pick a music style that matches the mood.`,
           let aiImages: string[] = [];
 
           if (ct === 'carousel' && copy?.scene_descriptions && copy.scene_descriptions.length >= 2) {
-            send({ type: 'step', step: 'Copy ready — images will generate next...' });
+            await send({ type: 'step', step: 'Copy ready — images will generate next...' });
           } else {
-            send({ type: 'step', step: 'Generating design...' });
+            await send({ type: 'step', step: 'Generating design...' });
 
             const designerMem = await loadAgentMemory('designer');
             const sdScenes = storyDirectorResult?.scenes as Array<{ image_prompt: string; motion_prompt: string; duration_seconds: number }> | undefined;
 
             if (ct === 'reel' && sdScenes && sdScenes.length >= 2) {
-              send({ type: 'step', step: `Generating ${sdScenes.length} reel scenes...` });
+              await send({ type: 'step', step: `Generating ${sdScenes.length} reel scenes...` });
               for (const [idx, scene] of sdScenes.entries()) {
                 try {
                   const sceneImages = await generateImage({
@@ -857,7 +859,7 @@ Pick a music style that matches the mood.`,
                     numImages: 1,
                   });
                   aiImages.push(...sceneImages);
-                  send({ type: 'step', step: `Scene ${idx + 1}/${sdScenes.length} done` });
+                  await send({ type: 'step', step: `Scene ${idx + 1}/${sdScenes.length} done` });
                 } catch (imgErr) {
                   console.error(`[run_pipeline] Reel scene ${idx + 1} error:`, imgErr);
                 }
@@ -888,7 +890,7 @@ Pick a music style that matches the mood.`,
               }
 
               if (aiImages.length > 0 && designParsed?.template && designParsed?.template_params) {
-                send({ type: 'step', step: 'Applying text overlay...' });
+                await send({ type: 'step', step: 'Applying text overlay...' });
                 try {
                   const overlayedUrl = await renderOverlayAndUpload({
                     template: designParsed.template as OverlayTemplate,
@@ -929,16 +931,16 @@ Pick a music style that matches the mood.`,
           }
 
           // --- STEP 4: QA Check ---
-          send({ type: 'step', step: 'Running quality check...' });
+          await send({ type: 'step', step: 'Running quality check...' });
 
           const draft = await getDraft(draftId);
           if (!draft) {
-            send({ type: 'error', error: 'Draft not found after save' });
+            await send({ type: 'error', error: 'Draft not found after save' });
             break;
           }
           const qaResults = qaValidate(draft, aiImages);
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'run_pipeline',
@@ -963,17 +965,17 @@ Pick a music style that matches the mood.`,
           const context = params?.context || 'copy';
 
           if (!draftId2) {
-            send({ type: 'result', success: false, error: 'draftId required' });
+            await send({ type: 'result', success: false, error: 'draftId required' });
             break;
           }
 
           const draft = await getDraft(draftId2);
           if (!draft) {
-            send({ type: 'result', success: false, error: 'Draft not found' });
+            await send({ type: 'result', success: false, error: 'Draft not found' });
             break;
           }
 
-          send({ type: 'step', step: 'Analyzing draft for revision...' });
+          await send({ type: 'step', step: 'Analyzing draft for revision...' });
 
           const agentName = context === 'design' ? 'designer' : 'copywriter';
           const mem = await loadAgentMemory(agentName);
@@ -1008,7 +1010,7 @@ Output JSON:
             parsed = { questions: parsed as unknown as typeof parsed.questions };
           }
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'revise_ask',
@@ -1024,18 +1026,18 @@ Output JSON:
           const context2 = params?.context || 'copy';
 
           if (!draftId3 || !answers) {
-            send({ type: 'result', success: false, error: 'draftId and answers required' });
+            await send({ type: 'result', success: false, error: 'draftId and answers required' });
             break;
           }
 
           const draft = await getDraft(draftId3);
           if (!draft) {
-            send({ type: 'result', success: false, error: 'Draft not found' });
+            await send({ type: 'result', success: false, error: 'Draft not found' });
             break;
           }
 
           if (context2 === 'copy') {
-            send({ type: 'step', step: 'Revising copy...' });
+            await send({ type: 'step', step: 'Revising copy...' });
 
             const mem = await loadAgentMemory('copywriter');
             const response = await callClaude({
@@ -1085,7 +1087,7 @@ Write revised copy. Keep the same format. Output JSON:
               });
             }
 
-            send({
+            await send({
               type: 'result',
               success: true,
               action: 'revise_apply',
@@ -1100,7 +1102,7 @@ Write revised copy. Keep the same format. Output JSON:
               tokens: { input: response.inputTokens, output: response.outputTokens },
             });
           } else {
-            send({ type: 'step', step: 'Regenerating design...' });
+            await send({ type: 'step', step: 'Regenerating design...' });
 
             const mem = await loadAgentMemory('designer');
             const response = await callClaude({
@@ -1135,7 +1137,7 @@ Output ONLY the enhanced image generation prompt string.`,
               console.error('[revise_apply] Image gen error:', imgErr);
             }
 
-            send({
+            await send({
               type: 'result',
               success: true,
               action: 'revise_apply',
@@ -1151,17 +1153,17 @@ Output ONLY the enhanced image generation prompt string.`,
         case 'story_direct': {
           const sdDraftId = params?.draftId;
           if (!sdDraftId) {
-            send({ type: 'result', success: false, error: 'draftId required for story_direct' });
+            await send({ type: 'result', success: false, error: 'draftId required for story_direct' });
             break;
           }
 
           const sdDraft = await getDraft(sdDraftId);
           if (!sdDraft) {
-            send({ type: 'result', success: false, error: 'Draft not found' });
+            await send({ type: 'result', success: false, error: 'Draft not found' });
             break;
           }
 
-          send({ type: 'step', step: 'Story directing reel scenes...' });
+          await send({ type: 'step', step: 'Story directing reel scenes...' });
 
           const sdCharName = sdDraft.model || 'ayesha';
           const sdResponse = await callClaude({
@@ -1191,7 +1193,7 @@ Pick a music style that matches the mood.`,
           const sdParsed = parseJSON(sdResponse.text);
           await logDecision('designer', 'story_direct', `StoryDirector: ${sdDraft.topic}`, JSON.stringify(sdParsed));
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'story_direct',
@@ -1205,20 +1207,20 @@ Pick a music style that matches the mood.`,
         case 'generate_carousel_images': {
           const ciDraftId = params?.draftId;
           if (!ciDraftId) {
-            send({ type: 'result', success: false, error: 'draftId required' });
+            await send({ type: 'result', success: false, error: 'draftId required' });
             break;
           }
 
           const ciDraft = await getDraft(ciDraftId);
           if (!ciDraft) {
-            send({ type: 'result', success: false, error: 'Draft not found' });
+            await send({ type: 'result', success: false, error: 'Draft not found' });
             break;
           }
 
           const ciCharName = ciDraft.model || 'ayesha';
           const ciDesignerMem = await loadAgentMemory('designer');
 
-          send({ type: 'step', step: 'Crafting per-slide design...' });
+          await send({ type: 'step', step: 'Crafting per-slide design...' });
           const ciPromptResponse = await callClaude({
             agent: 'designer',
             userMessage: `Design a branded carousel for:\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\n${DESIGNER_CONTEXT}\n\nGenerate a JSON object with "slides" array (5 slides). Each slide needs:\n- "image_prompt": Nano Banana Pro prompt for BACKGROUND photo (full character description, unique setting, no text)\n- "template": "carousel_hook" for slide 1, "carousel_info" for middle slides, "carousel_cta" for last slide\n- "template_params": text overlay params:\n  - carousel_hook: { category, headline, headline-highlight }\n  - carousel_info: { headline, body, big-number, big-label, slide-number, slide-total }\n  - carousel_cta: { headline, cta, subtitle }\n\nSlide 1 = Hook (bold question/fact). Slides 2-4 = Educational info with stats. Slide 5 = CTA "Book a Consultation".\n\nOutput ONLY valid JSON: { "slides": [ { "image_prompt": "...", "template": "...", "template_params": { ... } }, ... ] }`,
@@ -1234,7 +1236,7 @@ Pick a music style that matches the mood.`,
             ? ciSlides.map(s => s.image_prompt)
             : Array(5).fill(`${ciDraft.topic}, ${ciCharName}, luxury clinic, gold and cream, 8K, no text overlay`);
 
-          send({ type: 'step', step: `Generating ${ciPrompts.length} carousel backgrounds...` });
+          await send({ type: 'step', step: `Generating ${ciPrompts.length} carousel backgrounds...` });
           const ciResults = await Promise.allSettled(
             ciPrompts.map((prompt: string) =>
               generateImage({
@@ -1256,11 +1258,11 @@ Pick a music style that matches the mood.`,
             }
           }
 
-          send({ type: 'step', step: `${ciRawImages.filter(Boolean).length}/${ciPrompts.length} backgrounds ready` });
+          await send({ type: 'step', step: `${ciRawImages.filter(Boolean).length}/${ciPrompts.length} backgrounds ready` });
 
           const ciImages: string[] = [];
           if (ciSlides.length > 0) {
-            send({ type: 'step', step: 'Applying text overlays...' });
+            await send({ type: 'step', step: 'Applying text overlays...' });
             const overlayResults = await Promise.allSettled(
               ciSlides.map(async (slide, idx) => {
                 const bgUrl = ciRawImages[idx];
@@ -1293,11 +1295,11 @@ Pick a music style that matches the mood.`,
             ciImages.push(...ciRawImages.filter(Boolean));
           }
 
-          send({ type: 'step', step: `${ciImages.length} slides with overlays ready` });
+          await send({ type: 'step', step: `${ciImages.length} slides with overlays ready` });
 
           const ciQaResults = qaValidate(ciDraft, ciImages);
 
-          send({
+          await send({
             type: 'result',
             success: true,
             action: 'generate_carousel_images',
@@ -1310,13 +1312,13 @@ Pick a music style that matches the mood.`,
         }
 
         default:
-          send({ type: 'result', success: false, error: `Unknown action: ${action}` });
+          await send({ type: 'result', success: false, error: `Unknown action: ${action}` });
       }
     } catch (err) {
       console.error(`[pipeline] ${action} error:`, err);
       const message = err instanceof Error ? err.message : 'Pipeline error';
       await logDecision('orchestrator', action, `ERROR: ${message}`).catch(() => {});
-      send({ type: 'result', success: false, error: message });
+      await send({ type: 'result', success: false, error: message });
     } finally {
       clearInterval(keepalive);
     }

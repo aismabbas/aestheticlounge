@@ -4,8 +4,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
-const WORKER_URL = process.env.WORKER_URL;
-const WORKER_SECRET = process.env.WORKER_SECRET;
+const WORKER_URL = process.env.W_URL;
+const WORKER_SECRET = process.env.W_SEC;
 
 async function proxyToWorker(req: NextRequest, method: string, path: string, body?: string) {
   if (!WORKER_URL || !WORKER_SECRET) {

@@ -51,6 +51,81 @@ export function WizardStepIndicator({ currentStep }: { currentStep: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// Topic Prompt — optional treatment/topic hint before auto-create
+// ---------------------------------------------------------------------------
+
+const QUICK_TREATMENTS = [
+  'Dermal Fillers', 'Botox', 'Laser Hair Removal', 'HydraFacial',
+  'Chemical Peels', 'Hair PRP', 'Skin Booster', 'HIFU', 'IV Drips',
+  'Medicated Facials', 'Microneedling', 'Acne Treatment',
+];
+
+export function TopicPromptView({
+  onSubmit,
+  onSkip,
+}: {
+  onSubmit: (hint: string) => void;
+  onSkip: () => void;
+}) {
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="flex flex-col items-center py-8 gap-6 max-w-lg mx-auto">
+      <div className="text-center">
+        <h3 className="font-serif text-xl font-semibold text-text-dark">What should we create?</h3>
+        <p className="text-sm text-text-muted mt-1.5">
+          Tell us a treatment or topic, or let AI pick what&apos;s trending.
+        </p>
+      </div>
+
+      <div className="w-full">
+        <div className="relative">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && value.trim()) onSubmit(value.trim()); }}
+            placeholder="e.g. Dermal Fillers, summer skincare tips, Botox myths..."
+            className="w-full rounded-xl border-2 border-border focus:border-gold px-4 py-3.5 text-sm text-text-dark placeholder:text-text-muted/50 outline-none transition-colors"
+            autoFocus
+          />
+          {value.trim() && (
+            <button
+              onClick={() => onSubmit(value.trim())}
+              className="absolute right-2 top-1/2 -translate-y-1/2 gold-shimmer-bg px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:-translate-y-[calc(50%+1px)]"
+            >
+              Research This
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="w-full">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-text-muted mb-2">Quick picks</p>
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_TREATMENTS.map((t) => (
+            <button
+              key={t}
+              onClick={() => onSubmit(t)}
+              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-text-light hover:border-gold hover:text-gold hover:bg-gold/5 transition-colors"
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={onSkip}
+        className="text-xs font-medium text-text-muted hover:text-gold transition-colors mt-2"
+      >
+        Skip — let AI pick what&apos;s trending
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Topic Loading
 // ---------------------------------------------------------------------------
 

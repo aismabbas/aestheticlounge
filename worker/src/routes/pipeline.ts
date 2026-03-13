@@ -472,7 +472,9 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
         }
 
         case 'research_topics': {
-          await send({ type: 'step', step: 'Scanning web trends & competitor ads...' });
+          const treatmentHint = params?.treatment as string | undefined;
+          const hintLabel = treatmentHint ? `"${treatmentHint}"` : 'trends';
+          await send({ type: 'step', step: `Scanning web ${hintLabel} & competitor ads...` });
 
           const orchMem = await loadAgentMemory('orchestrator');
           const resMem = await loadAgentMemory('researcher');
@@ -483,22 +485,36 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
             ? `\n== DO NOT REPEAT THESE RECENT TOPICS ==\n${pastTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}\nSuggest FRESH topics that are different from all of the above.\n`
             : '';
 
-          // Gather real-world data for topic discovery
-          const [trendData, competitorData, seasonalData] = await Promise.all([
-            gatherResearch('medical aesthetics trending Pakistan'),
-            gatherResearch('beauty clinic Lahore skincare treatment'),
-            gatherResearch('aesthetic treatment seasonal trends summer Pakistan'),
-          ]);
+          // Gather real-world data — focus queries on treatment if specified
+          const queries = treatmentHint
+            ? [
+                `${treatmentHint} aesthetic treatment benefits results Pakistan`,
+                `${treatmentHint} before after clinic Lahore skincare`,
+                `${treatmentHint} myths facts trending social media aesthetics`,
+              ]
+            : [
+                'medical aesthetics trending Pakistan',
+                'beauty clinic Lahore skincare treatment',
+                'aesthetic treatment seasonal trends summer Pakistan',
+              ];
+
+          const [trendData, competitorData, seasonalData] = await Promise.all(
+            queries.map(q => gatherResearch(q)),
+          );
           const trendResearch = formatResearchForPrompt(trendData);
           const competitorResearch = formatResearchForPrompt(competitorData);
 
           await send({ type: 'step', step: `Found ${trendData.webResults.length + competitorData.webResults.length} web results, ${trendData.competitorAds.length + competitorData.competitorAds.length} competitor ads — Opus analyzing...` });
 
+          const treatmentFocus = treatmentHint
+            ? `\n== TREATMENT FOCUS ==\nThe user specifically wants content about: "${treatmentHint}"\nAll 4-5 topic suggestions MUST be about "${treatmentHint}" — different angles, myths, benefits, patient stories, seasonal relevance, etc.\n`
+            : '';
+
           const orchResponse = await callClaude({
             agent: 'orchestrator',
             model: OPUS_MODEL,
             userMessage: `Today is ${new Date().toISOString().split('T')[0]}. Using REAL market data gathered moments ago, identify the most high-impact content topics.
-${pastTopicsBlock}
+${treatmentFocus}${pastTopicsBlock}
 == LIVE MARKET INTELLIGENCE ==
 ${trendResearch}
 

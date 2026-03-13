@@ -25,7 +25,7 @@ export default function Hero() {
 
           <div className="mb-14 flex flex-wrap items-center gap-6">
             <a
-              href="#book"
+              href="/book"
               className="rounded-md bg-text-dark px-10 py-4 text-sm font-semibold tracking-[0.03em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:bg-gold-dark hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
             >
               Book Free Consultation

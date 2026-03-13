@@ -7,7 +7,7 @@ const quickLinks = [
   { href: "/#services", label: "Services" },
   { href: "/#doctors", label: "Our Doctors" },
   { href: "/#about", label: "About Us" },
-  { href: "/#book", label: "Book Appointment" },
+  { href: "/book", label: "Book Appointment" },
   { href: "/feedback", label: "Feedback" },
   { href: "/feedback/complaint", label: "Complaint Box" },
   { href: "/price-guide", label: "Price Guide" },

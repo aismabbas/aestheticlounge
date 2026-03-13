@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   WizardStepIndicator,
+  TopicPromptView,
   TopicLoadingView,
   TopicOptionsView,
   ChatResearchView,
@@ -20,6 +21,7 @@ import {
 
 export type WizardState =
   | 'IDLE'
+  | 'TOPIC_PROMPT'
   | 'TOPIC_LOADING'
   | 'TOPIC_OPTIONS'
   | 'CHAT_OPEN'
@@ -238,7 +240,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
   // Track which wizard step we're on (for the indicator)
   const currentStep = (() => {
-    if (['IDLE', 'TOPIC_LOADING', 'TOPIC_OPTIONS', 'CHAT_OPEN', 'CHAT_RESEARCHING'].includes(state)) return 0;
+    if (['IDLE', 'TOPIC_PROMPT', 'TOPIC_LOADING', 'TOPIC_OPTIONS', 'CHAT_OPEN', 'CHAT_RESEARCHING'].includes(state)) return 0;
     if (['COPY_LOADING', 'COPY_REVIEW', 'REVISE_COPY'].includes(state)) return 1;
     if (['DESIGN_LOADING', 'DESIGN_REVIEW', 'REVISE_DESIGN'].includes(state)) return 2;
     if (['QA_LOADING', 'QA_RESULTS'].includes(state)) return 3;
@@ -266,18 +268,21 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
   // ---- Entry Points ----
 
-  const startAutoCreate = useCallback(async () => {
+  const startAutoCreate = useCallback(async (treatmentHint?: string) => {
     setState('TOPIC_LOADING');
     setError(null);
 
+    const body: Record<string, unknown> = { action: 'research_topics' };
+    if (treatmentHint) body.params = { treatment: treatmentHint };
+
     await streamPipeline(
-      { action: 'research_topics' },
+      body,
       (step) => setLoadingStep(step),
       (result) => {
         setTopics(result.topics || []);
         setState('TOPIC_OPTIONS');
       },
-      (err) => { setError(err); setState('IDLE'); },
+      (err) => { setError(err); setState('TOPIC_PROMPT'); },
       newAbortSignal(),
     );
   }, [newAbortSignal]);
@@ -480,15 +485,13 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
   const handleOpen = useCallback(() => {
     reset();
-    if (entryPoint === 'auto') startAutoCreate();
+    if (entryPoint === 'auto') setState('TOPIC_PROMPT');
     else startChatResearch();
-  }, [entryPoint, reset, startAutoCreate, startChatResearch]);
+  }, [entryPoint, reset, startChatResearch]);
 
   // Auto-start when opened (useEffect to avoid state update during render)
   useEffect(() => {
-    if (open && state === 'IDLE') {
-      handleOpen();
-    }
+    if (open && state === 'IDLE') handleOpen();
   }, [open, state, handleOpen]);
 
   if (!open) return null;
@@ -544,6 +547,14 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
+          {/* TOPIC_PROMPT */}
+          {state === 'TOPIC_PROMPT' && (
+            <TopicPromptView
+              onSubmit={(hint) => startAutoCreate(hint || undefined)}
+              onSkip={() => startAutoCreate()}
+            />
+          )}
+
           {/* TOPIC_LOADING */}
           {state === 'TOPIC_LOADING' && (
             <TopicLoadingView step={loadingStep} onCancel={handleClose} />
@@ -638,7 +649,7 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
               result={publishResult}
               onCreateAnother={() => {
                 reset();
-                if (entryPoint === 'auto') startAutoCreate();
+                if (entryPoint === 'auto') setState('TOPIC_PROMPT');
                 else startChatResearch();
               }}
               onDone={() => {

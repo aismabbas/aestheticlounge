@@ -71,7 +71,7 @@ export default function Header() {
 
         {/* Book CTA */}
         <a
-          href="/#book"
+          href="/book"
           className="gold-shimmer-bg relative hidden overflow-hidden rounded-md px-7 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-all duration-400 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(184,146,74,0.15)] md:inline-block"
         >
           Book a Visit
@@ -126,7 +126,7 @@ export default function Header() {
             )
           )}
           <a
-            href="/#book"
+            href="/book"
             className="gold-shimmer-bg mt-2 inline-block rounded-md px-7 py-3 text-center text-[13px] font-semibold uppercase tracking-[0.04em] text-white"
             onClick={() => setMobileOpen(false)}
           >

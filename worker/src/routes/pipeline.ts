@@ -602,11 +602,29 @@ Output JSON with 4-5 topic suggestions:
 
           await send({ type: 'step', step: 'Searching web & competitor ads...' });
 
-          const resMem = await loadAgentMemory('researcher');
-          const chatHistory = await loadChatHistory('researcher', 4);
-
-          const chatResearch = await gatherResearch(String(message));
+          // Load ALL agent memories so campaign planner chat has full project context
+          const [resMem, orchMem, copyMem, designMem, pubMem, analystMem, chatHistory, chatResearch] = await Promise.all([
+            loadAgentMemory('researcher'),
+            loadAgentMemory('orchestrator'),
+            loadAgentMemory('copywriter'),
+            loadAgentMemory('designer'),
+            loadAgentMemory('publisher'),
+            loadAgentMemory('analyst'),
+            loadChatHistory('researcher', 4),
+            gatherResearch(String(message)),
+          ]);
           const chatResearchBlock = formatResearchForPrompt(chatResearch);
+
+          // Build combined system prompt with all agent knowledge
+          const agentContextBlocks = [
+            { label: 'ORCHESTRATOR', mem: orchMem },
+            { label: 'COPYWRITER', mem: copyMem },
+            { label: 'DESIGNER', mem: designMem },
+            { label: 'PUBLISHER', mem: pubMem },
+            { label: 'ANALYST', mem: analystMem },
+          ].map(({ label, mem }) => `## ${label} CONTEXT\n${mem.instructions}`).join('\n\n');
+
+          const combinedSystemPrompt = `${buildSystemPrompt(resMem)}\n\n${agentContextBlocks}`;
 
           await send({ type: 'step', step: `Analyzing with Opus (${chatResearch.webResults.length} web results, ${chatResearch.competitorAds.length} ads)...` });
 
@@ -619,6 +637,8 @@ Today's date: ${new Date().toISOString().split('T')[0]}
 == LIVE RESEARCH DATA ==
 ${chatResearchBlock}
 
+You already know our full treatment menu, characters, CPL data, competitors, and seasonal calendar from your system prompt.
+Do NOT ask the user basic questions about the clinic — use your knowledge.
 Using the real research data above, suggest 3-5 specific content ideas backed by actual market intelligence.
 Cross-reference with treatment performance data, seasonal calendar, and content categories.
 
@@ -639,7 +659,7 @@ Output JSON (no markdown wrapping):
     }
   ]
 }`,
-            systemPrompt: buildSystemPrompt(resMem),
+            systemPrompt: combinedSystemPrompt,
             chatHistory,
             temperature: 0.4,
             maxTokens: 4096,

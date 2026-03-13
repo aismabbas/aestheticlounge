@@ -826,10 +826,16 @@ export function PublishedView({
   result,
   onCreateAnother,
   onDone,
+  onSaveMemory,
+  memorySaved,
+  memorySaving,
 }: {
   result: Record<string, unknown> | null;
   onCreateAnother: () => void;
   onDone: () => void;
+  onSaveMemory?: () => void;
+  memorySaved?: boolean;
+  memorySaving?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-6">
@@ -862,6 +868,26 @@ export function PublishedView({
           {(result as any).facebookError && (
             <p className="mt-1 text-amber-600">Facebook: {String((result as Record<string, string>).facebookError)}</p>
           )}
+        </div>
+      )}
+
+      {/* Save to memory */}
+      {onSaveMemory && !memorySaved && (
+        <div className="bg-blue-50 rounded-xl px-5 py-4 border border-blue-200 max-w-sm text-center">
+          <p className="text-sm font-medium text-blue-900 mb-1">Save learnings to memory?</p>
+          <p className="text-xs text-blue-700 mb-3">AI will analyze this session and update each agent&apos;s memory with new insights.</p>
+          <button
+            onClick={onSaveMemory}
+            disabled={memorySaving}
+            className="px-5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {memorySaving ? 'Saving...' : 'Save to Memory'}
+          </button>
+        </div>
+      )}
+      {memorySaved && (
+        <div className="bg-green-50 rounded-xl px-5 py-3 border border-green-200 max-w-sm text-center">
+          <p className="text-xs font-medium text-green-700">Learnings saved to all agent memories</p>
         </div>
       )}
 

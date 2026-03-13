@@ -7,10 +7,12 @@ import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import {
   loadAgentMemory,
+  saveAgentMemory,
   buildSystemPrompt,
   callClaude,
   loadChatHistory,
   parseJSON,
+  type AgentName,
 } from '../lib/claude.js';
 import {
   logDecision,
@@ -1323,6 +1325,113 @@ Pick a music style that matches the mood.`,
             qaResults: ciQaResults,
             tokens: { input: ciPromptResponse.inputTokens, output: ciPromptResponse.outputTokens },
           });
+          break;
+        }
+
+        case 'save_to_memory': {
+          await send({ type: 'step', step: 'Analyzing session for learnings...' });
+
+          // Load all current agent memories
+          const allAgents: AgentName[] = ['orchestrator', 'researcher', 'copywriter', 'designer', 'publisher', 'analyst'];
+          const allMems = await Promise.all(allAgents.map(a => loadAgentMemory(a)));
+          const currentMemories: Record<string, unknown> = {};
+          for (let i = 0; i < allAgents.length; i++) {
+            currentMemories[allAgents[i]] = allMems[i].memory;
+          }
+
+          // Build session summary from params
+          const sessionTopic = params?.topic as Record<string, unknown> | undefined;
+          const sessionCopy = params?.copy as Record<string, unknown> | undefined;
+          const sessionChat = (params?.chatMessages as Array<{ role: string; content: string }>) || [];
+          const sessionDraftId = params?.draftId as string | undefined;
+
+          // Load the draft if available for full context
+          let draftSummary = '';
+          if (sessionDraftId) {
+            const draft = await getDraft(sessionDraftId);
+            if (draft) {
+              draftSummary = `\nDraft: topic="${draft.topic}", type="${draft.contentType}", model="${draft.model || ''}", stage="${draft.stage}"`;
+              if (draft.headline) draftSummary += `, headline="${draft.headline}"`;
+            }
+          }
+
+          const chatSummary = sessionChat.length > 0
+            ? `\n\nConversation (${sessionChat.length} messages):\n${sessionChat.map(m => `${m.role}: ${m.content}`).join('\n')}`
+            : '';
+
+          const memResponse = await callClaude({
+            agent: 'orchestrator',
+            model: OPUS_MODEL,
+            userMessage: `Analyze this content creation session and extract learnings for each agent's memory.
+
+== SESSION DATA ==
+Topic: ${JSON.stringify(sessionTopic)}
+Copy produced: ${JSON.stringify(sessionCopy)}${draftSummary}${chatSummary}
+
+== CURRENT AGENT MEMORIES ==
+${JSON.stringify(currentMemories, null, 2)}
+
+For EACH agent (orchestrator, researcher, copywriter, designer, publisher, analyst), identify NEW insights from this session that should be MERGED into their existing memory. Only add genuinely new learnings — don't duplicate what's already there.
+
+Examples of good learnings:
+- Researcher: "client prefers Salmon DNA branding over Korean Glass Skin for this treatment"
+- Copywriter: "carousel format works well for treatment comparisons"
+- Designer: "user preferred close-up character shots over full-body"
+- Orchestrator: "Dermal Fillers + Ramadan = high engagement combo"
+
+Output JSON — each key is an agent name, value is an object of new key-value pairs to MERGE into their memory:
+{
+  "orchestrator": { "new_key": "new value" },
+  "researcher": { "new_key": "new value" },
+  "copywriter": {},
+  "designer": {},
+  "publisher": {},
+  "analyst": {}
+}
+
+Use empty {} for agents with no new learnings. Keep values concise.`,
+            temperature: 0.2,
+            maxTokens: 4096,
+          });
+
+          const memUpdates = parseJSON<Record<string, Record<string, unknown>>>(memResponse.text);
+
+          if (memUpdates) {
+            await send({ type: 'step', step: 'Saving learnings to agent memories...' });
+            let updatedCount = 0;
+
+            for (const agent of allAgents) {
+              const newData = memUpdates[agent];
+              if (newData && Object.keys(newData).length > 0) {
+                const existing = currentMemories[agent] as Record<string, unknown> || {};
+                const merged = { ...existing, ...newData };
+                await saveAgentMemory(agent, merged);
+                updatedCount++;
+              }
+            }
+
+            await logDecision(
+              'orchestrator',
+              'save_to_memory',
+              `Extracted learnings from session (${sessionTopic?.title || 'unknown topic'}), updated ${updatedCount} agent memories`,
+              JSON.stringify(Object.fromEntries(
+                Object.entries(memUpdates).filter(([, v]) => Object.keys(v).length > 0).map(([k, v]) => [k, Object.keys(v)])
+              )),
+            );
+
+            await send({
+              type: 'result',
+              success: true,
+              action: 'save_to_memory',
+              updatedAgents: updatedCount,
+              updates: Object.fromEntries(
+                Object.entries(memUpdates).filter(([, v]) => Object.keys(v).length > 0)
+              ),
+              tokens: { input: memResponse.inputTokens, output: memResponse.outputTokens },
+            });
+          } else {
+            await send({ type: 'result', success: true, action: 'save_to_memory', updatedAgents: 0, updates: {} });
+          }
           break;
         }
 

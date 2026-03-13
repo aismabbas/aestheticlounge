@@ -224,6 +224,8 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
   const [reviseContext, setReviseContext] = useState<'copy' | 'design'>('copy');
   const [publishFacebook, setPublishFacebook] = useState(false);
   const [publishResult, setPublishResult] = useState<Record<string, unknown> | null>(null);
+  const [memorySaving, setMemorySaving] = useState(false);
+  const [memorySaved, setMemorySaved] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const cancelPipeline = useCallback(() => {
@@ -264,6 +266,8 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
     setReviseQuestions([]);
     setPublishFacebook(false);
     setPublishResult(null);
+    setMemorySaving(false);
+    setMemorySaved(false);
   }, []);
 
   // ---- Entry Points ----
@@ -487,6 +491,28 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
     }
   }, [draftId, publishFacebook]);
 
+  // ---- Save to Memory ----
+
+  const saveToMemory = useCallback(async () => {
+    setMemorySaving(true);
+    // Collect full session context for AI analysis
+    const sessionContext = {
+      topic: selectedTopic,
+      copy,
+      chatMessages: chatMessages.map(m => ({ role: m.role, content: m.content })),
+      draftId,
+      entryPoint,
+    };
+
+    await streamPipeline(
+      { action: 'save_to_memory', params: sessionContext },
+      () => {},
+      () => { setMemorySaved(true); setMemorySaving(false); },
+      () => { setMemorySaving(false); },
+      newAbortSignal(),
+    );
+  }, [selectedTopic, copy, chatMessages, draftId, entryPoint, newAbortSignal]);
+
   // ---- Start on open ----
 
   const handleOpen = useCallback(() => {
@@ -653,6 +679,9 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
           {state === 'PUBLISHED' && (
             <PublishedView
               result={publishResult}
+              onSaveMemory={saveToMemory}
+              memorySaving={memorySaving}
+              memorySaved={memorySaved}
               onCreateAnother={() => {
                 reset();
                 if (entryPoint === 'auto') setState('TOPIC_PROMPT');

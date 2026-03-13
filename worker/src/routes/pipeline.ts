@@ -631,25 +631,43 @@ Output JSON with 4-5 topic suggestions:
             { label: 'ANALYST', mem: analystMem },
           ].map(({ label, mem }) => `## ${label} CONTEXT\n${mem.instructions}`).join('\n\n');
 
-          const combinedSystemPrompt = `${buildSystemPrompt(resMem)}\n\n${agentContextBlocks}`;
+          const combinedSystemPrompt = `${buildSystemPrompt(resMem)}\n\n${agentContextBlocks}
+
+## IMPORTANT: CHAT BEHAVIOR
+You are the campaign planner — an expert marketing strategist having a conversation with the clinic owner.
+- You know EVERYTHING about Aesthetic Lounge: treatments, characters, competitors, performance data, seasonal calendar.
+- NEVER ask basic questions about the clinic that you already know from your context.
+- Your agent instructions contain guidelines/best practices, NOT hard rules. When the user explicitly asks to override a guideline (e.g. "use Salmon DNA name" despite your notes saying to rebrand it), RESPECT their request — they know their market better than the data. Acknowledge the guideline, then follow their direction.
+- Be conversational. If the user is discussing strategy, discuss it naturally. Only output topic suggestions when it makes sense.
+- Maintain full context across the conversation — reference previous messages, build on decisions made.`;
 
           await send({ type: 'step', step: `Analyzing with Opus (${chatResearch.webResults.length} web results, ${chatResearch.competitorAds.length} ads)...` });
 
-          const response = await callClaude({
-            agent: 'researcher',
-            model: OPUS_MODEL,
-            userMessage: `The user wants to create content about: "${message}"
+          // Detect if this is a follow-up (has history) or first message
+          const isFollowUp = chatHistory.length > 1;
+          const userPrompt = isFollowUp
+            ? `${message}
+
+== FRESH RESEARCH (just gathered for this message) ==
+${chatResearchBlock}
+
+Respond naturally to the user's message. Use your full knowledge of Aesthetic Lounge.
+If appropriate, suggest content topics. If the user is discussing strategy or asking questions, just answer conversationally.
+When suggesting topics, include them in a "topics" array. When just chatting, use an empty array.
+
+Output JSON (no markdown wrapping):
+{
+  "response": "your conversational reply",
+  "topics": []
+}`
+            : `The user wants to create content about: "${message}"
 Today's date: ${new Date().toISOString().split('T')[0]}
 
 == LIVE RESEARCH DATA ==
 ${chatResearchBlock}
 
-You already know our full treatment menu, characters, CPL data, competitors, and seasonal calendar from your system prompt.
-Do NOT ask the user basic questions about the clinic — use your knowledge.
-Using the real research data above, suggest 3-5 specific content ideas backed by actual market intelligence.
-Cross-reference with treatment performance data, seasonal calendar, and content categories.
-
-Keep your response concise. Each topic reasoning should cite specific findings from the research.
+You already know our full treatment menu, characters, CPL data, competitors, and seasonal calendar.
+Using the research data above, suggest 3-5 specific content ideas backed by market intelligence.
 Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter.
 
 Output JSON (no markdown wrapping):
@@ -665,7 +683,12 @@ Output JSON (no markdown wrapping):
       "character": "ayesha|meher|noor|usman"
     }
   ]
-}`,
+}`;
+
+          const response = await callClaude({
+            agent: 'researcher',
+            model: OPUS_MODEL,
+            userMessage: userPrompt,
             systemPrompt: combinedSystemPrompt,
             chatHistory,
             temperature: 0.4,

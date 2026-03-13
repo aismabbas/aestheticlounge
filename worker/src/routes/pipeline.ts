@@ -603,16 +603,21 @@ Output JSON with 4-5 topic suggestions:
           await send({ type: 'step', step: 'Searching web & competitor ads...' });
 
           // Load ALL agent memories so campaign planner chat has full project context
-          const [resMem, orchMem, copyMem, designMem, pubMem, analystMem, chatHistory, chatResearch] = await Promise.all([
+          const [resMem, orchMem, copyMem, designMem, pubMem, analystMem, chatResearch] = await Promise.all([
             loadAgentMemory('researcher'),
             loadAgentMemory('orchestrator'),
             loadAgentMemory('copywriter'),
             loadAgentMemory('designer'),
             loadAgentMemory('publisher'),
             loadAgentMemory('analyst'),
-            loadChatHistory('researcher', 4),
             gatherResearch(String(message)),
           ]);
+
+          // Use frontend conversation history (full current session) over DB history
+          const frontendHistory = (params?.history as Array<{ role: string; content: string }>) || [];
+          const chatHistory = frontendHistory.length > 0
+            ? frontendHistory.slice(-20).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+            : await loadChatHistory('researcher', 10);
           const chatResearchBlock = formatResearchForPrompt(chatResearch);
 
           // Build combined system prompt with all agent knowledge

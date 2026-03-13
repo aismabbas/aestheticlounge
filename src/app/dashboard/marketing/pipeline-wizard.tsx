@@ -296,11 +296,17 @@ export default function PipelineWizard({ open, onClose, entryPoint, onComplete }
   }, []);
 
   const sendChatMessage = useCallback(async (message: string) => {
-    setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
+    const updatedMessages = [...chatMessages, { role: 'user' as const, content: message }];
+    setChatMessages(updatedMessages);
     setState('CHAT_RESEARCHING');
 
+    // Send full conversation history so worker has context across turns
+    const history = updatedMessages
+      .filter(m => !m.topics) // exclude topic metadata, just conversational text
+      .map(m => ({ role: m.role, content: m.content }));
+
     await streamPipeline(
-      { action: 'chat_research', params: { message } },
+      { action: 'chat_research', params: { message, history } },
       (step) => setLoadingStep(step),
       (result) => {
         setChatMessages((prev) => [...prev, {

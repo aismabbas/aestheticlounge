@@ -5,6 +5,7 @@ export interface Doctor {
   specialization: string;
   bio: string;
   education: string[];
+  image: string;
   social: { instagram?: string; linkedin?: string };
 }
 
@@ -22,6 +23,7 @@ export const doctors: Doctor[] = [
       "Thread Lift Training — International Certification",
       "Aesthetic Medicine Fellowship",
     ],
+    image: "/images/team/dr-huma.jpg",
     social: {
       instagram: "https://instagram.com/aestheticloungeofficial",
     },
@@ -38,6 +40,7 @@ export const doctors: Doctor[] = [
       "FCPS Plastic Surgery — College of Physicians and Surgeons Pakistan",
       "Fellowship in Aesthetic & Reconstructive Surgery",
     ],
+    image: "/images/team/dr-zulfiqar.jpg",
     social: {
       instagram: "https://instagram.com/aestheticloungeofficial",
     },
@@ -54,9 +57,35 @@ export const doctors: Doctor[] = [
       "FCPS Dermatology — College of Physicians and Surgeons Pakistan",
       "Advanced Laser Safety & Protocols Certification",
     ],
+    image: "/images/team/dr-zonera.jpg",
     social: {
       instagram: "https://instagram.com/aestheticloungeofficial",
     },
+  },
+];
+
+export interface StaffMember {
+  slug: string;
+  name: string;
+  title: string;
+  bio: string;
+  image: string;
+}
+
+export const staff: StaffMember[] = [
+  {
+    slug: "sarah-meher",
+    name: "Sarah Meher",
+    title: "Senior Aesthetician",
+    bio: "Sarah brings expertise in skincare treatments, HydraFacials, and patient care. She ensures every client receives personalized attention and a comfortable experience throughout their treatment journey.",
+    image: "/images/team/sarah-meher.jpg",
+  },
+  {
+    slug: "iram",
+    name: "Iram",
+    title: "Aesthetician",
+    bio: "Iram specializes in laser treatments and skincare protocols, providing skilled and gentle care. Her attention to detail and warm approach make patients feel at ease during every visit.",
+    image: "/images/team/iram.jpg",
   },
 ];
 

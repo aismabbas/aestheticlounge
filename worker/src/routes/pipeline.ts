@@ -24,15 +24,7 @@ import {
 import { generateImage } from '../lib/image-gen.js';
 import { getModelImages, searchFiles, DRIVE_FOLDERS, getThumbnailUrl } from '../lib/google-drive.js';
 import {
-  brandContextBlock,
-  characterBibleBlock,
   characterDescription,
-  CHARACTER_MATCHING,
-  CONTENT_CATEGORIES,
-  SEASONAL_CALENDAR,
-  TOP_TREATMENTS,
-  treatmentBaselinesBlock,
-  imagePromptCraftBlock,
   storyDirectorSystemPrompt,
 } from '../lib/brand-context.js';
 import { renderOverlayAndUpload, type OverlayTemplate } from '../lib/render-overlay.js';
@@ -41,56 +33,8 @@ import { gatherResearch, formatResearchForPrompt } from '../lib/web-search.js';
 const OPUS_MODEL = 'claude-opus-4-6';
 
 // ---------------------------------------------------------------------------
-// Rich prompt blocks — injected into agent user messages
+// Helpers — dynamic per-request context only (rules come from DB via buildSystemPrompt)
 // ---------------------------------------------------------------------------
-
-const RESEARCHER_CONTEXT = `
-${brandContextBlock()}
-
-== CONTENT DIVERSITY (rotate across these 10 categories) ==
-${CONTENT_CATEGORIES.map((c, i) => `${i + 1}. ${c}`).join('\n')}
-
-== TOP TREATMENTS BY PERFORMANCE ==
-${TOP_TREATMENTS.map((t) => `- ${t.name}: CPL PKR ${t.cpl} (${t.note})`).join('\n')}
-- Avoid standalone: Hair PRP (high CPL), Facial (saturated market)
-
-== SEASONAL CALENDAR (Pakistan) ==
-${Object.entries(SEASONAL_CALENDAR).map(([k, v]) => `- ${k}: months ${v.months.join(',')}, themes: ${v.themes.join(', ')}`).join('\n')}
-`;
-
-const COPYWRITER_POST_RULES = `
-== COPY RULES (SINGLE POST) ==
-- Hook first line: question, stat, or bold claim
-- 150-300 words, educational + aspirational tone
-- Mention "Aesthetic Lounge" and "Dr. Huma Abbas" naturally
-- End with CTA: "Book your free consultation — DM us or visit aestheticloungeofficial.com"
-- WhatsApp: +92 327 6620000
-- Include medical disclaimer: "Individual results may vary. Consult with our medical professionals."
-- NEVER mention prices
-`;
-
-const COPYWRITER_CAROUSEL_RULES = `
-== CAROUSEL RULES ==
-- Structure: Hook slide → 3-5 educational slides → CTA slide (5-7 total)
-- Include "scene_descriptions" array with visual description for EACH slide
-- Slide 1: Hook — bold question or surprising fact
-- Slides 2-5: Educational content — myths, steps, comparisons, facts
-- Last slide: CTA — "Book your free consultation" + mention Dr. Huma Abbas
-- Mention "Aesthetic Lounge" on first and last slides
-- CTA in CAPTION ONLY — WhatsApp +92 327 6620000 — NEVER "Link in bio"
-- NEVER put CTA text ON images — images are visual only, no text overlay
-- Caption ends with: "Book now — DM us or visit aestheticloungeofficial.com"
-`;
-
-const COPYWRITER_REEL_RULES = `
-== REEL RULES ==
-- 4-6 scenes, 25-45 seconds total
-- Include "scene_descriptions" array — one per scene with visual + action description
-- Include "voiceover_text" — 30-60 words per scene, educational, conversational
-- Story arc: HOOK (tension) → DEEPEN (pain) → PIVOT (solution) → PAYOFF (result) → CLOSE (brand CTA)
-- End voiceover: "Book your free consultation at Aesthetic Lounge"
-- Character must wear the SAME outfit in every scene
-`;
 
 function copywriterCharacterBlock(characterName: string): string {
   const desc = characterDescription(characterName);
@@ -98,57 +42,17 @@ function copywriterCharacterBlock(characterName: string): string {
   return `\n== SELECTED CHARACTER ==\n${desc}\n`;
 }
 
-const DESIGNER_CONTEXT = `
-${brandContextBlock()}
-
-== CHARACTER BIBLE ==
-${characterBibleBlock()}
-
-== CHARACTER-TREATMENT MATCHING ==
-${Object.entries(CHARACTER_MATCHING).map(([cat, char]) => `- ${cat}: ${char}`).join('\n')}
-
-${imagePromptCraftBlock()}
-
-== BACKGROUND DIVERSITY (rotate across scenes/posts) ==
-- Luxury clinic interior (cream walls, gold-framed mirrors, soft diffused lighting)
-- Treatment room (clean, professional, medical equipment subtle)
-- DHA Phase 7 street / boulevard (modern, upscale Pakistani neighborhood)
-- Luxury home vanity / bathroom (marble, warm lighting)
-- Garden terrace with fairy lights (evening, warm glow)
-- Modern upscale cafe (natural light, contemporary Pakistani interior)
-- ALWAYS: Pakistani/Lahore context — NEVER Western settings
-
-== REEL MODEL AESTHETIC ==
-- Confident, poised, natural expression (never over-posed)
-- Fitted but modest clothing matching character bible
-- Flawless skin texture — the "after treatment" glow
-- Same outfit every scene for character consistency
-
-== CAROUSEL CTA RULE ==
-- NEVER put CTA buttons or "Book Now" text on carousel images
-- Images are visual/educational only — the platform handles CTA buttons
-- Last slide can show brand logo + clinic name, but NO clickable CTA text
-
-== MUSIC STYLE GUIDE (for reels) ==
-- Piano: emotional, personal stories, before/after reveals
-- Acoustic guitar: warm, educational, approachable content
-- Lo-fi beats: modern, young audience, trendy hooks
-- Orchestral: dramatic reveals, premium positioning
-- Ambient: calm, spa treatments, relaxation content
-- Jazz: sophisticated, evening events, luxury positioning
-`;
-
-const ANALYST_CONTEXT = `
-${treatmentBaselinesBlock()}
-
-== PERFORMANCE THRESHOLDS ==
-- CPL > PKR 2.50 = underperformer → pause or refresh creative
-- CPL < PKR 1.50 = top performer → increase budget
-- CTR < 0.80% = weak creative → needs new hook/visual
-- CTR > 2.00% = strong creative → scale
-- Frequency > 3.0 = audience fatigue → refresh creative
-- Target CPL: < PKR 2.00 (best achieved: PKR 1.23)
-`;
+/** Content-type-specific structural requirements for copywriter output. */
+function copywriterTypeInstructions(ct: string): string {
+  if (ct === 'carousel') return `
+Include "scene_descriptions" array with visual description for EACH slide.
+Structure: Hook slide → 3-5 educational slides → CTA slide (5-7 total).`;
+  if (ct === 'reel') return `
+Include "scene_descriptions" array — one per scene with visual + action description.
+Include "voiceover_text" — 30-60 words per scene, educational, conversational.
+4-6 scenes, 25-45 seconds total. Story arc: HOOK → DEEPEN → PIVOT → PAYOFF → CLOSE.`;
+  return `Single post: 150-300 words, hook first line, end with CTA, include medical disclaimer.`;
+}
 
 // ---------------------------------------------------------------------------
 // Route
@@ -215,9 +119,10 @@ pipelineRoute.post('/', async (c) => {
           const resResponse = await callClaude({
             agent: 'researcher',
             userMessage: `Research this topic for an Instagram campaign: ${chosenTopic}
-${RESEARCHER_CONTEXT}
+
 Gather: treatment facts, competitor positioning, trending hooks, target audience insights, seasonal relevance.
 Consider which content category fits best and which character matches the treatment.
+Today's date: ${new Date().toISOString().split('T')[0]}
 
 Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor_angle": "...", "audience_insight": "...", "recommended_character": "ayesha|meher|noor|usman", "content_type_suggestion": "post|carousel|reel", "content_category": "..." }`,
             systemPrompt: buildSystemPrompt(resMem),
@@ -231,7 +136,6 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
 
           const orchCharacter = (resParsed as Record<string, unknown>)?.recommended_character as string || '';
           const copyMem = await loadAgentMemory('copywriter');
-          const typeRules = chosenType === 'carousel' ? COPYWRITER_CAROUSEL_RULES : chosenType === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
           const copyResponse = await callClaude({
             agent: 'copywriter',
             userMessage: `Write Instagram ${chosenType} copy for: ${chosenTopic}
@@ -239,7 +143,7 @@ Output JSON: { "summary": "...", "key_facts": [...], "hooks": [...], "competitor
 RESEARCH CONTEXT:
 ${JSON.stringify(resParsed)}
 ${copywriterCharacterBlock(orchCharacter)}
-${typeRules}
+${copywriterTypeInstructions(chosenType)}
 
 Output JSON:
 {
@@ -323,40 +227,38 @@ Output JSON:
           const response = await callClaude({
             agent: 'researcher',
             model: OPUS_MODEL,
-            userMessage: `You are the Head of Research for Aesthetic Lounge, a premium medical aesthetics clinic in DHA Phase 7, Lahore. Conduct deep research on this topic for an Instagram campaign: "${topic}"
-
-${RESEARCHER_CONTEXT}
+            userMessage: `Conduct deep research on this topic for an Instagram campaign: "${topic}"
+Today's date: ${new Date().toISOString().split('T')[0]}
 
 == LIVE RESEARCH DATA (gathered just now) ==
 ${externalResearch}
 
-== YOUR MISSION ==
-Synthesize the live research data above with your knowledge to produce actionable insights. You have REAL competitor ad data and current web trends — use them.
+Synthesize the live research data above with your knowledge. You have REAL competitor ad data and current web trends — use them.
 
 Analyze:
-1. **Market landscape**: What are competitors doing RIGHT NOW? What messaging works? What gaps exist?
-2. **Trending hooks**: Based on current web trends and successful ads, what angles are hot?
-3. **Audience psychology**: What pain points, desires, and triggers resonate with Pakistani women seeking aesthetics?
-4. **Content opportunity**: Where is the whitespace — what is NO ONE talking about that we should own?
-5. **Seasonal relevance**: Given today's date (${new Date().toISOString().split('T')[0]}), what's timely in Pakistan?
-6. **Competitor weakness**: Based on the active ads, where are competitors falling short that we can exploit?
+1. Market landscape — what competitors are doing, messaging gaps
+2. Trending hooks — angles that are hot based on research data
+3. Audience psychology — pain points, desires, triggers for Pakistani women
+4. Content opportunity — whitespace no one is talking about
+5. Seasonal relevance — what's timely in Pakistan right now
+6. Competitor weakness — where they're falling short
 
 Output JSON:
 {
-  "summary": "2-3 sentence executive summary of the research",
-  "key_facts": ["5-8 specific, data-backed facts — cite sources from web results where possible"],
-  "hooks": ["5 proven hook formats — inspired by what's working in competitor ads and trends"],
+  "summary": "2-3 sentence executive summary",
+  "key_facts": ["5-8 data-backed facts — cite sources from web results"],
+  "hooks": ["5 proven hook formats from competitor analysis"],
   "competitor_analysis": {
     "active_advertisers": ${adCount},
-    "common_messaging": "what most competitors are saying",
+    "common_messaging": "what competitors are saying",
     "gaps": "what nobody is talking about",
-    "our_advantage": "how Aesthetic Lounge can differentiate"
+    "our_advantage": "how to differentiate"
   },
-  "audience_insight": "deep insight about the target audience psychographics",
-  "trending_angles": ["3 current trends we can ride"],
+  "audience_insight": "deep psychographic insight",
+  "trending_angles": ["3 current trends to ride"],
   "recommended_character": "ayesha|meher|noor|usman — with reasoning",
   "content_type_suggestion": "post|carousel|reel — with reasoning",
-  "content_category": "which of the 10 diversity categories fits best",
+  "content_category": "which content diversity category fits best",
   "suggested_headline": "one killer headline based on all research"
 }`,
             systemPrompt: buildSystemPrompt(mem),
@@ -396,13 +298,12 @@ Output JSON:
 
           const researchContext = params?.research ? `\n\nRESEARCH CONTEXT:\n${JSON.stringify(params.research)}` : '';
           const wcCharacter = (params?.character as string) || '';
-          const wcTypeRules = ct === 'carousel' ? COPYWRITER_CAROUSEL_RULES : ct === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
 
           const response = await callClaude({
             agent: 'copywriter',
             userMessage: `Write Instagram ${ct} copy for: ${topic}${researchContext}
 ${copywriterCharacterBlock(wcCharacter)}
-${wcTypeRules}
+${copywriterTypeInstructions(ct)}
 
 Output JSON:
 {
@@ -492,11 +393,8 @@ Output JSON:
             agent: 'designer',
             userMessage: `${designBrief}
 
-${DESIGNER_CONTEXT}
-
 Design this content. Choose approach and generate image prompts.
-Use the CHARACTER BIBLE above for full character descriptions in every prompt.
-Rotate backgrounds across scenes — never repeat the same setting consecutively.
+Use full character descriptions in every prompt. Rotate backgrounds — never repeat the same setting consecutively.
 
 Output JSON:
 {
@@ -544,12 +442,11 @@ Output JSON:
           const response = await callClaude({
             agent: 'analyst',
             userMessage: `Analyze recent AL Instagram ad performance.
-${ANALYST_CONTEXT}
 
-Based on the thresholds above, provide:
+Provide:
 1. Overall performance summary
 2. Top performing creatives and why
-3. Underperformers to pause (CPL > 2.50 or CTR < 0.80%)
+3. Underperformers to pause
 4. Budget recommendations (scale winners, pause losers)
 5. Next content suggestions based on data
 
@@ -600,24 +497,17 @@ Output JSON: { "summary": "...", "top_performers": [...], "pause_candidates": [.
           const orchResponse = await callClaude({
             agent: 'orchestrator',
             model: OPUS_MODEL,
-            userMessage: `Today is ${new Date().toISOString().split('T')[0]}. You are the Chief Marketing Strategist for Aesthetic Lounge. Using REAL market data gathered moments ago, identify the most high-impact content topics.
-
-${RESEARCHER_CONTEXT}${pastTopicsBlock}
-
+            userMessage: `Today is ${new Date().toISOString().split('T')[0]}. Using REAL market data gathered moments ago, identify the most high-impact content topics.
+${pastTopicsBlock}
 == LIVE MARKET INTELLIGENCE ==
 ${trendResearch}
 
 == COMPETITOR LANDSCAPE ==
 ${competitorResearch}
 
-== STRATEGY REQUIREMENTS ==
-- Use the LIVE data above — don't guess what's trending, you have REAL search results and active competitor ads
-- Find gaps in competitor messaging we can exploit
-- Identify treatments gaining search momentum
-- Match seasonal timing in Pakistan (use SEASONAL CALENDAR)
-- Cross-reference with our TOP TREATMENTS CPL data — prioritize high-ROI treatments
-- Rotate across the 10 CONTENT DIVERSITY categories
-- Include a MIX: at least 1 "post", at least 1 "carousel", optionally a "reel". Single posts are our bread and butter.
+Use the LIVE data above — don't guess what's trending, you have REAL search results and active competitor ads.
+Find gaps in competitor messaging. Identify treatments gaining search momentum. Match seasonal timing.
+Include a MIX: at least 1 "post", at least 1 "carousel", optionally a "reel". Single posts are our bread and butter.
 
 Output JSON with 4-5 topic suggestions:
 {
@@ -708,7 +598,7 @@ Output JSON with 4-5 topic suggestions:
             agent: 'researcher',
             model: OPUS_MODEL,
             userMessage: `The user wants to create content about: "${message}"
-${RESEARCHER_CONTEXT}
+Today's date: ${new Date().toISOString().split('T')[0]}
 
 == LIVE RESEARCH DATA ==
 ${chatResearchBlock}
@@ -716,8 +606,8 @@ ${chatResearchBlock}
 Using the real research data above, suggest 3-5 specific content ideas backed by actual market intelligence.
 Cross-reference with treatment performance data, seasonal calendar, and content categories.
 
-IMPORTANT: Keep your response concise. Each topic reasoning should cite specific findings from the research.
-IMPORTANT: Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter.
+Keep your response concise. Each topic reasoning should cite specific findings from the research.
+Include a MIX of content types — at least 1 "post" and at least 1 "carousel". Single posts are our bread and butter.
 
 Output JSON (no markdown wrapping):
 {
@@ -796,7 +686,7 @@ Output JSON (no markdown wrapping):
             agent: 'researcher',
             model: OPUS_MODEL,
             userMessage: `Deep research for Instagram ${ct} about: ${topic}
-${RESEARCHER_CONTEXT}
+Today's date: ${new Date().toISOString().split('T')[0]}
 
 == LIVE MARKET DATA ==
 ${pipeResearchBlock}
@@ -812,7 +702,6 @@ Output JSON: { "key_facts": ["5+ data-backed facts"], "hooks": ["5 proven hook f
           const research = parseJSON(resResponse.text);
 
           const rpCharacter = (research as Record<string, unknown>)?.recommended_character as string || (params?.character as string) || '';
-          const rpTypeRules = ct === 'carousel' ? COPYWRITER_CAROUSEL_RULES : ct === 'reel' ? COPYWRITER_REEL_RULES : COPYWRITER_POST_RULES;
           const copyResponse = await callClaude({
             agent: 'copywriter',
             userMessage: `Write Instagram ${ct} copy for: ${topic}
@@ -820,7 +709,7 @@ Output JSON: { "key_facts": ["5+ data-backed facts"], "hooks": ["5 proven hook f
 RESEARCH:
 ${JSON.stringify(research)}
 ${copywriterCharacterBlock(rpCharacter)}
-${rpTypeRules}
+${copywriterTypeInstructions(ct)}
 
 Output JSON:
 {
@@ -950,7 +839,7 @@ Pick a music style that matches the mood.`,
             } else if (ct === 'post') {
               const designResponse = await callClaude({
                 agent: 'designer',
-                userMessage: `Design a branded social media post for:\nTopic: ${topic}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nYou must output JSON with two parts:\n1. "image_prompt" — detailed fal.ai prompt for the BACKGROUND photo (full character description, Pakistani/DHA Lahore setting, technical specs, NO text in the image)\n2. "template" — one of: "treatment", "tips", "stats", "overlay", "lifestyle"\n3. "template_params" — text overlay params matching the template:\n   - treatment: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cta }\n   - tips: { category, headline, headline-highlight, tip1, tip2, tip3, tip4, tip5, cta }\n   - stats: { category, headline, headline-highlight, big-number, big-label, body, cta }\n   - overlay: { category, headline, headline-highlight, subtitle, hook }\n   - lifestyle: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cities, model-name, model-title }\n\nUse the copy headline/caption for inspiration. Always include CTA "Book a Consultation" for treatment/tips/stats templates.\n\nOutput ONLY valid JSON: { "image_prompt": "...", "template": "...", "template_params": { ... } }`,
+                userMessage: `Design a branded social media post for:\nTopic: ${topic}\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\nYou must output JSON with:\n1. "image_prompt" — detailed fal.ai prompt for the BACKGROUND photo (full character description, Pakistani/DHA Lahore setting, technical specs, NO text in the image)\n2. "template" — one of: "treatment", "tips", "stats", "overlay", "lifestyle"\n3. "template_params" — text overlay params matching the template:\n   - treatment: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cta }\n   - tips: { category, headline, headline-highlight, tip1, tip2, tip3, tip4, tip5, cta }\n   - stats: { category, headline, headline-highlight, big-number, big-label, body, cta }\n   - overlay: { category, headline, headline-highlight, subtitle, hook }\n   - lifestyle: { category, headline, headline-highlight, body, stat1, stat1-label, stat2, stat2-label, stat3, stat3-label, cities, model-name, model-title }\n\nUse the copy headline/caption for inspiration. Always include CTA "Book a Consultation" for treatment/tips/stats templates.\n\nOutput ONLY valid JSON: { "image_prompt": "...", "template": "...", "template_params": { ... } }`,
                 systemPrompt: buildSystemPrompt(designerMem),
                 temperature: 0.3,
                 maxTokens: 1500,
@@ -992,7 +881,7 @@ Pick a music style that matches the mood.`,
             } else {
               const designResponse = await callClaude({
                 agent: 'designer',
-                userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: reel\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\n${DESIGNER_CONTEXT}\n\nUse the full character description from the CHARACTER BIBLE above.\n\nOutput ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs (sharp focus, 8K, f/2.8, deep depth of field). No text overlay.`,
+                userMessage: `Create an image generation prompt for:\nTopic: ${topic}\nContent type: reel\nHeadline: ${copy?.headline || topic}\nCharacter: ${characterName}\n\nUse the full character description from your character bible.\n\nOutput ONLY the enhanced prompt string. Include full character description, Pakistani/DHA Lahore setting, and technical specs. No text overlay.`,
                 systemPrompt: buildSystemPrompt(designerMem),
                 temperature: 0.3,
                 maxTokens: 500,
@@ -1308,7 +1197,7 @@ Pick a music style that matches the mood.`,
           await send({ type: 'step', step: 'Crafting per-slide design...' });
           const ciPromptResponse = await callClaude({
             agent: 'designer',
-            userMessage: `Design a branded carousel for:\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\n${DESIGNER_CONTEXT}\n\nGenerate a JSON object with "slides" array (5 slides). Each slide needs:\n- "image_prompt": Nano Banana Pro prompt for BACKGROUND photo (full character description, unique setting, no text)\n- "template": "carousel_hook" for slide 1, "carousel_info" for middle slides, "carousel_cta" for last slide\n- "template_params": text overlay params:\n  - carousel_hook: { category, headline, headline-highlight }\n  - carousel_info: { headline, body, big-number, big-label, slide-number, slide-total }\n  - carousel_cta: { headline, cta, subtitle }\n\nSlide 1 = Hook (bold question/fact). Slides 2-4 = Educational info with stats. Slide 5 = CTA "Book a Consultation".\n\nOutput ONLY valid JSON: { "slides": [ { "image_prompt": "...", "template": "...", "template_params": { ... } }, ... ] }`,
+            userMessage: `Design a branded carousel for:\nTopic: ${ciDraft.topic}\nHeadline: ${ciDraft.headline || 'N/A'}\nCharacter: ${ciCharName}\nCaption: ${ciDraft.caption?.slice(0, 500) || 'N/A'}\n\nGenerate a JSON object with "slides" array (5 slides). Each slide needs:\n- "image_prompt": Nano Banana Pro prompt for BACKGROUND photo (full character description, unique setting, no text)\n- "template": "carousel_hook" for slide 1, "carousel_info" for middle slides, "carousel_cta" for last slide\n- "template_params": text overlay params:\n  - carousel_hook: { category, headline, headline-highlight }\n  - carousel_info: { headline, body, big-number, big-label, slide-number, slide-total }\n  - carousel_cta: { headline, cta, subtitle }\n\nSlide 1 = Hook (bold question/fact). Slides 2-4 = Educational info with stats. Slide 5 = CTA "Book a Consultation".\n\nOutput ONLY valid JSON: { "slides": [ { "image_prompt": "...", "template": "...", "template_params": { ... } }, ... ] }`,
             systemPrompt: buildSystemPrompt(ciDesignerMem),
             temperature: 0.4,
             maxTokens: 3000,

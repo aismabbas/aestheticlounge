@@ -51,7 +51,7 @@ const timeline = [
     year: "2020",
     title: "Growing the Team",
     description:
-      "Dr. Sarah Khan and Dr. Ahmed Raza joined the team, expanding our capabilities into body contouring and dental aesthetics.",
+      "Dr. Zulfiqar and Dr. Zonera joined the team, expanding our capabilities into plastic surgery, dermatology, and advanced laser treatments.",
   },
   {
     year: "2022",

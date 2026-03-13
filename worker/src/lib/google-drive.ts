@@ -17,6 +17,7 @@ export const DRIVE_FOLDERS = {
   research: '1P_UClKEvXhskkq893-j5tj-Chq6lwGAy',
   reels: '1ZRN4fIYu9Tks6mB2-y2I441dhb5Kaf8-',
   logo: '1pS_I9buHo-try9c3gtgk5ZKR5FVlD9sm',
+  team_photos: '1_NEYboYpymclk5qBrYp4BRTB7A6kDCo2',
 } as const;
 
 export type DriveFolderKey = keyof typeof DRIVE_FOLDERS;

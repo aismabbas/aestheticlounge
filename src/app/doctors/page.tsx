@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import { doctors } from "@/data/doctors";
+import Image from "next/image";
+import { doctors, staff } from "@/data/doctors";
 
 export const metadata: Metadata = {
   title: "Our Doctors | Aesthetic Lounge — DHA Phase 8, Lahore",
@@ -29,15 +30,15 @@ export default function DoctorsPage() {
               key={doc.slug}
               className="grid gap-8 lg:grid-cols-3 items-start"
             >
-              {/* Photo placeholder */}
-              <div className={`aspect-[3/4] overflow-hidden rounded-2xl bg-warm-white border border-gold-pale flex items-center justify-center ${i % 2 === 1 ? "lg:order-last" : ""}`}>
-                <div className="text-center text-text-muted">
-                  <div className="text-6xl mb-3">
-                    {doc.slug === "dr-zulfiqar" ? "👨‍⚕️" : "👩‍⚕️"}
-                  </div>
-                  <p className="text-sm font-medium">{doc.name}</p>
-                  <p className="text-xs mt-1">Photo coming soon</p>
-                </div>
+              {/* Photo */}
+              <div className={`aspect-[3/4] overflow-hidden rounded-2xl bg-warm-white border border-gold-pale ${i % 2 === 1 ? "lg:order-last" : ""}`}>
+                <Image
+                  src={doc.image}
+                  alt={doc.name}
+                  width={400}
+                  height={533}
+                  className="h-full w-full object-cover"
+                />
               </div>
 
               {/* Info */}
@@ -104,6 +105,42 @@ export default function DoctorsPage() {
                 </div>
               </div>
             </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Staff Section */}
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
+        <h2 className="mb-10 text-center font-serif text-3xl text-text-dark">
+          Our Team
+        </h2>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-2 max-w-3xl mx-auto">
+          {staff.map((member) => (
+            <div
+              key={member.slug}
+              className="overflow-hidden rounded-2xl border border-gold-pale bg-white"
+            >
+              <div className="aspect-[3/4] overflow-hidden">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  width={400}
+                  height={533}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="font-serif text-xl text-text-dark">
+                  {member.name}
+                </h3>
+                <p className="mt-1 text-sm font-medium uppercase tracking-widest text-gold">
+                  {member.title}
+                </p>
+                <p className="mt-3 text-sm text-text-light leading-relaxed">
+                  {member.bio}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       </section>

@@ -1,21 +1,23 @@
+import Image from "next/image";
+
 const doctors = [
   {
     name: "Dr. Huma",
     title: "Aesthetic Physician",
     bio: "Expert aesthetic physician specializing in advanced non-surgical treatments, facial rejuvenation, and personalized skincare solutions.",
-    placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
+    image: "/images/team/dr-huma.jpg",
   },
   {
     name: "Dr. Zulfiqar",
     title: "Plastic Surgeon",
     bio: "Skilled plastic surgeon with expertise in facial contouring, body sculpting, and reconstructive aesthetic procedures.",
-    placeholder: "\uD83D\uDC68\u200D\u2695\uFE0F",
+    image: "/images/team/dr-zulfiqar.jpg",
   },
   {
     name: "Dr. Zonera",
     title: "Dermatologist",
     bio: "Experienced dermatologist specializing in advanced skin treatments, laser therapies, and clinical skincare for all skin types.",
-    placeholder: "\uD83D\uDC69\u200D\u2695\uFE0F",
+    image: "/images/team/dr-zonera.jpg",
   },
 ];
 
@@ -43,11 +45,15 @@ export default function DoctorsSection() {
               key={doc.name}
               className="overflow-hidden rounded-[20px] border border-transparent bg-cream transition-all duration-500 hover:-translate-y-2 hover:border-gold-light hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
             >
-              {/* Photo placeholder */}
-              <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-warm-white to-gold-pale">
-                <div className="absolute inset-0 flex items-center justify-center text-7xl text-gold-light opacity-50">
-                  {doc.placeholder}
-                </div>
+              {/* Photo */}
+              <div className="relative aspect-[3/4] overflow-hidden">
+                <Image
+                  src={doc.image}
+                  alt={doc.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
                 <div className="absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-cream/50 to-transparent" />
               </div>
 
